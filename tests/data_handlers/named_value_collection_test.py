@@ -6,7 +6,7 @@ from process_manager.named_value import ValueName
 
 def test_dict_setitem_validation():
     """Ensure __setitem__ enforces the key matches the name."""
-    d = NamedValueDict()
+    d = NamedValueDict[int]()
     nv = NamedValue[int](name=ValueName("correct_name"))
 
     # Happy path
@@ -19,7 +19,7 @@ def test_dict_setitem_validation():
 
 def test_dict_force_update():
     """Ensure force_update actually overwrites without error."""
-    d = NamedValueDict()
+    d = NamedValueDict[int]()
     nv1 = NamedValue[int](name=ValueName("x"), stored_value=1)
     nv2 = NamedValue[int](name=ValueName("x"), stored_value=2)
 
@@ -32,7 +32,7 @@ def test_dict_force_update():
 
 def test_dict_to_list_conversion():
     """Test the @property conversion to NamedValueList."""
-    d = NamedValueDict()
+    d = NamedValueDict[int]()
     d.update_many(
         [
             NamedValue[int](name=ValueName("a"), stored_value=1),
@@ -48,7 +48,7 @@ def test_dict_to_list_conversion():
 
 def test_list_indexing_and_slicing():
     """Verify list-like access works for both ints and slices."""
-    nv_list = NamedValueList()
+    nv_list = NamedValueList[int]()
     items = [
         NamedValue[int](name=ValueName("a")),
         NamedValue[int](name=ValueName("b")),
@@ -68,7 +68,7 @@ def test_list_indexing_and_slicing():
 
 def test_list_delitem_and_pop():
     """Ensure list removal methods work correctly."""
-    nv_list = NamedValueList()
+    nv_list = NamedValueList[int]()
     nv = NamedValue[int](name=ValueName("a"))
     nv_list.append(nv)
 
@@ -87,7 +87,7 @@ def test_list_delitem_and_pop():
 
 def test_list_find_by_name():
     """Test the name lookup helper in the list."""
-    nv_list = NamedValueList()
+    nv_list = NamedValueList[str]()
     nv = NamedValue[str](name=ValueName("target"), stored_value="hit")
     nv_list.append(nv)
 
@@ -99,7 +99,7 @@ def test_list_find_by_name():
 
 def test_list_to_dict_conversion():
     """Verify ordered list can transform into a keyed dict."""
-    nv_list = NamedValueList()
+    nv_list = NamedValueList[int]()
     nv_list.append(NamedValue[int](name=ValueName("x"), stored_value=100))
 
     d = nv_list.to_named_value_dict
@@ -109,7 +109,7 @@ def test_list_to_dict_conversion():
 
 def test_list_to_dict_duplicate_fail():
     """List to Dict conversion should fail if list contains duplicate names."""
-    nv_list = NamedValueList()
+    nv_list = NamedValueList[int]()
     nv_list.append(NamedValue[int](name=ValueName("dup")))
     nv_list.append(NamedValue[int](name=ValueName("dup")))  # Valid in list
 

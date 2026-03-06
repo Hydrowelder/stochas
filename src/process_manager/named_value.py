@@ -160,7 +160,7 @@ class NamedValue[T](BaseModel, NumericMixin):
         return self.state is NamedValueState.SET
 
 
-class NamedValueDict(BaseDict[NamedValue[Any]]):
+class NamedValueDict[T](BaseDict[NamedValue[T]]):
     """Dictionary specifically for sampled results."""
 
     def get_value(self, name: ValueName | str) -> Any:
@@ -177,7 +177,7 @@ class NamedValueDict(BaseDict[NamedValue[Any]]):
         return NamedValueList(list(self.values()))
 
 
-class NamedValueList(BaseList[NamedValue[Any]]):
+class NamedValueList[T](BaseList[NamedValue[T]]):
     """List specifically for sampled results."""
 
     @property
