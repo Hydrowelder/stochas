@@ -43,13 +43,12 @@ def test_serialization_roundtrip_dict():
     """Verify Pydantic serialization preserves state."""
     named_dict = NamedValueDict[NDArray]()
     dist_dict = DistributionDict()
-    NormalDistribution(name=DistName("test"), mu=10, sigma=2, seed=123).update_dicts(
-        dist_dict=dist_dict, named_value_dict=named_dict, size=2
-    )
+    NormalDistribution(
+        name=DistName("test"), mu=10, sigma=2, seed=123
+    ).sample_and_update_dicts(dist_dict=dist_dict, named_value_dict=named_dict, size=2)
 
     json_data = named_dict.model_dump_json()
-
-    _new_dist_dict = NamedValueDict.model_validate_json(json_data)
+    _new_dist_dict = NamedValueDict[NDArray].model_validate_json(json_data)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,8 @@ from process_manager import (
     DistName,
     PoissonDistribution,
 )
+from process_manager.distribution import DistributionDict, PermutationDistribution
+from process_manager.named_value import NamedValueDict
 
 
 def test_categorical_pmf_cdf():
@@ -105,3 +107,107 @@ def test_discrete_seeding_consistency():
     b1 = BernoulliDistribution(name=DistName("x"), p=0.5, seed=seed)
     b2 = BernoulliDistribution(name=DistName("y"), p=0.5, seed=seed)
     assert not np.array_equal(b1.sample(20), b2.sample(20))
+
+
+def test_permutation_integrity():
+    """Verify a single draw contains all original items exactly once and is squeezable."""
+    items = ["Alpha", "Beta", "Gamma"]
+    dist = PermutationDistribution[str](name=DistName("task_order"), items=items)
+
+    # Draw size=1
+    sample = dist.sample(size=1)
+
+    # Verify 2D shape (size, items) -> (1, 3)
+    assert sample.shape == (1, 3)
+
+    # Verify Squeeze works
+    squeezed = sample.squeeze()
+    assert squeezed.shape == (3,)
+    assert set(squeezed) == set(items)
+
+
+def test_permutation_multiple_size():
+    """Verify drawing multiple permutations returns a (size, N) array."""
+    items = [1, 2, 3, 4]
+    dist = PermutationDistribution[int](name=DistName("multi_test"), items=items)
+
+    size = 5
+    # Move past nominal trial to use draw()
+    dist.trial_num = 1
+    samples = dist.sample(size=size)
+
+    assert samples.shape == (size, 4)
+    # Ensure every row is a valid shuffle
+    for row in samples:
+        assert set(row) == set(items)
+
+
+def test_permutation_nominal_fallback():
+    """Verify trial_num=0 returns the nominal value inside a 2D array."""
+    items = [1, 2, 3]
+    nominal_order = [3, 2, 1]
+
+    dist = PermutationDistribution[int](
+        name=DistName("nominal_test"), items=items, nominal=nominal_order
+    )
+
+    dist.trial_num = 0
+    sample = dist.sample(size=1)
+
+    # Check that it's wrapped in a list/array for 2D structure
+    assert sample.shape == (1, 3)
+    assert np.array_equal(sample[0], nominal_order)
+
+
+def test_permutation_serialization_and_typing():
+    """
+    Verify that sample_and_update_dicts resolves the TypeVar 'T'
+    even with the nested array structure.
+    """
+    items = [1.1, 2.2, 3.3]  # Float items
+    dist = PermutationDistribution[float](name=DistName("ser_test"), items=items)
+
+    dist_dict = DistributionDict()
+    named_dict = NamedValueDict()
+
+    # This call relies on: concrete_type = samples.dtype.type().item().__class__
+    # Since samples is now a 2D array of floats, .item() on a float64
+    # should still resolve to <class 'float'>.
+    nv = dist.sample_and_update_dicts(
+        dist_dict=dist_dict, named_value_dict=named_dict, size=1
+    )
+
+    # 1. Check runtime type resolution
+    # nv.stored_value is the 2D array
+    assert nv.stored_value.dtype.kind == "f"  # pyright: ignore[reportAttributeAccessIssue]
+
+    # 2. Check Serialization
+    dumped = nv.model_dump()
+
+    # Should be a nested list: [[1.1, 2.2, 3.3]]
+    assert isinstance(dumped["stored_value"], np.ndarray)
+    assert isinstance(dumped["stored_value"][0], np.ndarray)
+    assert isinstance(dumped["stored_value"][0][0], float)
+
+
+def test_permutation_pmf_logic():
+    """Verify probability math for a single permutation outcome."""
+    items = ["A", "B", "C"]  # 3! = 6
+    dist = PermutationDistribution[str](name=DistName("pmf"), items=items)
+
+    expected_prob = 1.0 / 6.0
+    # Valid permutation
+    assert np.isclose(dist.pmf(np.array(["C", "A", "B"])), expected_prob)
+    # Invalid permutation
+    assert dist.pmf(np.array(["A", "B", "D"])) == 0.0
+
+
+def test_permutation_errors():
+    """Ensure unimplemented methods raise errors."""
+    dist = PermutationDistribution(name=DistName("test"), items=[1, 2])
+    with pytest.raises(NotImplementedError):
+        dist.cdf([1, 2])
+
+
+if __name__ == "__main__":
+    test_permutation_integrity()

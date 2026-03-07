@@ -4,7 +4,14 @@ import hashlib
 import logging
 from abc import ABC, abstractmethod
 from enum import StrEnum
-from typing import TYPE_CHECKING, Annotated, Any, Literal, NewType, Self
+from typing import (
+    TYPE_CHECKING,
+    Annotated,
+    Any,
+    Literal,
+    NewType,
+    Self,
+)
 
 import numpy as np
 import scipy.stats as stats
@@ -42,6 +49,7 @@ __all__ = [
     "ExponentialDistribution",
     "LogNormalDistribution",
     "NormalDistribution",
+    "PermutationDistribution",
     "PoissonDistribution",
     "TriangularDistribution",
     "TruncatedNormalDistribution",
@@ -65,6 +73,9 @@ class DistType(StrEnum):
     CATEGORICAL = "categorical"
     """Categorical distribution."""
 
+    PERMUTATION = "permutation"
+    """Permutation distribution."""
+
     TRIANGULAR = "triangular"
     """Triangular distribution."""
 
@@ -84,18 +95,16 @@ class DistType(StrEnum):
     """Bernoulli distribution."""
 
 
-class Undefined:
+class Undefined(StrEnum):
     """Undefined value."""
 
-    def __bool__(self):
-        return False
-
-    def __repr__(self):
-        return "UNDEFINED"
+    UNDEFINED = "__UNDEFINED__"
 
 
-UNDEFINED = Undefined()
+UNDEFINED = Undefined.UNDEFINED
 """Sentinel to differentiate between None and unset."""
+
+DISCRETE_MSG = "Discrete distributions use pmf, not pdf. Using pmf method instead."
 
 
 def validate_undefined(v: Any) -> Any:
@@ -112,7 +121,7 @@ SerializableUndefined = Annotated[
 
 
 class Distribution[T](BaseModel, ABC):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=False)
 
     name: DistName
     """Name of the distribution."""
@@ -135,7 +144,7 @@ class Distribution[T](BaseModel, ABC):
     nominal: T | None | SerializableUndefined = Field(default=UNDEFINED)
     """Value the distribution should take if the trial_number attribute is equal to 0."""
 
-    _trial_num: int = PrivateAttr(default=NOMINAL_TRIAL_NUM)
+    trial_num: int = NOMINAL_TRIAL_NUM
     """Run number for sampling from the distribution. This is used to salt the seed (if specified)."""
 
     _rng: np.random.Generator = PrivateAttr()
@@ -152,7 +161,7 @@ class Distribution[T](BaseModel, ABC):
     def refresh_seed(self) -> None:
         if self.seed is not None:
             # combine name and run number to salt
-            name_to_salt = f"{self.name}_{self._trial_num}"
+            name_to_salt = f"{self.name}_{self.trial_num}"
 
             # generate a repeatable salt for the seed, name, and trial_number
             salt = int(hashlib.md5(name_to_salt.encode()).hexdigest(), 16)
@@ -161,22 +170,12 @@ class Distribution[T](BaseModel, ABC):
             self._rng = np.random.default_rng(seed=local_seed)
         else:
             # use pure random value
-            self._rng = np.random.default_rng()
+            self._rng = np.random.default_rng(seed=self.seed)
 
     @model_validator(mode="after")
     def validate_seed(self) -> Self:
         self.refresh_seed()
         return self
-
-    @property
-    def trial_num(self) -> int:
-        """Run number for sampling from the distribution. This is used to salt the seed (if specified)."""
-        return self._trial_num
-
-    @trial_num.setter
-    def trial_num(self, new: int) -> None:
-        self._trial_num = new
-        self.refresh_seed()
 
     @property
     def rng(self) -> np.random.Generator:
@@ -200,7 +199,7 @@ class Distribution[T](BaseModel, ABC):
 
     def sample(self, size: int = 1) -> NDArray[Any, T]:
         """The core sampling logic for the distribution."""
-        if self._trial_num == NOMINAL_TRIAL_NUM and self.nominal is not UNDEFINED:
+        if self.is_nominal and self.nominal is not UNDEFINED:
             return np.full(size, self.nominal)
         else:
             return self.draw(size=size)
@@ -219,7 +218,7 @@ class Distribution[T](BaseModel, ABC):
         logger.error(msg)
         raise NotImplementedError(msg)
 
-    def update_dicts(
+    def sample_and_update_dicts(
         self,
         dist_dict: DistributionDict,
         named_value_dict: NamedValueDict,
@@ -236,7 +235,10 @@ class Distribution[T](BaseModel, ABC):
             )
 
         samples = self.sample(size=size)
-        nv = NamedValue(name=ValueName(self.name), stored_value=samples)
+        concrete_type = samples.dtype.type().item().__class__  # pyright: ignore[reportAttributeAccessIssue]
+        nv = NamedValue[NDArray[Any, concrete_type]](
+            name=ValueName(self.name), stored_value=samples
+        )
 
         dist_dict.update(self)  # pyright: ignore[reportArgumentType]
         if force:
@@ -465,9 +467,7 @@ class CategoricalDistribution[T](Distribution[T]):
 
     def pdf(self, x: Any) -> float | NDArray[Any, float]:
         """Categorical distributions have no PDF. Did you mean to use pmf?"""
-        logger.warning(
-            "Discrete distributions use pmf, not pdf. Using pmf method instead."
-        )
+        logger.warning(DISCRETE_MSG)
         return self.pmf(x=x)
 
     def pmf(self, x: T) -> float:
@@ -495,6 +495,57 @@ class CategoricalDistribution[T](Distribution[T]):
 
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
+
+
+class PermutationDistribution[T](Distribution[T]):
+    """
+    Takes a master list and returns either the original or a shuffled version.
+
+    Trial 0 (Nominal) returns the items in their provided order.
+    Trial > 0 returns a unique random permutation of those items.
+    """
+
+    items: list[T]
+    """The master list to be shuffled."""
+
+    nominal: list[T] | list[None] | SerializableUndefined = Field(default=UNDEFINED)  # pyright: ignore[reportIncompatibleVariableOverride]
+
+    dist_type: Literal[DistType.PERMUTATION] = DistType.PERMUTATION
+
+    @property
+    def is_continuous(self) -> Literal[False]:
+        return False
+
+    def sample(self, size: int = 1) -> np.ndarray:
+        """The core sampling logic for the distribution."""
+        if self.is_nominal and self.nominal is not UNDEFINED:
+            return np.asarray([self.nominal])
+        else:
+            return self.draw(size=size)
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        """
+        Returns a shuffled version of the items.
+        """
+        return np.array([self.rng.permutation(self.items) for _ in range(size)])  # pyright: ignore[reportArgumentType, reportCallIssue]
+
+    def pdf(self, x: Any) -> float:
+        return self.pmf(x)
+
+    def pmf(self, x: list[T] | np.ndarray) -> float:
+        """Uniform probability of 1/n! if x is a valid permutation."""
+        import math
+
+        n = len(self.items)
+        if len(x) != n or set(x) != set(self.items):
+            return 0.0
+        return 1.0 / math.factorial(n)
+
+    def cdf(self, x: Any) -> float:
+        raise NotImplementedError("CDF not defined for ShuffledDistribution")
+
+    def ppf(self, q: Any) -> Any:
+        raise NotImplementedError("PPF not defined for ShuffledDistribution")
 
 
 class TriangularDistribution(Distribution[float]):
@@ -844,11 +895,9 @@ class BernoulliDistribution(Distribution[bool]):
     def is_continuous(self) -> Literal[False]:
         return False
 
-    def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
-        logger.warning(
-            "Discrete distributions use pmf, not pdf. Using pmf method instead."
-        )
-        return self.pdf(x=x)
+    def pdf(self, x: int | np.ndarray) -> float | np.ndarray:  # pyright: ignore[reportIncompatibleMethodOverride]
+        logger.warning(DISCRETE_MSG)
+        return self.pmf(x=x)
 
     def pmf(self, x: int | np.ndarray) -> float | np.ndarray:
         return self._scipy.pmf(x)
@@ -864,6 +913,7 @@ Dist = Annotated[
     NormalDistribution
     | UniformDistribution
     | CategoricalDistribution
+    | PermutationDistribution
     | TriangularDistribution
     | TruncatedNormalDistribution
     | LogNormalDistribution
@@ -950,13 +1000,13 @@ if __name__ == "__main__":
 
     # 3. Sample and Register
     # These return NamedValue[np.ndarray] objects
-    height = normal_dist.update_dicts(
+    height = normal_dist.sample_and_update_dicts(
         dist_dict=dist_dict, named_value_dict=named_value_dict, size=5
     )
-    weight = uniform_dist.update_dicts(
+    weight = uniform_dist.sample_and_update_dicts(
         dist_dict=dist_dict, named_value_dict=named_value_dict, size=5
     )
-    blood_type = cat_dist.update_dicts(
+    blood_type = cat_dist.sample_and_update_dicts(
         dist_dict=dist_dict, named_value_dict=named_value_dict, size=5
     )
 
@@ -970,7 +1020,7 @@ if __name__ == "__main__":
     print(normal_dist.model_dump_json(indent=2))
 
     # 6. Check that child_seeds works
-    identical_height = identical_normal_dist.update_dicts(
+    identical_height = identical_normal_dist.sample_and_update_dicts(
         dist_dict=dist_dict, named_value_dict=named_value_dict, size=5
     )
 
