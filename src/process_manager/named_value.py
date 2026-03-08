@@ -163,6 +163,11 @@ class NamedValue[T](BaseModel, NumericMixin):
 class NamedValueDict[T](BaseDict[NamedValue[T]]):
     """Dictionary specifically for sampled results."""
 
+    def __contains__(self, key: object) -> bool:
+        if isinstance(key, NamedValue):
+            key = key.name
+        return super().__contains__(key=key)
+
     def get_value(self, name: ValueName | str) -> Any:
         """Gets the NamedValue value of a key."""
         return self[name].value

@@ -139,6 +139,8 @@ class BaseList[T](RootModel[list[T]]):
 
 
 if __name__ == "__main__":
+    from typing import Any
+
     from process_manager import NamedValue, NamedValueDict, NamedValueList, ValueName
 
     name = NamedValue[str](name=ValueName("name"), stored_value="john")
@@ -151,7 +153,7 @@ if __name__ == "__main__":
     x: NamedValue[str] = named_value_dict["name"]
 
     # Not recommended. Converted from NamedValue[str] to NamedValue[Any]
-    named_value_list = NamedValueList([name])
+    named_value_list = NamedValueList[Any]([name])
 
     # Recommended. Object retains NamedValue[int]
     named_value_list.append(age)

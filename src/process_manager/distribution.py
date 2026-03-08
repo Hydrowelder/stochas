@@ -218,6 +218,13 @@ class Distribution[T](BaseModel, ABC):
         logger.error(msg)
         raise NotImplementedError(msg)
 
+    def sample_to_named_value(self, size: int = 1) -> NamedValue[NDArray[Any, T]]:
+        samples = self.sample(size=size)
+        concrete_type = samples.dtype.type().item().__class__  # pyright: ignore[reportAttributeAccessIssue]
+        return NamedValue[NDArray[Any, concrete_type]](
+            name=ValueName(self.name), stored_value=samples
+        )
+
     def sample_and_update_dicts(
         self,
         dist_dict: DistributionDict,
@@ -234,11 +241,7 @@ class Distribution[T](BaseModel, ABC):
                 f"NamedValue {self.name} already exists in named_value_list. Overwriting!"
             )
 
-        samples = self.sample(size=size)
-        concrete_type = samples.dtype.type().item().__class__  # pyright: ignore[reportAttributeAccessIssue]
-        nv = NamedValue[NDArray[Any, concrete_type]](
-            name=ValueName(self.name), stored_value=samples
-        )
+        nv = self.sample_to_named_value(size=size)
 
         dist_dict.update(self)  # pyright: ignore[reportArgumentType]
         if force:
