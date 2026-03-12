@@ -1,7 +1,7 @@
 site_name: Process Manager
 site_url: https://talbotknighton.github.io/process_manager/
 site_author: Talbot Knighton and David Gable
-copyright: Copyright &copy; 2026
+copyright: Copyright &copy; 2026 Talbot Knighton and David Gable
 repo_url: https://github.com/TalbotKnighton/process_manager
 repo_name: process_manager
 remote_branch: gh-pages
@@ -15,12 +15,8 @@ watch:
 nav:
   - Home: index.md
   - User Guides:
-      # - Data Handling: user-guides/data_handling.md
-      # - Results Manager: user-guides/results_manager.md
-      - Random Values: user-guides/random_values.md
-  # - Design:
-  #   - Named Values: design/named_values.md
-  #   - Random Variables: design/random_variables.md
+      - Named Values: user-guides/named-values.md
+      - Distributions: user-guides/distributions.md
   - Code Reference: reference/
 
 theme:

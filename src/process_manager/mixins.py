@@ -4,7 +4,7 @@ Defines numeric mixins so that classes with a value attribute can act like a num
 
 from __future__ import annotations
 
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Protocol, Self, runtime_checkable
 
 import numpy as np
 
@@ -17,10 +17,14 @@ __all__ = [
 class HasValue(Protocol):
     """The contract: Any class using the mixin must have a .value property."""
 
+    stored_value: Any
+
     @property
     def value(self) -> Any: ...
 
     def _extract(self, other) -> Any: ...
+
+    def force_set_value(self, value, warn) -> None: ...
 
 
 class NumericMixin:
@@ -47,6 +51,23 @@ class NumericMixin:
     @property
     def size(self: HasValue) -> int:
         return self.value.size
+
+    def squeeze(self: HasValue, axis: int | tuple[int, ...] | None = None) -> Self:  # pyright: ignore[reportGeneralTypeIssues]
+        """
+        Removes axes of length one from the underlying array.
+        """
+        # 1. Perform the squeeze on the data
+        squeezed_data = self.value.squeeze(axis=axis)
+
+        # 2. Update the underlying container
+        # We use force_set_value to bypass any "frozen" state checks
+        if hasattr(self, "force_set_value"):
+            self.force_set_value(squeezed_data, warn=False)
+        else:
+            # Fallback for simple containers
+            self.stored_value = squeezed_data
+
+        return self  # pyright: ignore[reportReturnType]
 
     # --- Type Casting ---
     def __int__(self: HasValue) -> int:

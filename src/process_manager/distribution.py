@@ -152,10 +152,12 @@ class Distribution[T](BaseModel, ABC):
 
     def with_seed(self, seed: int | None) -> Self:
         self.seed = seed
+        self.refresh_seed()
         return self
 
     def with_trial_num(self, trial_num: int) -> Self:
         self.trial_num = trial_num
+        self.refresh_seed()
         return self
 
     def refresh_seed(self) -> None:
