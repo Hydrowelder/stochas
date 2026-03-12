@@ -1,0 +1,4 @@
+numpy>=2.4.2
+numpydantic>=1.7.0
+pydantic>=2.12.5
+scipy>=1.17.0
