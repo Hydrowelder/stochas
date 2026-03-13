@@ -44,6 +44,7 @@ __all__ = [
     "Dist",
     "DistName",
     "DistType",
+    "Distribution",
     "DistributionDict",
     "DistributionList",
     "ExponentialDistribution",
