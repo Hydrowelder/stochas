@@ -1,14 +1,14 @@
 import numpy as np
 import pytest
 
-from process_manager import (
+from stochas import (
     BernoulliDistribution,
     CategoricalDistribution,
     DistName,
     PoissonDistribution,
 )
-from process_manager.distribution import DistributionDict, PermutationDistribution
-from process_manager.named_value import NamedValueDict
+from stochas.distribution import DistributionDict, PermutationDistribution
+from stochas.named_value import NamedValueDict
 
 
 def test_categorical_pmf_cdf():

@@ -141,7 +141,7 @@ class BaseList[T](RootModel[list[T]]):
 if __name__ == "__main__":
     from typing import Any
 
-    from process_manager import NamedValue, NamedValueDict, NamedValueList, ValueName
+    from stochas import NamedValue, NamedValueDict, NamedValueList, ValueName
 
     name = NamedValue[str](name=ValueName("name"), stored_value="john")
     age = NamedValue[int](name=ValueName("age"), stored_value=1)

@@ -1,6 +1,6 @@
-# process_manager: Smart Data Orchestration
+# stochas: Smart Data Orchestration
 
-`process_manager` is a Python framework built to handle the complexity of **Monte Carlo simulations**, **parametric studies**, and **probabilistic modeling**.
+`stochas` is a Python framework built to handle the complexity of **Monte Carlo simulations**, **parametric studies**, and **probabilistic modeling**.
 
 It provides a robust bridge between abstract statistical rules and concrete simulation data, ensuring your experiments are repeatable, traceable, and easy to manage.
 
@@ -13,13 +13,13 @@ Install the package via your preferred manager:
 === "`uv`"
 
     ```bash
-    uv add process_manager
+    uv add stochas
     ```
 
 === "`pip`"
 
     ```bash
-    pip install process_manager
+    pip install stochas
     ```
 
 ---
@@ -33,9 +33,9 @@ Install the package via your preferred manager:
 
 ---
 
-## Why use `process_manager`?
+## Why use `stochas`?
 
-Managing hundreds of simulation trials can quickly become a mess of manual seeds and inconsistent data. `process_manager` solves this by providing:
+Managing hundreds of simulation trials can quickly become a mess of manual seeds and inconsistent data. `stochas` solves this by providing:
 
 * **Repeatable Randomness**: Our "Salted Seed" logic ensures that any specific trial can be perfectly recreated, even years later, by tying randomness to simple to set and store values.
 * **Smart Containers**: `NamedValue` objects behave like numbers or arrays but protect your data from accidental overwrites using a state-machine logic.

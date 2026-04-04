@@ -1,9 +1,9 @@
-site_name: Process Manager
-site_url: https://talbotknighton.github.io/process_manager/
+site_name: stochas
+site_url: https://hydrowelder.github.io/stochas/
 site_author: Talbot Knighton and David Gable
 copyright: Copyright &copy; 2026 Talbot Knighton and David Gable
-repo_url: https://github.com/TalbotKnighton/process_manager
-repo_name: process_manager
+repo_url: https://github.com/Hydrowelder/stochas
+repo_name: stochas
 remote_branch: gh-pages
 remote_name: origin
 

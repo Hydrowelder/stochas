@@ -6,8 +6,8 @@ from typing import Any, Literal, NewType, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from process_manager.base_collections import BaseDict, BaseList
-from process_manager.mixins import NumericMixin
+from stochas.base_collections import BaseDict, BaseList
+from stochas.mixins import NumericMixin
 
 __all__ = [
     "NamedValue",

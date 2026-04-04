@@ -1,7 +1,7 @@
 # ---8<--- [start: basics]
 from numpydantic import NDArray
 
-import process_manager as pm
+import stochas as pm
 
 # 1. Define the rule
 motor_rule = pm.NormalDistribution(

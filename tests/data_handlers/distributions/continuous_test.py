@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from process_manager import (
+from stochas import (
     DistName,
     ExponentialDistribution,
     LogNormalDistribution,

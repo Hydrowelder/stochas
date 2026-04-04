@@ -26,8 +26,8 @@ from pydantic import (
     model_validator,
 )
 
-from process_manager.base_collections import BaseDict, BaseList
-from process_manager.named_value import NamedValue, NamedValueDict, ValueName
+from stochas.base_collections import BaseDict, BaseList
+from stochas.named_value import NamedValue, NamedValueDict, ValueName
 
 if TYPE_CHECKING:
     from scipy.stats.distributions import rv_continuous, rv_discrete, rv_frozen
@@ -293,7 +293,7 @@ class NormalDistribution(Distribution[float]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Normal_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/process_manager/refs/heads/main/docs/assets/distributions/normal.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/normal.png" width="600" />
 
     """
 
@@ -355,7 +355,7 @@ class UniformDistribution(Distribution[float]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Continuous_uniform_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/process_manager/refs/heads/main/docs/assets/distributions/uniform.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/uniform.png" width="600" />
 
     """
 
@@ -428,7 +428,7 @@ class CategoricalDistribution[T](Distribution[T]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Categorical_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/process_manager/refs/heads/main/docs/assets/distributions/categorical.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/categorical.png" width="600" />
 
     """
 
@@ -572,7 +572,7 @@ class TriangularDistribution(Distribution[float]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Triangular_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/process_manager/refs/heads/main/docs/assets/distributions/triangular.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/triangular.png" width="600" />
 
     """
 
@@ -641,7 +641,7 @@ class TruncatedNormalDistribution(Distribution[float]):
         2. [Wikipedia](https://en.wikipedia.org/wiki/Truncated_normal_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/process_manager/refs/heads/main/docs/assets/distributions/truncated_normal.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/truncated_normal.png" width="600" />
 
     """
 
@@ -705,7 +705,7 @@ class LogNormalDistribution(Distribution[float]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Log-normal_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/process_manager/refs/heads/main/docs/assets/distributions/log_normal.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/log_normal.png" width="600" />
 
     """
 
@@ -759,7 +759,7 @@ class PoissonDistribution(Distribution[int]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Poisson_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/process_manager/refs/heads/main/docs/assets/distributions/poisson.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/poisson.png" width="600" />
 
     """
 
@@ -817,7 +817,7 @@ class ExponentialDistribution(Distribution[float]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Exponential_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/process_manager/refs/heads/main/docs/assets/distributions/exponential.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/exponential.png" width="600" />
 
     """
 
@@ -869,7 +869,7 @@ class BernoulliDistribution(Distribution[bool]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Bernoulli_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/process_manager/refs/heads/main/docs/assets/distributions/bernoulli.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/bernoulli.png" width="600" />
 
     """
 

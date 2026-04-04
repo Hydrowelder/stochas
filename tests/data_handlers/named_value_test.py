@@ -1,8 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from process_manager import NamedValue, NamedValueState
-from process_manager.named_value import ValueName
+from stochas import NamedValue, NamedValueState
+from stochas.named_value import ValueName
 
 
 def test_initial_state_unset():

@@ -1,7 +1,7 @@
 import pytest
 
-from process_manager import NamedValue, NamedValueDict, NamedValueList
-from process_manager.named_value import ValueName
+from stochas import NamedValue, NamedValueDict, NamedValueList
+from stochas.named_value import ValueName
 
 
 def test_dict_setitem_validation():

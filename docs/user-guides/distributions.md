@@ -31,7 +31,7 @@ This is critical for:
 ### Supported Distribution Types
 
 !!! info
-    [Click here to see the technical API for all supported types][process_manager.distribution].
+    [Click here to see the technical API for all supported types][stochas.distribution].
 
 * **Normal**: The classic Bell Curve for natural variation.
 * **Uniform**: For strict ranges where any value is equally likely.

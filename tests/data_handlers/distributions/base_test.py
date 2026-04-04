@@ -1,9 +1,9 @@
 import numpy as np
 from numpydantic import NDArray
 
-from process_manager import DistName, NormalDistribution
-from process_manager.distribution import DistributionDict
-from process_manager.named_value import NamedValueDict
+from stochas import DistName, NormalDistribution
+from stochas.distribution import DistributionDict
+from stochas.named_value import NamedValueDict
 
 
 def test_distribution_seeding_and_salting():

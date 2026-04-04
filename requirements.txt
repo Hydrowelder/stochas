@@ -338,7 +338,7 @@ numpy==2.4.2 \
     #   numpy-typing-compat
     #   numpydantic
     #   optype
-    #   process-manager
+    #   stochas
     #   scipy
 numpy-typing-compat==20251206.2.4 \
     --hash=sha256:59882d23aaff054a2536da80564012cdce33487657be4d79c5925bb8705fcabc \
@@ -347,7 +347,7 @@ numpy-typing-compat==20251206.2.4 \
 numpydantic==1.7.0 \
     --hash=sha256:268285bee026d9dfdf23efeee13f60c3b75d47de2ffdf2e58b4f0c17a6824e3b \
     --hash=sha256:81314ed00423efa954a711a48003dba5382156e899f677f405ce043f5296b090
-    # via process-manager
+    # via stochas
 optype==0.15.0 \
     --hash=sha256:457d6ca9e7da19967ec16d42bdf94e240b33b5d70a56fbbf5b427e5ea39cf41e \
     --hash=sha256:caba40ece9ea39b499fa76c036a82e0d452a432dd4dd3e8e0d30892be2e8c76c
@@ -381,7 +381,7 @@ pydantic==2.12.5 \
     --hash=sha256:e561593fccf61e8a20fc46dfc2dfe075b8be7d0188df33f221ad1f0139180f9d
     # via
     #   numpydantic
-    #   process-manager
+    #   stochas
 pydantic-core==2.41.5 \
     --hash=sha256:0177272f88ab8312479336e1d777f6b124537d47f2123f89cb37e0accea97f90 \
     --hash=sha256:01a3d0ab748ee531f4ea6c3e48ad9dac84ddba4b0d82291f87248f2f9de8d740 \
@@ -557,7 +557,7 @@ scipy==1.17.0 \
     --hash=sha256:f7df7941d71314e60a481e02d5ebcb3f0185b8d799c70d03d8258f6c80f3d467 \
     --hash=sha256:f9eb55bb97d00f8b7ab95cb64f873eb0bf54d9446264d9f3609130381233483f \
     --hash=sha256:fe508b5690e9eaaa9467fc047f833af58f1152ae51a0d0aed67aa5801f4dd7d6
-    # via process-manager
+    # via stochas
 scipy-stubs==1.17.0.2 \
     --hash=sha256:3981bd7fa4c189a8493307afadaee1a830d9a0de8e3ae2f4603f192b6260ef2a \
     --hash=sha256:99d1aa75b7d72a7ee36a68d18bcf1149f62ab577bbd1236c65c471b3b465d824
