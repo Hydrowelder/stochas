@@ -2,7 +2,7 @@
 
 > [Read the Docs](https://hydrowelder.github.io/stochas/)
 
-> [View on PyPi](https://pypi.org/project/process_manager/)
+> [View on PyPi](https://pypi.org/project/stochas/)
 
 `stochas` is a Python framework built to handle the complexity of **Monte Carlo simulations**, **parametric studies**, and **probabilistic modeling**.
 
