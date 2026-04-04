@@ -40,8 +40,8 @@ jobs:
     environment:
       name: pypi
     permissions:
-      id-token: write
-      contents: read
+      id-token: write # Required for PyPI Trusted Publishing
+      contents: write # Required to create GitHub Release and upload assets
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -61,9 +61,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          # This automatically generates a summary of your commits
           generate_release_notes: true
-          # Attaches your .whl and .tar.gz files to the release
           files: |
             dist/*.whl
             dist/*.tar.gz
