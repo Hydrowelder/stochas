@@ -307,7 +307,9 @@
           
             
               
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -809,6 +811,8 @@
             
             
               
+                
+              
               <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
@@ -873,6 +877,8 @@
               
                 
 
+  
+
 
 
   
@@ -882,6 +888,8 @@
               <article class="md-content__inner md-typeset">
                 
                   
+  
+
 
 
   
@@ -901,7 +909,41 @@
   
 
 
+<style>
+  .md-typeset h1,
+  .md-content__button {
+    display: none;
+  }
+  a.badge-link::after {
+    content: none !important;
+  }
+</style>
+
 <h1 id="stochas-smart-data-orchestration">stochas: Smart Data Orchestration<a class="headerlink" href="#stochas-smart-data-orchestration" title="Permanent link">¶</a></h1>
+<p align="center">
+  <a href="https://pypi.org/project/stochas/" class="badge-link">
+    <img src="https://img.shields.io/pypi/v/stochas.svg" alt="PyPI version">
+  </a>
+  <a href="https://pypi.org/project/stochas/" class="badge-link">
+    <img src="https://img.shields.io/pypi/pyversions/stochas.svg" alt="Python versions">
+  </a>
+  <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml" class="badge-link">
+    <img src="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml/badge.svg" alt="Tests &amp; Release Status">
+  </a>
+  <a href="https://docs.pydantic.dev/latest/" class="badge-link">
+    <img src="https://img.shields.io/badge/Pydantic-v2-FF43A1?logo=pydantic&amp;logoColor=white" alt="Pydantic v2">
+  </a>
+  <a href="https://opensource.org/licenses/Apache-2.0" class="badge-link">
+    <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License">
+  </a>
+  <a href="https://hydrowelder.github.io/stochas/" class="badge-link">
+    <img src="https://img.shields.io/badge/docs-GitHub_Pages-blue.svg" alt="Documentation">
+  </a>
+  <a href="https://pypistats.org/packages/stochas" class="badge-link">
+    <img src="https://img.shields.io/pypi/dm/stochas.svg" alt="Downloads">
+  </a>
+</p>
+
 <p><code>stochas</code> is a Python framework built to handle the complexity of <strong>Monte Carlo simulations</strong>, <strong>parametric studies</strong>, and <strong>probabilistic modeling</strong>.</p>
 <p>It provides a robust bridge between abstract statistical rules and concrete simulation data, ensuring your experiments are repeatable, traceable, and easy to manage.</p>
 <hr>
@@ -943,8 +985,13 @@
 
 
 
+  
+  
 
 
+
+
+  
 
 
 
@@ -969,6 +1016,8 @@
         <footer class="md-footer">
   
     
+      
+        
       
       <nav class="md-footer__inner md-grid" aria-label="Footer">
         
