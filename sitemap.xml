@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://talbotknighton.github.io/process_manager/</loc>
+         <loc>https://hydrowelder.github.io/stochas/</loc>
          <lastmod>2026-04-04</lastmod>
     </url>
     <url>
-         <loc>https://talbotknighton.github.io/process_manager/reference/SUMMARY/</loc>
+         <loc>https://hydrowelder.github.io/stochas/reference/SUMMARY/</loc>
          <lastmod>2026-04-04</lastmod>
     </url>
     <url>
-         <loc>https://talbotknighton.github.io/process_manager/reference/process_manager/</loc>
+         <loc>https://hydrowelder.github.io/stochas/reference/stochas/</loc>
          <lastmod>2026-04-04</lastmod>
     </url>
     <url>
-         <loc>https://talbotknighton.github.io/process_manager/reference/process_manager/base_collections/</loc>
+         <loc>https://hydrowelder.github.io/stochas/reference/stochas/base_collections/</loc>
          <lastmod>2026-04-04</lastmod>
     </url>
     <url>
-         <loc>https://talbotknighton.github.io/process_manager/reference/process_manager/distribution/</loc>
+         <loc>https://hydrowelder.github.io/stochas/reference/stochas/distribution/</loc>
          <lastmod>2026-04-04</lastmod>
     </url>
     <url>
-         <loc>https://talbotknighton.github.io/process_manager/reference/process_manager/mixins/</loc>
+         <loc>https://hydrowelder.github.io/stochas/reference/stochas/mixins/</loc>
          <lastmod>2026-04-04</lastmod>
     </url>
     <url>
-         <loc>https://talbotknighton.github.io/process_manager/reference/process_manager/named_value/</loc>
+         <loc>https://hydrowelder.github.io/stochas/reference/stochas/named_value/</loc>
          <lastmod>2026-04-04</lastmod>
     </url>
     <url>
-         <loc>https://talbotknighton.github.io/process_manager/user-guides/distributions/</loc>
+         <loc>https://hydrowelder.github.io/stochas/user-guides/distributions/</loc>
          <lastmod>2026-04-04</lastmod>
     </url>
     <url>
-         <loc>https://talbotknighton.github.io/process_manager/user-guides/named-values/</loc>
+         <loc>https://hydrowelder.github.io/stochas/user-guides/named-values/</loc>
          <lastmod>2026-04-04</lastmod>
     </url>
 </urlset>

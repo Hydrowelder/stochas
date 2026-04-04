@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from process_manager import (
+from stochas import (
     BernoulliDistribution,
     CategoricalDistribution,
     DistName,

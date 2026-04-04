@@ -1,5 +1,5 @@
 # ---8<--- [start: basics]
-import process_manager as pm
+import stochas as pm
 
 # 1. Initialize a container with a name and a value
 # The state automatically moves to 'SET'
