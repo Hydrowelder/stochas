@@ -14,17 +14,15 @@ It provides a robust bridge between abstract statistical rules and concrete simu
 
 Install the package via your preferred manager:
 
-=== "`uv`"
+```bash
+uv add stochas
+```
 
-    ```bash
-    uv add stochas
-    ```
+or with `pip`:
 
-=== "`pip`"
-
-    ```bash
-    pip install stochas
-    ```
+```bash
+pip install stochas
+```
 
 ---
 
