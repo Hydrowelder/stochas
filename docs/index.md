@@ -1,27 +1,43 @@
-# Process Manager Documentation
+# process_manager: Smart Data Orchestration
 
-Welcome to the Process Manager documentation. This documentation covers the design principles, implementation details, and API reference for the process management system.
+`process_manager` is a Python framework built to handle the complexity of **Monte Carlo simulations**, **parametric studies**, and **probabilistic modeling**.
 
-## Quickstart Guides
+It provides a robust bridge between abstract statistical rules and concrete simulation data, ensuring your experiments are repeatable, traceable, and easy to manage.
 
-- [Data Handling](quickstart.md): Handle inputs, outputs, and other data resources across multiple processes.
+---
 
-TODO: Add more getting started guides and tutorials.
+## Installation
 
-## Core Components
+Install the package via your preferred manager:
 
-- [Named Values](design/named_values.md): Type-safe value containers with validation
-- [Random Variables](design/random_variables.md): Statistical distribution implementations
+=== "`uv`"
 
-## API Reference
+    ```bash
+    uv add process_manager
+    ```
 
-- [Data Handlers](reference/process_manager/data_handlers/index.md)
+=== "`pip`"
 
+    ```bash
+    pip install process_manager
+    ```
 
-## Design Principles
+---
 
-The process manager is designed to be a flexible, extensible system that can handle various types of data processing tasks. It follows the following principles:
+## Core Features
 
-- **Modularity**: The system should be modular, allowing for easy addition or removal of components.
-- **Flexibility**: The system should be flexible enough to accommodate different types of data and processing requirements.
-- **Extensibility**: The system should be extensible, allowing for customization and integration with other systems.
+* **Salted Seeding**: Combines Global Seeds, Parameter Names, and Trial Numbers for unique but deterministic draws.
+* **Numeric Mixins**: Use your data containers directly in math operations (`container * 5.0`) without manually extracting values.
+* **Nominal Support**: Easily toggle between "Perfect World" (Trial 0) and "Probabilistic World" (Monte Carlo) results.
+* **Pydantic Foundation**: Every component is a Pydantic model, providing out-of-the-box validation and effortless JSON serialization.
+
+---
+
+## Why use `process_manager`?
+
+Managing hundreds of simulation trials can quickly become a mess of manual seeds and inconsistent data. `process_manager` solves this by providing:
+
+* **Repeatable Randomness**: Our "Salted Seed" logic ensures that any specific trial can be perfectly recreated, even years later, by tying randomness to simple to set and store values.
+* **Smart Containers**: `NamedValue` objects behave like numbers or arrays but protect your data from accidental overwrites using a state-machine logic.
+* **Physics-Ready Distributions**: A wide range of built-in distributions (Normal, Truncated Normal, Log-Normal, etc.) that handle their own random number generators internally.
+* **Serialized Registries**: Automatically track exactly which "rules" (`Distributions`) and "results" (`NamedValues`) were used in every trial for easy export to JSON or databases.

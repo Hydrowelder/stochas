@@ -1,0 +1,55 @@
+import numpy as np
+from numpydantic import NDArray
+
+from process_manager import DistName, NormalDistribution
+from process_manager.distribution import DistributionDict
+from process_manager.named_value import NamedValueDict
+
+
+def test_distribution_seeding_and_salting():
+    """Verify that names act as unique salts for the same seed."""
+    seed = 42
+
+    # Same name, same seed -> Identical results
+    dist_a1 = NormalDistribution(name=DistName("x"), mu=0, sigma=1, seed=seed)
+    dist_a2 = NormalDistribution(name=DistName("x"), mu=0, sigma=1, seed=seed)
+
+    # Different name, same seed -> Different results
+    dist_b = NormalDistribution(name=DistName("y"), mu=0, sigma=1, seed=seed)
+
+    samples_a1 = dist_a1.sample(5)
+    samples_a2 = dist_a2.sample(5)
+    samples_b = dist_b.sample(5)
+
+    assert np.array_equal(samples_a1, samples_a2)
+    assert not np.array_equal(samples_a1, samples_b)
+
+
+def test_serialization_roundtrip():
+    """Verify Pydantic serialization preserves state."""
+    dist = NormalDistribution(name=DistName("test"), mu=10, sigma=2, seed=123)
+    json_data = dist.model_dump_json()
+
+    new_dist = NormalDistribution.model_validate_json(json_data)
+
+    assert new_dist.name == dist.name
+    assert new_dist.seed == dist.seed
+    assert new_dist.mu == dist.mu
+    assert new_dist.nominal == dist.nominal
+    assert np.array_equal(dist.sample(5), new_dist.sample(5))
+
+
+def test_serialization_roundtrip_dict():
+    """Verify Pydantic serialization preserves state."""
+    named_dict = NamedValueDict[NDArray]()
+    dist_dict = DistributionDict()
+    NormalDistribution(
+        name=DistName("test"), mu=10, sigma=2, seed=123
+    ).sample_and_update_dicts(dist_dict=dist_dict, named_value_dict=named_dict, size=2)
+
+    json_data = named_dict.model_dump_json()
+    _new_dist_dict = NamedValueDict[NDArray].model_validate_json(json_data)
+
+
+if __name__ == "__main__":
+    test_serialization_roundtrip_dict()
