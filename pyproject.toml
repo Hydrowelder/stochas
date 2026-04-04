@@ -7,7 +7,6 @@ name = "stochas"
 version = "1.0.0"
 description = "stochas is a Python framework built to handle the complexity of Monte Carlo simulations, parametric studies, and probabilistic modeling."
 readme = "README.md"
-license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.4.2",
@@ -15,6 +14,21 @@ dependencies = [
     "pydantic>=2.12.5",
     "scipy>=1.17.0",
 ]
+
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+authors = [{ name = "David Gable", email = "dave.a.gable@gmail.com" }]
+maintainers = [{ name = "David Gable", email = "dave.a.gable@gmail.com" }]
+license = { text = "Apache-2.0" }
+
 
 [tool.ruff]
 exclude = ["typings", "scripts/templating/sensor_template.py"]
@@ -86,3 +100,4 @@ dev = [
 [project.urls]
 Documentation = "https://hydrowelder.github.io/stochas/"
 Repository = "https://github.com/Hydrowelder/stochas"
+Issues = "https://github.com/Hydrowelder/stochas/issues"

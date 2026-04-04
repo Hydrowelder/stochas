@@ -1,8 +1,28 @@
 # stochas: Smart Data Orchestration
 
-> [Read the Docs](https://hydrowelder.github.io/stochas/)
-
-> [View on PyPi](https://pypi.org/project/stochas/)
+<p align="center">
+  <a href="https://pypi.org/project/stochas/">
+    <img src="https://img.shields.io/pypi/v/stochas.svg" alt="PyPI version">
+  </a>
+  <a href="https://pypi.org/project/stochas/">
+    <img src="https://img.shields.io/pypi/pyversions/stochas.svg" alt="Python versions">
+  </a>
+  <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml">
+    <img src="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml/badge.svg" alt="Tests & Release Status">
+  </a>
+  <a href="https://docs.pydantic.dev/latest/">
+    <img src="https://img.shields.io/badge/Pydantic-v2-FF43A1?logo=pydantic&logoColor=white" alt="Pydantic v2">
+  </a>
+  <a href="https://opensource.org/licenses/Apache-2.0">
+    <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License">
+  </a>
+  <a href="https://hydrowelder.github.io/stochas/">
+    <img src="https://img.shields.io/badge/docs-GitHub_Pages-blue.svg" alt="Documentation">
+  </a>
+  <a href="https://pypistats.org/packages/stochas">
+    <img src="https://img.shields.io/pypi/dm/stochas.svg" alt="Downloads">
+  </a>
+</p>
 
 `stochas` is a Python framework built to handle the complexity of **Monte Carlo simulations**, **parametric studies**, and **probabilistic modeling**.
 
