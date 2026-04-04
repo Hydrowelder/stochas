@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stochas"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.0.0"
+description = "stochas is a Python framework built to handle the complexity of Monte Carlo simulations, parametric studies, and probabilistic modeling."
 readme = "README.md"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
