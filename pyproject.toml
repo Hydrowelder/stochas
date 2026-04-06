@@ -73,7 +73,7 @@ ignore = [
 
 [tool.pyright]
 stubPath = "typings"
-venvPath = "."
+venvPath = ".."
 venv = ".venv"
 ignore = ["typings"]
 
