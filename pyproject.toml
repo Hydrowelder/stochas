@@ -24,6 +24,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 authors = [{ name = "David Gable", email = "dave.a.gable@gmail.com" }]
 maintainers = [{ name = "David Gable", email = "dave.a.gable@gmail.com" }]
@@ -98,6 +99,8 @@ dev = [
 ]
 
 [project.urls]
+Homepage = "https://github.com/Hydrowelder/stochas"
 Documentation = "https://hydrowelder.github.io/stochas/"
 Repository = "https://github.com/Hydrowelder/stochas"
 Issues = "https://github.com/Hydrowelder/stochas/issues"
+Discussions = "https://github.com/Hydrowelder/stochas/discussions"
