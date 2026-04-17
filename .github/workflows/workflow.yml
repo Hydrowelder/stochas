@@ -49,13 +49,13 @@ jobs:
           # Fetch all history so we can see other branches
           fetch-depth: 0
 
-      - name: Verify Tag is on Master
+      - name: Verify Tag is on Main
         # Only perform this check if we were triggered by a tag
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          # Check if 'master' branch contains the current commit
-          if ! git branch -r --contains ${{ github.sha }} | grep -q "origin/master"; then
-            echo "::error::Tag ${{ github.ref_name }} was pushed on a non-master branch. Skipping workflow."
+          # Check if 'main' branch contains the current commit
+          if ! git branch -r --contains ${{ github.sha }} | grep -q "origin/main"; then
+            echo "::error::Tag ${{ github.ref_name }} was pushed on a non-main branch. Skipping workflow."
             exit 1
           fi
 
