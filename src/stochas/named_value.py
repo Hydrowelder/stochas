@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from enum import StrEnum
-from typing import Any, Literal, NewType, Self
+from typing import Any, Literal, NewType, Self, cast
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -22,6 +22,9 @@ logger = logging.getLogger(__name__)
 
 ValueName = NewType("ValueName", str)
 """Alias of string. Used to type hint a named value's name."""
+
+UNSET_SENTINEL = "__UNSET__"
+UnsetType = Literal["__UNSET__"]
 
 
 class Val(BaseModel):
@@ -69,9 +72,7 @@ class NamedValue[T](BaseModel, NumericMixin):
     state: NamedValueState = Field(default=NamedValueState.UNSET)
     """The current lifecycle state (SET or UNSET)."""
 
-    stored_value: T | Literal[NamedValueState.UNSET] = Field(
-        default=NamedValueState.UNSET
-    )
+    stored_value: T | UnsetType = Field(default=UNSET_SENTINEL)
     """The actual data held by this container."""
 
     @model_validator(mode="after")
@@ -79,10 +80,10 @@ class NamedValue[T](BaseModel, NumericMixin):
         """Synchronizes the state enum with the actual stored_value content."""
         match self.state:
             case NamedValueState.UNSET:
-                if self.stored_value is not NamedValueState.UNSET:
+                if self.stored_value is not UNSET_SENTINEL:
                     self.state = NamedValueState.SET
             case NamedValueState.SET:
-                if self.stored_value is NamedValueState.UNSET:
+                if self.stored_value is UNSET_SENTINEL:
                     msg = f"{self.name} stored value cannot be set to `NamedValueState.UNSET`"
                     logger.error(msg)
                     raise ValueError(msg)
@@ -108,12 +109,12 @@ class NamedValue[T](BaseModel, NumericMixin):
                 logger.error(msg)
                 raise ValueError(msg)
             case NamedValueState.SET:
-                if self.stored_value is NamedValueState.UNSET:
+                if self.stored_value is UNSET_SENTINEL:
                     # Defensive: impossible unless model was corrupted
-                    msg = f"NamedValue '{self.name}' is set but stored_value is `NamedValueState.SET`"
+                    msg = f"NamedValue '{self.name}' is set but stored_value is unset implying something was corrupted!"
                     logger.error(msg)
                     raise RuntimeError(msg)
-                return self.stored_value
+                return cast(T, self.stored_value)
             case _:
                 msg = f"The enumeration for {self.state} has not been implemented."
                 logger.error(msg)
