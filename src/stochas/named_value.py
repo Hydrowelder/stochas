@@ -2,9 +2,18 @@ from __future__ import annotations
 
 import logging
 from enum import StrEnum
-from typing import Any, Literal, NewType, Self, cast
+from typing import Annotated, Any, Literal, NewType, Self, cast
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    FieldSerializationInfo,
+    field_serializer,
+    model_validator,
+)
+from pydantic_core import to_jsonable_python
 
 from stochas.base_collections import BaseDict, BaseList
 from stochas.mixins import NumericMixin
@@ -23,8 +32,9 @@ logger = logging.getLogger(__name__)
 ValueName = NewType("ValueName", str)
 """Alias of string. Used to type hint a named value's name."""
 
-UNSET_SENTINEL = "__UNSET__"
-UnsetType = Literal["__UNSET__"]
+
+UNSET_SENTINEL = "__STOCHAS_UNSET_SENTINEL__"
+UnsetType = Literal["__STOCHAS_UNSET_SENTINEL__"]
 
 
 class Val(BaseModel):
@@ -46,6 +56,16 @@ class NamedValueState(StrEnum):
 
     SET = "set"
     """The value has been populated and is effectively frozen."""
+
+
+def _numpy_safe_sentinel(v: Any) -> Any:
+    """
+    Prevents NumPy from blowing up during Pydantic Union validation.
+    Checks identity/type before allowing a comparison to occur.
+    """
+    if isinstance(v, str) and v == UNSET_SENTINEL:
+        return UNSET_SENTINEL
+    return v
 
 
 class NamedValue[T](BaseModel, NumericMixin):
@@ -72,18 +92,45 @@ class NamedValue[T](BaseModel, NumericMixin):
     state: NamedValueState = Field(default=NamedValueState.UNSET)
     """The current lifecycle state (SET or UNSET)."""
 
-    stored_value: T | UnsetType = Field(default=UNSET_SENTINEL)
+    stored_value: Annotated[T | UnsetType, BeforeValidator(_numpy_safe_sentinel)] = (
+        Field(default=UNSET_SENTINEL)
+    )
     """The actual data held by this container."""
+
+    @field_serializer("stored_value", mode="plain", when_used="always")
+    def _serialize_value(self, v: Any, info: FieldSerializationInfo) -> Any:
+        """
+        Silences the Pydantic Union warnings by providing a single-path serializer.
+
+        Use to_jsonable_python to ensure numpy arrays (and any other T) are correctly converted to JSON primitives.
+        """
+        if isinstance(v, str) and v == UNSET_SENTINEL:
+            return UNSET_SENTINEL
+
+        # 2. Handle NumPy / Array-like types
+        if hasattr(v, "tolist"):
+            # If model_dump_json() or mode='json', we MUST return a list
+            if info.mode == "json":
+                return v.tolist()  # pyright: ignore[reportAttributeAccessIssue]
+            # If model_dump() or mode='python', return the raw array for tests
+            return v
+
+        # 3. Handle everything else (floats, ints, etc.)
+        return to_jsonable_python(v) if info.mode == "json" else v
 
     @model_validator(mode="after")
     def validate_state(self) -> Self:
         """Synchronizes the state enum with the actual stored_value content."""
+        is_sentinel = (
+            isinstance(self.stored_value, str) and self.stored_value == UNSET_SENTINEL
+        )
+
         match self.state:
             case NamedValueState.UNSET:
-                if self.stored_value is not UNSET_SENTINEL:
+                if not is_sentinel:
                     self.state = NamedValueState.SET
             case NamedValueState.SET:
-                if self.stored_value is UNSET_SENTINEL:
+                if is_sentinel:
                     msg = f"{self.name} stored value cannot be set to `NamedValueState.UNSET`"
                     logger.error(msg)
                     raise ValueError(msg)
@@ -103,13 +150,17 @@ class NamedValue[T](BaseModel, NumericMixin):
             RuntimeError: If the internal state is corrupted.
 
         """
+        is_sentinel = (
+            isinstance(self.stored_value, str) and self.stored_value == UNSET_SENTINEL
+        )
+
         match self.state:
             case NamedValueState.UNSET:
                 msg = f"Value for NamedValue {self.name} has not been set."
                 logger.error(msg)
                 raise ValueError(msg)
             case NamedValueState.SET:
-                if self.stored_value is UNSET_SENTINEL:
+                if is_sentinel:
                     # Defensive: impossible unless model was corrupted
                     msg = f"NamedValue '{self.name}' is set but stored_value is unset implying something was corrupted!"
                     logger.error(msg)
