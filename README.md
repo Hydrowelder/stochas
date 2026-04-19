@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/pypi/pyversions/stochas.svg?cacheSeconds=86400" alt="Python versions">
   </a>
   <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml" class="badge-link">
-    <img src="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml/badge.svg?branch=master" alt="Tests & Release Status">
+    <img src="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml/badge.svg?branch=main" alt="Tests & Release Status">
   </a>
   <a href="https://docs.pydantic.dev/latest/" class="badge-link">
     <img src="https://img.shields.io/badge/Pydantic-v2-FF43A1?logo=pydantic&logoColor=white" alt="Pydantic v2">
