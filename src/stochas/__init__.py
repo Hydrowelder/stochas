@@ -1,4 +1,13 @@
+from .base import StochasBase
 from .base_collections import BaseDict, BaseList
+from .design_variable import (
+    AnyDesignValue,
+    DesignCategorical,
+    DesignFloat,
+    DesignInt,
+    DesignValueDict,
+    DesignValueList,
+)
 from .distribution import (
     NOMINAL_TRIAL_NUM,
     BernoulliDistribution,
@@ -29,10 +38,16 @@ from .named_value import (
 
 __all__ = [
     "NOMINAL_TRIAL_NUM",
+    "AnyDesignValue",
     "BaseDict",
     "BaseList",
     "BernoulliDistribution",
     "CategoricalDistribution",
+    "DesignCategorical",
+    "DesignFloat",
+    "DesignInt",
+    "DesignValueDict",
+    "DesignValueList",
     "Dist",
     "DistName",
     "DistType",
@@ -48,6 +63,7 @@ __all__ = [
     "NormalDistribution",
     "PermutationDistribution",
     "PoissonDistribution",
+    "StochasBase",
     "TriangularDistribution",
     "TruncatedNormalDistribution",
     "UniformDistribution",
