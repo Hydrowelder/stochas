@@ -4,14 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stochas"
-version = "1.0.4"
+version = "2.0.0"
 description = "stochas is a Python framework built to handle the complexity of Monte Carlo simulations, parametric studies, and probabilistic modeling."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.4.2",
     "numpydantic>=1.7.0",
+    "optuna>=4.8.0",
     "pydantic>=2.12.5",
+    "pymoo>=0.6.1.6",
     "scipy>=1.17.0",
 ]
 

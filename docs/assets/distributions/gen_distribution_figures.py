@@ -9,6 +9,7 @@ from matplotlib.figure import Figure
 from stochas import (
     BernoulliDistribution,
     CategoricalDistribution,
+    DiscreteUniformDistribution,
     DistName,
     DistType,
     ExponentialDistribution,
@@ -33,19 +34,22 @@ HEIGHT = WIDTH / ASPECT_RATIO
 
 def get_dist(
     dist_type: DistType,
-) -> tuple[
-    BernoulliDistribution
-    | CategoricalDistribution
-    | ExponentialDistribution
-    | LogNormalDistribution
-    | NormalDistribution
-    | PoissonDistribution
-    | TriangularDistribution
-    | TruncatedNormalDistribution
-    | UniformDistribution,
-    str,
-]:
-
+) -> (
+    tuple[
+        BernoulliDistribution
+        | CategoricalDistribution
+        | ExponentialDistribution
+        | LogNormalDistribution
+        | NormalDistribution
+        | PoissonDistribution
+        | TriangularDistribution
+        | TruncatedNormalDistribution
+        | DiscreteUniformDistribution
+        | UniformDistribution,
+        str,
+    ]
+    | None
+):
     name = DistName(dist_type)
 
     sup_title = f"{name.replace('_', ' ').title()} Distribution "
@@ -60,6 +64,11 @@ def get_dist(
             low = -1
             high = 2
             dist = UniformDistribution(name=name, low=low, high=high)
+            sup_title += f"({low=} {high=})"
+        case DistType.DISCRETE_UNIFORM:
+            low = -1
+            high = 2
+            dist = DiscreteUniformDistribution(name=name, low=low, high=high)
             sup_title += f"({low=} {high=})"
         case DistType.CATEGORICAL:
 
@@ -118,9 +127,8 @@ def get_dist(
             dist = BernoulliDistribution(name=name, p=p)
             sup_title += f"({p=})"
         case _:
-            raise NotImplementedError(
-                f"Distribution of type {dist_type} is not implemented"
-            )
+            print(f"Distribution of type {dist_type} is not implemented")
+            return
 
     return dist, sup_title
 
@@ -133,6 +141,7 @@ def plot_and_save(
     | NormalDistribution
     | PoissonDistribution
     | TriangularDistribution
+    | DiscreteUniformDistribution
     | TruncatedNormalDistribution
     | UniformDistribution,
     sup_title: str,
@@ -180,6 +189,9 @@ def plot_and_save(
             elif isinstance(dist, BernoulliDistribution):
                 x = np.array([0, 1])
                 eval_at = x
+            elif isinstance(dist, DiscreteUniformDistribution):
+                x = np.arange(dist.low, dist.high + 1)
+                eval_at = x
             else:
                 raise NotImplementedError(
                     f"Distribution of {type(dist)=} not supported"
@@ -226,8 +238,10 @@ def plot_and_save(
 def main():
     for dist_type in DistType:
         print(f"{dist_type=}")
-        dist, label = get_dist(dist_type)
-        plot_and_save(dist, label)
+        res = get_dist(dist_type)
+        if res:
+            dist, label = res
+            plot_and_save(dist, label)
         # breakpoint()
 
 

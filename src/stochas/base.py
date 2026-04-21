@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, SerializeAsAny
 
 from stochas.design_variable import (
     AnyDesignValue,
+    DesignBool,
     DesignCategorical,
     DesignFloat,
     DesignInt,
@@ -92,6 +93,11 @@ class StochasBase(BaseModel):
     def sample_design(
         self, dv: DesignInt, force: bool = False, warn: bool = True
     ) -> int: ...
+
+    @overload
+    def sample_design(
+        self, dv: DesignBool, force: bool = False, warn: bool = True
+    ) -> bool: ...
 
     @overload
     def sample_design(

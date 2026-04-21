@@ -71,6 +71,9 @@ class DistType(StrEnum):
     UNIFORM = "uniform"
     """Uniform distribution."""
 
+    DISCRETE_UNIFORM = "discrete_uniform"
+    """Discrete uniform distribution."""
+
     CATEGORICAL = "categorical"
     """Categorical distribution."""
 
@@ -398,6 +401,70 @@ class UniformDistribution(Distribution[float]):
 
     def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.cdf(x=x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+
+class DiscreteUniformDistribution(Distribution[int]):
+    """
+    Represent a distribution where every integer in a range is equally likely.
+
+    Use this for discrete counts like number of objects, gear teeth, or
+    array indices where you need equal probability across the whole range.
+
+    Examples:
+        ```python
+        dist = DiscreteUniformDistribution(name=name, low=-1, high=2)
+        ```
+
+    References:
+        1. [NumPy](https://numpy.org/doc/2.1/reference/random/generated/numpy.random.Generator.integers.html)
+        2. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.randint.html)
+        3. [Wikipedia](https://en.wikipedia.org/wiki/Discrete_uniform_distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/discrete_uniform.png" width="600" />
+
+    """
+
+    low: int
+    high: int
+
+    _scipy: rv_discrete = PrivateAttr()
+
+    dist_type: Literal[DistType.DISCRETE_UNIFORM] = DistType.DISCRETE_UNIFORM
+
+    @model_validator(mode="after")
+    def validate_low_high(self) -> Self:
+        if self.high <= self.low:
+            msg = f"Distribution {self.name}: high must be greater than low"
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.randint(low=self.low, high=self.high + 1)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return self.rng.integers(low=self.low, high=self.high, size=size, endpoint=True)
+
+    @property
+    def is_continuous(self) -> Literal[False]:
+        return False
+
+    def pdf(self, x: Any) -> float | NDArray[Any, float]:
+        logger.warning(DISCRETE_MSG)
+        return self.pmf(k=x)
+
+    def pmf(self, k: int | np.ndarray) -> float | np.ndarray:
+        """Probability Mass Function."""
+        return self._scipy.pmf(k)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
 
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
@@ -920,6 +987,7 @@ Dist = Annotated[
     | UniformDistribution
     | CategoricalDistribution
     | PermutationDistribution
+    | DiscreteUniformDistribution
     | TriangularDistribution
     | TruncatedNormalDistribution
     | LogNormalDistribution

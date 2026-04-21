@@ -1,16 +1,20 @@
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, cast
 
+import numpy as np
 import optuna
 from pydantic import Field
+from pymoo.core.variable import Binary, Choice, Integer, Real
 
 from stochas.base_collections import BaseDict, BaseList
 from stochas.named_value import NamedValue, ValueName
 
 __all__ = [
+    "DesignBool",
     "DesignCategorical",
     "DesignFloat",
     "DesignInt",
@@ -18,14 +22,38 @@ __all__ = [
     "DesignValueList",
 ]
 
+logger = logging.getLogger(__name__)
 
-class OptunaSuggestor(ABC):
+
+class OptimizationSuggestor(ABC):
     @abstractmethod
-    def suggest(self, trial: optuna.Trial) -> Any:
+    def to_optuna(self, trial: optuna.Trial) -> Any:
+        pass
+
+    @abstractmethod
+    def to_pymoo(self) -> Any: ...
+
+    @abstractmethod
+    def refine(self, factor: float, best_params: dict[str, Any]) -> None:
         pass
 
 
-class DesignCategorical[T](NamedValue[T], OptunaSuggestor):
+class DesignBool(NamedValue[bool], OptimizationSuggestor):
+    """A specific 0/1 toggle, useful for enabling/disabling branches."""
+
+    type: Literal["binary"] = "binary"
+
+    def suggest(self, trial: optuna.Trial) -> bool:
+        return trial.suggest_categorical(self.name, [True, False])
+
+    def to_pymoo(self) -> Binary:
+        return Binary()
+
+    def refine(self, factor: float, best_params: dict[str, Any]):
+        logger.debug(f"Refinement not applicable for binary '{self.name}'.")
+
+
+class DesignCategorical[T](NamedValue[T], OptimizationSuggestor):
     """A NamedValue that represents a categorical design parameter to be optimized."""
 
     type: Literal["categorical"] = "categorical"
@@ -33,14 +61,20 @@ class DesignCategorical[T](NamedValue[T], OptunaSuggestor):
     choices: Sequence[T]
     """For categorical search (e.g., choices=['stiff', 'soft'])."""
 
-    def suggest(self, trial: optuna.Trial):
+    def to_optuna(self, trial: optuna.Trial):
         return trial.suggest_categorical(
             name=self.name,
             choices=self.choices,  # type: ignore
         )
 
+    def to_pymoo(self) -> Choice:
+        return Choice(options=np.array(self.choices, dtype=object))
 
-class DesignFloat(NamedValue[float], OptunaSuggestor):
+    def refine(self, factor: float, best_params: dict[str, Any]):
+        logger.debug(f"Skipping refinement for categorical '{self.name}'.")
+
+
+class DesignFloat(NamedValue[float], OptimizationSuggestor):
     """
     A NamedValue that represents a floating point design parameter to be optimized.
 
@@ -61,7 +95,7 @@ class DesignFloat(NamedValue[float], OptunaSuggestor):
     step: float | None = None
     """Discretize the search space (e.g., step=0.5)."""
 
-    def suggest(self, trial: optuna.Trial):
+    def to_optuna(self, trial: optuna.Trial):
         return trial.suggest_float(
             name=self.name,
             low=self.low,
@@ -70,8 +104,21 @@ class DesignFloat(NamedValue[float], OptunaSuggestor):
             step=self.step,
         )
 
+    def to_pymoo(self) -> Real:
+        return Real(bounds=(self.low, self.high))
 
-class DesignInt(NamedValue[int], OptunaSuggestor):
+    def refine(self, factor: float, best_params: dict[str, Any]):
+        best_val = cast(float, best_params[self.name])
+        orig_range = self.high - self.low
+        new_half_range = (orig_range * factor) / 2
+
+        self.low = max(self.low, best_val - new_half_range)
+        self.high = min(self.high, best_val + new_half_range)
+
+        logger.debug(f"Refined float '{self.name}': [{self.low:.4f}, {self.high:.4f}]")
+
+
+class DesignInt(NamedValue[int], OptimizationSuggestor):
     """
     A NamedValue representing an integer design parameter (e.g., number of solver iterations).
     """
@@ -90,7 +137,7 @@ class DesignInt(NamedValue[int], OptunaSuggestor):
     log: bool = False
     """Whether to sample from a log-scale (useful for orders of magnitude)."""
 
-    def suggest(self, trial: optuna.Trial) -> int:
+    def to_optuna(self, trial: optuna.Trial) -> int:
         return trial.suggest_int(
             name=self.name,
             low=self.low,
@@ -99,9 +146,22 @@ class DesignInt(NamedValue[int], OptunaSuggestor):
             log=self.log,
         )
 
+    def to_pymoo(self) -> Integer:
+        return Integer(bounds=(self.low, self.high))
+
+    def refine(self, factor: float, best_params: dict[str, Any]):
+        best_val = cast(float, best_params[self.name])
+        orig_range = self.high - self.low
+        new_half_range = (orig_range * factor) / 2
+
+        self.low = int(np.floor(max(self.low, best_val - new_half_range)))
+        self.high = int(np.ceil(min(self.high, best_val + new_half_range)))
+
+        logger.debug(f"Refined int '{self.name}': [{self.low:.4f}, {self.high:.4f}]")
+
 
 AnyDesignValue = Annotated[
-    DesignFloat | DesignCategorical | DesignInt,
+    DesignFloat | DesignCategorical | DesignInt | DesignBool,
     Field(discriminator="type"),
 ]
 

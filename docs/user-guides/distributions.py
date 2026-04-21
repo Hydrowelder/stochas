@@ -1,18 +1,18 @@
 # ---8<--- [start: basics]
 from numpydantic import NDArray
 
-import stochas as pm
+import stochas
 
 # 1. Define the rule
-motor_rule = pm.NormalDistribution(
-    name=pm.DistName("motor_torque"),
+motor_rule = stochas.NormalDistribution(
+    name=stochas.DistName("motor_torque"),
     mu=5.0,
     sigma=0.2,
 )
 
 # 2. Setup the registries
-rules = pm.DistributionDict()
-results = pm.NamedValueDict[NDArray]()
+rules = stochas.DistributionDict()
+results = stochas.NamedValueDict[NDArray]()
 
 # 3. Sample and Register
 # This returns a NamedValue and saves it to 'results'
@@ -30,12 +30,12 @@ val_2 = motor_rule.sample_and_update_dicts(
 print(val_1.value == val_2.value)  # True
 # ---8<--- [end: basics]
 # ---8<--- [start: repeat_draw]
-rules = pm.DistributionDict()
-results = pm.NamedValueDict[NDArray]()
+rules = stochas.DistributionDict()
+results = stochas.NamedValueDict[NDArray]()
 
 friction_rule = (
-    pm.UniformDistribution(
-        name=pm.DistName("friction"),
+    stochas.UniformDistribution(
+        name=stochas.DistName("friction"),
         low=0.2,
         high=0.4,
     )
