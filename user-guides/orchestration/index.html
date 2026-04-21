@@ -7,13 +7,13 @@
         <meta name="author" content="Talbot Knighton and David Gable">
       
       
-        <link rel="canonical" href="https://hydrowelder.github.io/stochas/user-guides/distributions/">
+        <link rel="canonical" href="https://hydrowelder.github.io/stochas/user-guides/orchestration/">
       
       
-        <link rel="prev" href="../named-values/">
+        <link rel="prev" href="../design-values/">
       
       
-        <link rel="next" href="../design-values/">
+        <link rel="next" href="../../reference/stochas/">
       
       
         
@@ -24,7 +24,7 @@
     
     
       
-        <title>Distributions - stochas</title>
+        <title>Orchestration - stochas</title>
       
     
     
@@ -91,7 +91,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#distributions-defining-the-rules-of-chance" class="md-skip">
+        <a href="#stochasbase-the-simulation-conductor" class="md-skip">
           Skip to content
         </a>
       
@@ -127,7 +127,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Distributions
+              Orchestration
             
           </span>
         </div>
@@ -461,37 +461,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Distributions
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../distributions/" class="md-nav__link">
         
   
   
@@ -507,109 +480,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-what-and-the-why" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The "What" and the "Why"
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#advanced-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Advanced Features
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Advanced Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#repeatable-randomness-the-salted-seed" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Repeatable Randomness (The "Salted" Seed)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#the-registry-distributiondict" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Registry: DistributionDict
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#supported-distribution-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Supported Distribution Types
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-sampling-into-registries" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example: Sampling into Registries
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-repeated-sampling" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example: Repeated Sampling
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -647,10 +517,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../orchestration/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -666,6 +563,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#centralized-trial-orchestration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Centralized Trial Orchestration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-pillars-of-repeatability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Pillars of Repeatability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-baked-registry-named" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The "Baked" Registry (named)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -999,10 +960,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-what-and-the-why" class="md-nav__link">
+  <a href="#centralized-trial-orchestration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The "What" and the "Why"
+        Centralized Trial Orchestration
       
     </span>
   </a>
@@ -1010,49 +971,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#advanced-features" class="md-nav__link">
+  <a href="#the-pillars-of-repeatability" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Advanced Features
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Advanced Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#repeatable-randomness-the-salted-seed" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Repeatable Randomness (The "Salted" Seed)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#the-registry-distributiondict" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Registry: DistributionDict
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#supported-distribution-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Supported Distribution Types
+        The Pillars of Repeatability
       
     </span>
   </a>
@@ -1060,10 +982,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-sampling-into-registries" class="md-nav__link">
+  <a href="#the-baked-registry-named" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example: Sampling into Registries
+        The "Baked" Registry (named)
       
     </span>
   </a>
@@ -1071,10 +993,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-repeated-sampling" class="md-nav__link">
+  <a href="#quick-implementation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example: Repeated Sampling
+        Quick Implementation
       
     </span>
   </a>
@@ -1146,7 +1068,7 @@
 
 
   
-    <a href="https://github.com/Hydrowelder/stochas/edit/master/docs/user-guides/distributions.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/Hydrowelder/stochas/edit/master/docs/user-guides/orchestration.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"></path></svg>
     </a>
@@ -1155,109 +1077,80 @@
     
       
     
-    <a href="https://github.com/Hydrowelder/stochas/raw/master/docs/user-guides/distributions.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/Hydrowelder/stochas/raw/master/docs/user-guides/orchestration.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"></path></svg>
     </a>
   
 
 
-<h1 id="distributions-defining-the-rules-of-chance">Distributions: Defining the Rules of Chance<a class="headerlink" href="#distributions-defining-the-rules-of-chance" title="Permanent link">¶</a></h1>
+<h1 id="stochasbase-the-simulation-conductor">StochasBase: The Simulation Conductor<a class="headerlink" href="#stochasbase-the-simulation-conductor" title="Permanent link">¶</a></h1>
+<p><code>StochasBase</code> is the central "brain" for a simulation trial. It orchestrates the lifecycle of a model by bridging the gap between mathematical uncertainty and deterministic execution.</p>
 <hr>
-<p>A <strong>Distribution</strong> is a mathematical recipe for generating random numbers. While a <code>NamedValue</code> represents a single point in time, a <code>Distribution</code> represents the "shape" of all possible values.</p>
-<h3 id="the-what-and-the-why">The "What" and the "Why"<a class="headerlink" href="#the-what-and-the-why" title="Permanent link">¶</a></h3>
-<p>Simulations are often used for <strong><a href="https://en.wikipedia.org/wiki/Monte_Carlo_method">Monte Carlo</a></strong> analysis—running the same task hundreds of times with slight variations to see how often it fails. Distributions define those variations.</p>
-<p>Instead of saying "the floor is slippery," you define a <code>UniformDistribution</code> for friction between 0.1 and 0.4. The system will then pick a new, valid number for every trial.</p>
-<h3 id="advanced-features">Advanced Features<a class="headerlink" href="#advanced-features" title="Permanent link">¶</a></h3>
-<h4 id="repeatable-randomness-the-salted-seed">Repeatable Randomness (The "Salted" Seed)<a class="headerlink" href="#repeatable-randomness-the-salted-seed" title="Permanent link">¶</a></h4>
-<p>To make sure your results are repeatable (great for debugging), we use a "salted" seeding method. If you provide a single global <code>seed</code>, the system automatically mixes it with other parameters to create a unique local seed for every draw.</p>
-<p>The three ingredients in the "Salt" are:</p>
+<h3 id="centralized-trial-orchestration">Centralized Trial Orchestration<a class="headerlink" href="#centralized-trial-orchestration" title="Permanent link">¶</a></h3>
+<p>A single instance of StochasBase manages two distinct pillars of simulation inputs:</p>
+<ul>
+<li><strong>Aleatory Uncertainty (<code>sample_dist</code>):</strong> Represents "luck" or noise. These are random draws from probability distributions (Normal, Uniform, etc.) that you cannot control but must account for.</li>
+<li><strong>Epistemic Uncertainty (<code>sample_design</code>):</strong> Represents "choices." These are tunable parameters (Design Variables) used by optimizers like Optuna or pymoo to find peak performance.</li>
+</ul>
+<h3 id="the-pillars-of-repeatability">The Pillars of Repeatability<a class="headerlink" href="#the-pillars-of-repeatability" title="Permanent link">¶</a></h3>
+<p>To ensure that a simulation can be perfectly recreated by a colleague, the orchestrator utilizes a "Salted Seed" logic. Every random draw is a deterministic function of the trial's metadata:</p>
+<div class="arithmatex">\[Seed_{local} = \mathcal{H}(Seed_{global}, Trial_{num}, Variable_{name})\]</div>
+<ul>
+<li><strong>Global Seed:</strong> Controls the entire campaign.</li>
+<li><strong>Trial Number:</strong> Ensures trial 10 is different from trial 11.</li>
+<li><strong>Variable Name:</strong> Ensures "stiffness" doesn't get the same random value as "damping."</li>
+</ul>
+<hr>
+<h2 id="the-baked-registry-named">The "Baked" Registry (named)<a class="headerlink" href="#the-baked-registry-named" title="Permanent link">¶</a></h2>
+<p>While <code>StochasBase</code> is designed to automate randomness and optimization, you often need to bypass the math to test a specific "Golden Case" or debug a known failure point. Overrides allow you to inject fixed values into the Baked Registry before the simulation begins.</p>
+<p>The orchestrator follows a strict priority sequence when a variable is requested:</p>
 <ol>
-<li><strong>Global Seed</strong>: Controls the broad "campaign." Change this to get a totally different set of results.</li>
-<li><strong>Distribution Name</strong>: Ensures unique draws for different parameters. Without this, two parameters with the same config (like <code>x_offset</code> and <code>y_offset</code>, if using the same <a href="https://en.wikipedia.org/wiki/Statistical_dispersion">dispersion</a>) would produce identical, coupled values.</li>
-<li><strong>Trial Number</strong>: Ensures that every iteration in your Monte Carlo run gets a unique value from the dispersion.</li>
+<li><strong>Registry Check:</strong> It looks in the <code>named</code> dictionary. If a value exists, it returns it immediately.</li>
+<li><strong>Logic Execution:</strong> If the registry is empty, it proceeds to draw from a distribution or ask an optimizer for a suggestion.</li>
 </ol>
-<h4 id="the-registry-distributiondict">The Registry: DistributionDict<a class="headerlink" href="#the-registry-distributiondict" title="Permanent link">¶</a></h4>
-<p>A <code>DistributionDict</code> acts as a centralized record of the "rules" used during a simulation. While a <code>NamedValueDict</code> stores the <strong>results</strong> (the numbers), the <code>DistributionDict</code> stores the <strong>config</strong> (the math).</p>
-<p>This is critical for:</p>
-<ul>
-<li><strong>Serialization</strong>: Saving exactly what settings were used so a colleague can recreate the simulation.</li>
-<li><strong>Bulk Updates</strong>: Changing the <code>trial_num</code> for every distribution at once as the simulation progresses.</li>
-</ul>
-<h3 id="supported-distribution-types">Supported Distribution Types<a class="headerlink" href="#supported-distribution-types" title="Permanent link">¶</a></h3>
-<div class="admonition info">
-<p class="admonition-title">Info</p>
-<p><a class="autorefs autorefs-internal" href="../../reference/stochas/distribution/#stochas.distribution">Click here to see the technical API for all supported types</a>.</p>
-</div>
-<ul>
-<li><strong>Normal</strong>: The classic Bell Curve for natural variation.</li>
-<li><strong>Uniform</strong>: For strict ranges where any value is equally likely.</li>
-<li><strong>Categorical</strong>: To pick from a fixed set of named choices (e.g., Materials).</li>
-<li><strong>Bernoulli</strong>: A simple True/False coin flip.</li>
-<li><strong>Truncated Normal</strong>: A Bell Curve with hard physical limits (e.g., mass cannot be negative).</li>
-<li><strong>Log Normal</strong>: For positive values with "long-tail" outliers (e.g., contact forces).</li>
-<li><strong>Triangular</strong>: A simpler alternative to Normal when you only know min, max, and peak.</li>
-<li><strong>Poisson / Exponential</strong>: For modeling the frequency or time between random events.</li>
-<li><strong>Permutation</strong>: To return a shuffled version of a master list.</li>
-</ul>
+<p>By using <code>with_overrides()</code>, you populate the registry early, effectively "locking" those variables for the duration of the trial.</p>
 <hr>
-<h3 id="example-sampling-into-registries">Example: Sampling into Registries<a class="headerlink" href="#example-sampling-into-registries" title="Permanent link">¶</a></h3>
-<p>When using <code>sample_and_update_dicts</code>, the system checks if a value with that name already exists in your <code>NamedValueDict</code>. If it does, it <strong>returns the existing value</strong> instead of drawing a new one. This ensures all parts of your simulation use the same "random" choice for a single trial.</p>
-<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+<h2 id="quick-implementation">Quick Implementation<a class="headerlink" href="#quick-implementation" title="Permanent link">¶</a></h2>
+<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">stochas</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 1. Define the rule</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">motor_rule</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NormalDistribution</span><span class="p">(</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">DistName</span><span class="p">(</span><span class="s2">"motor_torque"</span><span class="p">),</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">mu</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">sigma</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># 2. Setup the registries</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">rules</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">DistributionDict</span><span class="p">()</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">results</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValueDict</span><span class="p">[</span><span class="n">NDArray</span><span class="p">]()</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1"># 3. Sample and Register</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="c1"># This returns a NamedValue and saves it to 'results'</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="n">val_1</span> <span class="o">=</span> <span class="n">motor_rule</span><span class="o">.</span><span class="n">sample_and_update_dicts</span><span class="p">(</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">dist_dict</span><span class="o">=</span><span class="n">rules</span><span class="p">,</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">named_value_dict</span><span class="o">=</span><span class="n">results</span><span class="p">,</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="c1"># 4. Subsequent calls return the SAME value</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="n">val_2</span> <span class="o">=</span> <span class="n">motor_rule</span><span class="o">.</span><span class="n">sample_and_update_dicts</span><span class="p">(</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">dist_dict</span><span class="o">=</span><span class="n">rules</span><span class="p">,</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">named_value_dict</span><span class="o">=</span><span class="n">results</span><span class="p">,</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="nb">print</span><span class="p">(</span><span class="n">val_1</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">val_2</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># True</span>
-</span></code></pre></div>
-<h3 id="example-repeated-sampling">Example: Repeated Sampling<a class="headerlink" href="#example-repeated-sampling" title="Permanent link">¶</a></h3>
-<p>If you need to pull many different random numbers from the same distribution without locking them into a registry (e.g., for noise injection or redraws to meet some constraint), use the <code>.sample()</code> or <code>.draw()</code> methods directly. These move the Random Number Generator forward with every call.</p>
-<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">rules</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">DistributionDict</span><span class="p">()</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">results</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValueDict</span><span class="p">[</span><span class="n">NDArray</span><span class="p">]()</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">friction_rule</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">stochas</span><span class="o">.</span><span class="n">UniformDistribution</span><span class="p">(</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">DistName</span><span class="p">(</span><span class="s2">"friction"</span><span class="p">),</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        <span class="n">low</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="n">high</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="p">)</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="o">.</span><span class="n">with_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>  <span class="c1"># using set seed</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="o">.</span><span class="n">with_trial_num</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># and set trial_num</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="p">)</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1"># These will all be different random numbers</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="n">draw_1</span> <span class="o">=</span> <span class="n">friction_rule</span><span class="o">.</span><span class="n">sample_to_named_value</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>  <span class="c1"># 0.378</span>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="n">draw_2</span> <span class="o">=</span> <span class="n">friction_rule</span><span class="o">.</span><span class="n">sample_to_named_value</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>  <span class="c1"># 0.205</span>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">draw_3</span> <span class="o">=</span> <span class="n">friction_rule</span><span class="o">.</span><span class="n">sample_to_named_value</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>  <span class="c1"># 0.216</span>
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="nb">print</span><span class="p">(</span><span class="n">draw_1</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">draw_2</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">draw_3</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># Three different values</span>
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="c1"># just be sure to add them to a collection when done!</span>
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="n">rules</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">friction_rule</span><span class="p">)</span>
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">draw_3</span><span class="p">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">stochas</span><span class="o">.</span><span class="n">StochasBase</span><span class="p">):</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="sd">"""Put your logic for running your model here!"""</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">overrides</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValueDict</span><span class="p">()</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">overrides</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValue</span><span class="p">(</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">ValueName</span><span class="p">(</span><span class="s2">"overridden_value"</span><span class="p">),</span> <span class="n">stored_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3.14</span><span class="p">])</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="p">)</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">)</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span><span class="o">.</span><span class="n">with_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">with_trial_num</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">with_overrides</span><span class="p">(</span><span class="n">overrides</span><span class="p">)</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="c1"># 1. Random draw</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="n">noise</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sample_dist</span><span class="p">(</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">stochas</span><span class="o">.</span><span class="n">NormalDistribution</span><span class="p">(</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>        <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">DistName</span><span class="p">(</span><span class="s2">"sensor_noise"</span><span class="p">),</span> <span class="n">nominal</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.1</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="p">)</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="p">)</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="c1"># 2. Tunable parameter</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="n">width</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sample_design</span><span class="p">(</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="n">stochas</span><span class="o">.</span><span class="n">DesignFloat</span><span class="p">(</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">ValueName</span><span class="p">(</span><span class="s2">"base_width"</span><span class="p">),</span> <span class="n">low</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">stored_value</span><span class="o">=</span><span class="mf">2.5</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="p">)</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="p">)</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="c1"># Both are now registered in model.named for later analysis.</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="c1"># fails to update named value dict! overridden_value is already in the named value dict</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="n">overridden_value</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sample_dist</span><span class="p">(</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>    <span class="n">stochas</span><span class="o">.</span><span class="n">PoissonDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">DistName</span><span class="p">(</span><span class="s2">"overridden_value"</span><span class="p">),</span> <span class="n">lam</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="p">)</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="k">assert</span> <span class="n">overridden_value</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3.14</span><span class="p">])</span>  <span class="c1"># this check passes!</span>
 </span></code></pre></div>
 
 
@@ -1296,7 +1189,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer">
         
           
-          <a href="../named-values/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Named Values">
+          <a href="../design-values/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Design Values">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
@@ -1306,20 +1199,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Named Values
+                Design Values
               </div>
             </div>
           </a>
         
         
           
-          <a href="../design-values/" class="md-footer__link md-footer__link--next" aria-label="Next: Design Values">
+          <a href="../../reference/stochas/" class="md-footer__link md-footer__link--next" aria-label="Next: stochas">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Design Values
+                stochas
               </div>
             </div>
             <div class="md-footer__button md-icon">
