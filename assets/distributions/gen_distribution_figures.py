@@ -22,8 +22,8 @@ from stochas import (
 )
 
 ASSET_DIR = Path(__file__).parent
-ORANGE = "#FF5F05"
-BLUE = "#13294B"
+ROSE_500 = "#f43f5e"
+SKY_500 = "#0ea5e9"
 
 DPI = 200
 ASPECT_RATIO = 12 / 5
@@ -164,13 +164,13 @@ def plot_and_save(
         y_cdf = dist.cdf(x)
 
         # Plot PDF with shading
-        ax1.plot(x, y_pdf, lw=2, color=ORANGE)
-        ax1.fill_between(x, y_pdf, alpha=0.2, color=ORANGE)
+        ax1.plot(x, y_pdf, lw=2, color=ROSE_500)
+        ax1.fill_between(x, y_pdf, alpha=0.2, color=ROSE_500)
         ax1.set_ylabel("Density (PDF)")
 
         # Plot CDF with shading
-        ax2.plot(x, y_cdf, lw=2, color=BLUE)
-        ax2.fill_between(x, y_cdf, alpha=0.2, color=BLUE)
+        ax2.plot(x, y_cdf, lw=2, color=SKY_500)
+        ax2.fill_between(x, y_cdf, alpha=0.2, color=SKY_500)
         ax2.set_ylabel("Cumulative Prob (CDF)")
 
     else:
@@ -206,14 +206,14 @@ def plot_and_save(
             x,
             y_pmf,  # pyright: ignore[reportArgumentType]
             basefmt=" ",
-            linefmt=ORANGE,
+            linefmt=ROSE_500,
             markerfmt="o",
         )
         ax1.set_ylabel("Probability (PMF)")
 
         # Plot CDF (Step)
-        ax2.step(x, y_cdf, where="post", color=BLUE, lw=2)  # pyright: ignore[reportArgumentType]
-        ax2.fill_between(x, y_cdf, step="post", alpha=0.2, color=BLUE)  # pyright: ignore[reportArgumentType]
+        ax2.step(x, y_cdf, where="post", color=SKY_500, lw=2)  # pyright: ignore[reportArgumentType]
+        ax2.fill_between(x, y_cdf, step="post", alpha=0.2, color=SKY_500)  # pyright: ignore[reportArgumentType]
 
         # Optional: step plots don't fill_between well, but you can fill_between x and y_cdf
         # with step mode if you really want color under the staircase.
