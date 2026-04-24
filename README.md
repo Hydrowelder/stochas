@@ -1,3 +1,7 @@
+<p align="center">
+    <img alt="Stochas" src="https://raw.githubusercontent.com/hydrowelder/stochas/main/docs/assets/readme_banner.svg" style="width: 100%">
+</p>
+
 # stochas: Smart Data Orchestration
 
 <p align="center">
