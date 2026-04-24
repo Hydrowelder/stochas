@@ -23,22 +23,25 @@ nav:
 
 theme:
   name: material
+  logo: assets/main-logo.svg
+  favicon: assets/main-logo.svg
+  font: false
 
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: pink
-      accent: blue
+      primary: custom
+      accent: custom
       toggle:
-        icon: material/weather-sunny
+        icon: material/lightbulb-on
         name: Switch to dark mode
 
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: pink
-      accent: blue
+      primary: custom
+      accent: custom
       toggle:
-        icon: material/weather-night
+        icon: material/lightbulb-outline
         name: Switch to light mode
 
   features:
@@ -98,7 +101,7 @@ plugins:
             inheritance_diagram_direction: TD
             show_inheritance_diagram: true
             show_attribute_values: true
-            signature_crossrefs: true
+            # signature_crossrefs: true
             extensions:
               - pydantic: { schema: true }
           inventories:
@@ -156,4 +159,5 @@ extra_javascript:
   - javascripts/tablesort.js
 
 extra_css:
+  - css/extra.css
   - https://unpkg.com/katex@0/dist/katex.min.css

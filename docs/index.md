@@ -13,6 +13,10 @@ hide:
   }
 </style>
 
+<p align="center" class="splash">
+    <img alt="Stochas" src="assets/read_me_banner.svg" style="width: 100%">
+</p>
+
 # stochas: Smart Data Orchestration
 
 <p align="center">
@@ -23,7 +27,7 @@ hide:
     <img src="https://img.shields.io/pypi/pyversions/stochas.svg?cacheSeconds=86400" alt="Python versions">
   </a>
   <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml" class="badge-link">
-    <img src="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml/badge.svg?branch=master" alt="Tests & Release Status">
+    <img src="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml/badge.svg?branch=main" alt="Tests & Release Status">
   </a>
   <a href="https://docs.pydantic.dev/latest/" class="badge-link">
     <img src="https://img.shields.io/badge/Pydantic-v2-FF43A1?logo=pydantic&logoColor=white" alt="Pydantic v2">
@@ -42,7 +46,7 @@ hide:
   </a>
 </p>
 
-`stochas` is a Python framework built to handle the complexity of **Monte Carlo simulations**, **parametric studies**, and **probabilistic modeling**.
+`stochas` is a Pythons framework built to handle the complexity of **Monte Carlo simulations**, **parametric studies**, and **probabilistic modeling**.
 
 It provides a robust bridge between abstract statistical rules and concrete simulation data, ensuring your experiments are repeatable, traceable, and easy to manage.
 

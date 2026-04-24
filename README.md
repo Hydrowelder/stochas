@@ -1,5 +1,5 @@
 <p align="center">
-    <img alt="Stochas" src="https://raw.githubusercontent.com/hydrowelder/stochas/main/docs/assets/readme_banner.svg" style="width: 100%">
+    <img alt="Stochas" src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/read_me_banner.svg" style="width: 100%">
 </p>
 
 # stochas: Smart Data Orchestration
