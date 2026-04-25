@@ -1,5 +1,8 @@
 # NamedValues: Smart Containers for Simulation Data
 
+!!! abstract
+    **NamedValues** serve as the deterministic "Source of Truth" for your simulation parameters. By implementing a strict `UNSET`/`SET` lifecycle and **numeric mixins**, these containers ensure data integrity across complex physics models while behaving like native Python numbers in mathematical operations. This guide explores how to use NamedValues and their protected collections to prevent accidental data overrides and maintain a traceable, frozen state for every simulation trial.
+
 ---
 
 ## NamedValue

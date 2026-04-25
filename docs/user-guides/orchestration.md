@@ -1,12 +1,15 @@
 # StochasBase: The Simulation Conductor
 
-`StochasBase` is the central "brain" for a simulation trial. It orchestrates the lifecycle of a model by bridging the gap between mathematical uncertainty and deterministic execution.
+!!! abstract
+    **StochasBase** serves as the central conductor for your simulation lifecycle, synchronizing **Aleatory** randomness with **Epistemic** design choices into a single, deterministic stream. By leveraging "Salted Seed" logic, it ensures that complex Monte Carlo campaigns remain perfectly repeatable across different machines and collaborators. This guide explores the orchestration of model inputs, the mechanics of the "Baked" registry, and the use of manual overrides to isolate variables for high-fidelity debugging and "Golden Case" testing.
 
 ---
 
+`StochasBase` is the central "brain" for a simulation trial. It orchestrates the lifecycle of a model by bridging the gap between mathematical uncertainty and deterministic execution.
+
 ### Centralized Trial Orchestration
 
-A single instance of StochasBase manages two distinct pillars of simulation inputs:
+A single instance of `StochasBase` manages [two distinct pillars](https://en.wikipedia.org/wiki/Uncertainty_quantification#Aleatoric_and_epistemic) of simulation inputs:
 
 * **Aleatory Uncertainty (`sample_dist`):** Represents "luck" or noise. These are random draws from probability distributions (Normal, Uniform, etc.) that you cannot control but must account for.
 * **Epistemic Uncertainty (`sample_design`):** Represents "choices." These are tunable parameters (Design Variables) used by optimizers like Optuna or pymoo to find peak performance.

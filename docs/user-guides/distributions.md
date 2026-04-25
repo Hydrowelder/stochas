@@ -1,5 +1,8 @@
 # Distributions: Defining the Rules of Chance
 
+!!! abstract
+    **Distributions** serve as the probabilistic blueprints for your simulation's uncertainty. By defining the "shape" of possible variations, they enable rigorous Monte Carlo analysis. This guide details the mechanics of **Salted Seeds** for deterministic reproducibility, the distinction between configuration registries (`DistributionDict`) and result registries (`NamedValueDict`), and the core workflows for both locked and repeated sampling.
+
 ---
 
 A **Distribution** is a mathematical recipe for generating random numbers. While a `NamedValue` represents a single point in time, a `Distribution` represents the "shape" of all possible values.
@@ -35,6 +38,7 @@ This is critical for:
 
 * **Normal**: The classic Bell Curve for natural variation.
 * **Uniform**: For strict ranges where any value is equally likely.
+* **Discrete Uniform**: Similar to a uniform distribution, but only allows for integers to be returned.
 * **Categorical**: To pick from a fixed set of named choices (e.g., Materials).
 * **Bernoulli**: A simple True/False coin flip.
 * **Truncated Normal**: A Bell Curve with hard physical limits (e.g., mass cannot be negative).

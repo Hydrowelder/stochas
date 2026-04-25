@@ -58,13 +58,13 @@ Install the package via your preferred manager:
 
 === "`uv`"
 
-    ```bash
+    ```bash linenums="0"
     uv add stochas
     ```
 
 === "`pip`"
 
-    ```bash
+    ```bash linenums="0"
     pip install stochas
     ```
 

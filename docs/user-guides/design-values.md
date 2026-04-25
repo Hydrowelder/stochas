@@ -1,5 +1,8 @@
 # Design Values: Evolving Your System
 
+!!! abstract
+    **Design Values** represent the controllable "knobs" of your simulation, defining the mathematical search space for automated optimization. Unlike random distributions, which assess reliability, these variables empower solvers like `optuna` and `pymoo` to navigate complex performance landscapes and identify optimal system trade-offs. This guide covers the Search Space API, solver-agnostic integration patterns, and the automated refinement process for narrowing in on high-precision "Golden Case" solutions.
+
 ---
 
 While Distributions represent the uncertainty you can't control (like wind or manufacturing tolerances), Design Values represent the parameters you can control. These are the knobs you turn to find the absolute best version of your system.
