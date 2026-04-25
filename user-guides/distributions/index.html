@@ -1157,6 +1157,10 @@
 
 
 <h1 id="distributions-defining-the-rules-of-chance">Distributions: Defining the Rules of Chance<a class="headerlink" href="#distributions-defining-the-rules-of-chance" title="Permanent link">¶</a></h1>
+<div class="admonition abstract">
+<p class="admonition-title">Abstract</p>
+<p><strong>Distributions</strong> serve as the probabilistic blueprints for your simulation's uncertainty. By defining the "shape" of possible variations, they enable rigorous Monte Carlo analysis. This guide details the mechanics of <strong>Salted Seeds</strong> for deterministic reproducibility, the distinction between configuration registries (<code>DistributionDict</code>) and result registries (<code>NamedValueDict</code>), and the core workflows for both locked and repeated sampling.</p>
+</div>
 <hr>
 <p>A <strong>Distribution</strong> is a mathematical recipe for generating random numbers. While a <code>NamedValue</code> represents a single point in time, a <code>Distribution</code> represents the "shape" of all possible values.</p>
 <h3 id="the-what-and-the-why">The "What" and the "Why"<a class="headerlink" href="#the-what-and-the-why" title="Permanent link">¶</a></h3>
@@ -1186,6 +1190,7 @@
 <ul>
 <li><strong>Normal</strong>: The classic Bell Curve for natural variation.</li>
 <li><strong>Uniform</strong>: For strict ranges where any value is equally likely.</li>
+<li><strong>Discrete Uniform</strong>: Similar to a uniform distribution, but only allows for integers to be returned.</li>
 <li><strong>Categorical</strong>: To pick from a fixed set of named choices (e.g., Materials).</li>
 <li><strong>Bernoulli</strong>: A simple True/False coin flip.</li>
 <li><strong>Truncated Normal</strong>: A Bell Curve with hard physical limits (e.g., mass cannot be negative).</li>
@@ -1197,62 +1202,112 @@
 <hr>
 <h3 id="example-sampling-into-registries">Example: Sampling into Registries<a class="headerlink" href="#example-sampling-into-registries" title="Permanent link">¶</a></h3>
 <p>When using <code>sample_and_update_dicts</code>, the system checks if a value with that name already exists in your <code>NamedValueDict</code>. If it does, it <strong>returns the existing value</strong> instead of drawing a new one. This ensures all parts of your simulation use the same "random" choice for a single trial.</p>
-<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">stochas</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 1. Define the rule</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">motor_rule</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NormalDistribution</span><span class="p">(</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">DistName</span><span class="p">(</span><span class="s2">"motor_torque"</span><span class="p">),</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">mu</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">sigma</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># 2. Setup the registries</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">rules</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">DistributionDict</span><span class="p">()</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">results</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValueDict</span><span class="p">[</span><span class="n">NDArray</span><span class="p">]()</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1"># 3. Sample and Register</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="c1"># This returns a NamedValue and saves it to 'results'</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="n">val_1</span> <span class="o">=</span> <span class="n">motor_rule</span><span class="o">.</span><span class="n">sample_and_update_dicts</span><span class="p">(</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">dist_dict</span><span class="o">=</span><span class="n">rules</span><span class="p">,</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">named_value_dict</span><span class="o">=</span><span class="n">results</span><span class="p">,</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="c1"># 4. Subsequent calls return the SAME value</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="n">val_2</span> <span class="o">=</span> <span class="n">motor_rule</span><span class="o">.</span><span class="n">sample_and_update_dicts</span><span class="p">(</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">dist_dict</span><span class="o">=</span><span class="n">rules</span><span class="p">,</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">named_value_dict</span><span class="o">=</span><span class="n">results</span><span class="p">,</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="nb">print</span><span class="p">(</span><span class="n">val_1</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">val_2</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># True</span>
-</span></code></pre></div>
+<div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span>
+<span class="normal"><a href="#__codelineno-0-11">11</a></span>
+<span class="normal"><a href="#__codelineno-0-12">12</a></span>
+<span class="normal"><a href="#__codelineno-0-13">13</a></span>
+<span class="normal"><a href="#__codelineno-0-14">14</a></span>
+<span class="normal"><a href="#__codelineno-0-15">15</a></span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span>
+<span class="normal"><a href="#__codelineno-0-17">17</a></span>
+<span class="normal"><a href="#__codelineno-0-18">18</a></span>
+<span class="normal"><a href="#__codelineno-0-19">19</a></span>
+<span class="normal"><a href="#__codelineno-0-20">20</a></span>
+<span class="normal"><a href="#__codelineno-0-21">21</a></span>
+<span class="normal"><a href="#__codelineno-0-22">22</a></span>
+<span class="normal"><a href="#__codelineno-0-23">23</a></span>
+<span class="normal"><a href="#__codelineno-0-24">24</a></span>
+<span class="normal"><a href="#__codelineno-0-25">25</a></span>
+<span class="normal"><a href="#__codelineno-0-26">26</a></span>
+<span class="normal"><a href="#__codelineno-0-27">27</a></span>
+<span class="normal"><a href="#__codelineno-0-28">28</a></span>
+<span class="normal"><a href="#__codelineno-0-29">29</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">numpydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">stochas</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="c1"># 1. Define the rule</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="n">motor_rule</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NormalDistribution</span><span class="p">(</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7"></a>    <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">DistName</span><span class="p">(</span><span class="s2">"motor_torque"</span><span class="p">),</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8"></a>    <span class="n">mu</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9"></a>    <span class="n">sigma</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10"></a><span class="p">)</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11"></a>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12"></a><span class="c1"># 2. Setup the registries</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="n">rules</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">DistributionDict</span><span class="p">()</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="n">results</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValueDict</span><span class="p">[</span><span class="n">NDArray</span><span class="p">]()</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="c1"># 3. Sample and Register</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="c1"># This returns a NamedValue and saves it to 'results'</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a><span class="n">val_1</span> <span class="o">=</span> <span class="n">motor_rule</span><span class="o">.</span><span class="n">sample_and_update_dicts</span><span class="p">(</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19"></a>    <span class="n">dist_dict</span><span class="o">=</span><span class="n">rules</span><span class="p">,</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20"></a>    <span class="n">named_value_dict</span><span class="o">=</span><span class="n">results</span><span class="p">,</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22"></a>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="c1"># 4. Subsequent calls return the SAME value</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="n">val_2</span> <span class="o">=</span> <span class="n">motor_rule</span><span class="o">.</span><span class="n">sample_and_update_dicts</span><span class="p">(</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25"></a>    <span class="n">dist_dict</span><span class="o">=</span><span class="n">rules</span><span class="p">,</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26"></a>    <span class="n">named_value_dict</span><span class="o">=</span><span class="n">results</span><span class="p">,</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27"></a><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28"></a>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="nb">print</span><span class="p">(</span><span class="n">val_1</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">val_2</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># True</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 <h3 id="example-repeated-sampling">Example: Repeated Sampling<a class="headerlink" href="#example-repeated-sampling" title="Permanent link">¶</a></h3>
 <p>If you need to pull many different random numbers from the same distribution without locking them into a registry (e.g., for noise injection or redraws to meet some constraint), use the <code>.sample()</code> or <code>.draw()</code> methods directly. These move the Random Number Generator forward with every call.</p>
-<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">rules</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">DistributionDict</span><span class="p">()</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">results</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValueDict</span><span class="p">[</span><span class="n">NDArray</span><span class="p">]()</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">friction_rule</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">stochas</span><span class="o">.</span><span class="n">UniformDistribution</span><span class="p">(</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>        <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">DistName</span><span class="p">(</span><span class="s2">"friction"</span><span class="p">),</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        <span class="n">low</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="n">high</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="p">)</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="o">.</span><span class="n">with_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>  <span class="c1"># using set seed</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="o">.</span><span class="n">with_trial_num</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># and set trial_num</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="p">)</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1"># These will all be different random numbers</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="n">draw_1</span> <span class="o">=</span> <span class="n">friction_rule</span><span class="o">.</span><span class="n">sample_to_named_value</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>  <span class="c1"># 0.378</span>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="n">draw_2</span> <span class="o">=</span> <span class="n">friction_rule</span><span class="o">.</span><span class="n">sample_to_named_value</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>  <span class="c1"># 0.205</span>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">draw_3</span> <span class="o">=</span> <span class="n">friction_rule</span><span class="o">.</span><span class="n">sample_to_named_value</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>  <span class="c1"># 0.216</span>
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="nb">print</span><span class="p">(</span><span class="n">draw_1</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">draw_2</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">draw_3</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># Three different values</span>
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="c1"># just be sure to add them to a collection when done!</span>
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="n">rules</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">friction_rule</span><span class="p">)</span>
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">draw_3</span><span class="p">)</span>
-</span></code></pre></div>
+<div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-1-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-1-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-1-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-1-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-1-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-1-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-1-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-1-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-1-10">10</a></span>
+<span class="normal"><a href="#__codelineno-1-11">11</a></span>
+<span class="normal"><a href="#__codelineno-1-12">12</a></span>
+<span class="normal"><a href="#__codelineno-1-13">13</a></span>
+<span class="normal"><a href="#__codelineno-1-14">14</a></span>
+<span class="normal"><a href="#__codelineno-1-15">15</a></span>
+<span class="normal"><a href="#__codelineno-1-16">16</a></span>
+<span class="normal"><a href="#__codelineno-1-17">17</a></span>
+<span class="normal"><a href="#__codelineno-1-18">18</a></span>
+<span class="normal"><a href="#__codelineno-1-19">19</a></span>
+<span class="normal"><a href="#__codelineno-1-20">20</a></span>
+<span class="normal"><a href="#__codelineno-1-21">21</a></span>
+<span class="normal"><a href="#__codelineno-1-22">22</a></span>
+<span class="normal"><a href="#__codelineno-1-23">23</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="n">rules</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">DistributionDict</span><span class="p">()</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="n">results</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValueDict</span><span class="p">[</span><span class="n">NDArray</span><span class="p">]()</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4"></a><span class="n">friction_rule</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5"></a>    <span class="n">stochas</span><span class="o">.</span><span class="n">UniformDistribution</span><span class="p">(</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6"></a>        <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">DistName</span><span class="p">(</span><span class="s2">"friction"</span><span class="p">),</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7"></a>        <span class="n">low</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8"></a>        <span class="n">high</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9"></a>    <span class="p">)</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10"></a>    <span class="o">.</span><span class="n">with_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>  <span class="c1"># using set seed</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11"></a>    <span class="o">.</span><span class="n">with_trial_num</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># and set trial_num</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12"></a><span class="p">)</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13"></a>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14"></a><span class="c1"># These will all be different random numbers</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15"></a><span class="n">draw_1</span> <span class="o">=</span> <span class="n">friction_rule</span><span class="o">.</span><span class="n">sample_to_named_value</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>  <span class="c1"># 0.378</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16"></a><span class="n">draw_2</span> <span class="o">=</span> <span class="n">friction_rule</span><span class="o">.</span><span class="n">sample_to_named_value</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>  <span class="c1"># 0.205</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17"></a><span class="n">draw_3</span> <span class="o">=</span> <span class="n">friction_rule</span><span class="o">.</span><span class="n">sample_to_named_value</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>  <span class="c1"># 0.216</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18"></a>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19"></a><span class="nb">print</span><span class="p">(</span><span class="n">draw_1</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">draw_2</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">draw_3</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># Three different values</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20"></a>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21"></a><span class="c1"># just be sure to add them to a collection when done!</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22"></a><span class="n">rules</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">friction_rule</span><span class="p">)</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23"></a><span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">draw_3</span><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 

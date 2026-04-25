@@ -1147,6 +1147,10 @@
 
 
 <h1 id="namedvalues-smart-containers-for-simulation-data">NamedValues: Smart Containers for Simulation Data<a class="headerlink" href="#namedvalues-smart-containers-for-simulation-data" title="Permanent link">¶</a></h1>
+<div class="admonition abstract">
+<p class="admonition-title">Abstract</p>
+<p><strong>NamedValues</strong> serve as the deterministic "Source of Truth" for your simulation parameters. By implementing a strict <code>UNSET</code>/<code>SET</code> lifecycle and <strong>numeric mixins</strong>, these containers ensure data integrity across complex physics models while behaving like native Python numbers in mathematical operations. This guide explores how to use NamedValues and their protected collections to prevent accidental data overrides and maintain a traceable, frozen state for every simulation trial.</p>
+</div>
 <hr>
 <h2 id="namedvalue">NamedValue<a class="headerlink" href="#namedvalue" title="Permanent link">¶</a></h2>
 <p>A <strong>NamedValue</strong> is more than just a variable; it is a smart container designed specifically for the needs of simulation and data tracking. It ensures that once a value is decided for a trial, it stays that way.</p>
@@ -1173,41 +1177,70 @@
 </ul>
 <p>These collections protect their entries from wayward data updates. If a <code>NamedValue</code> with a specific name already exists in the the collection, the value will not be allowed in (without using a force).</p>
 <h3 id="simple-example">Simple Example<a class="headerlink" href="#simple-example" title="Permanent link">¶</a></h3>
-<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">stochas</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># 1. Initialize a container with a name and a value</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># The state automatically moves to 'SET'</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">friction</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValue</span><span class="p">(</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">ValueName</span><span class="p">(</span><span class="s2">"joint_friction"</span><span class="p">),</span> <span class="n">stored_value</span><span class="o">=</span><span class="mf">0.25</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># 2. Use it directly in physics calculations</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># No need to call .value - the mixin handles the math</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">torque_loss</span> <span class="o">=</span> <span class="n">friction</span> <span class="o">*</span> <span class="mi">300</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1"># 3. Manage a group of values</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">state_registry</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValueDict</span><span class="p">()</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">state_registry</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">friction</span><span class="p">)</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="c1"># Access the underlying data safely</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="n">current_friction</span> <span class="o">=</span> <span class="n">state_registry</span><span class="p">[</span><span class="s2">"joint_friction"</span><span class="p">]</span>
-</span></code></pre></div>
+<div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span>
+<span class="normal"><a href="#__codelineno-0-11">11</a></span>
+<span class="normal"><a href="#__codelineno-0-12">12</a></span>
+<span class="normal"><a href="#__codelineno-0-13">13</a></span>
+<span class="normal"><a href="#__codelineno-0-14">14</a></span>
+<span class="normal"><a href="#__codelineno-0-15">15</a></span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span>
+<span class="normal"><a href="#__codelineno-0-17">17</a></span>
+<span class="normal"><a href="#__codelineno-0-18">18</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">stochas</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="c1"># 1. Initialize a container with a name and a value</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="c1"># The state automatically moves to 'SET'</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="n">friction</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValue</span><span class="p">(</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a>    <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">ValueName</span><span class="p">(</span><span class="s2">"joint_friction"</span><span class="p">),</span> <span class="n">stored_value</span><span class="o">=</span><span class="mf">0.25</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="p">)</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="c1"># 2. Use it directly in physics calculations</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10"></a><span class="c1"># No need to call .value - the mixin handles the math</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11"></a><span class="n">torque_loss</span> <span class="o">=</span> <span class="n">friction</span> <span class="o">*</span> <span class="mi">300</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="c1"># 3. Manage a group of values</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="n">state_registry</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValueDict</span><span class="p">()</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="n">state_registry</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">friction</span><span class="p">)</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16"></a>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="c1"># Access the underlying data safely</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18"></a><span class="n">current_friction</span> <span class="o">=</span> <span class="n">state_registry</span><span class="p">[</span><span class="s2">"joint_friction"</span><span class="p">]</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 <h3 id="protected-entry-example">Protected Entry Example<a class="headerlink" href="#protected-entry-example" title="Permanent link">¶</a></h3>
 <p>Continuing from the previous example</p>
-<div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Updating a NamedValue already in the NamedValueDict</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">new_friction</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValue</span><span class="p">(</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">ValueName</span><span class="p">(</span><span class="s2">"joint_friction"</span><span class="p">),</span> <span class="n">stored_value</span><span class="o">=</span><span class="mi">1234</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">)</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">try</span><span class="p">:</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="c1"># "joint_friction" is already in state_registry (fails to update)</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">state_registry</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">new_friction</span><span class="p">)</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Failed to update registry!"</span><span class="p">)</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="c1"># force the value in anyway</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">state_registry</span><span class="o">.</span><span class="n">force_update</span><span class="p">(</span><span class="n">new_friction</span><span class="p">)</span>
-</span></code></pre></div>
+<div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-1-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-1-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-1-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-1-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-1-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-1-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-1-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-1-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-1-10">10</a></span>
+<span class="normal"><a href="#__codelineno-1-11">11</a></span>
+<span class="normal"><a href="#__codelineno-1-12">12</a></span>
+<span class="normal"><a href="#__codelineno-1-13">13</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="c1"># Updating a NamedValue already in the NamedValueDict</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="n">new_friction</span> <span class="o">=</span> <span class="n">stochas</span><span class="o">.</span><span class="n">NamedValue</span><span class="p">(</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3"></a>    <span class="n">name</span><span class="o">=</span><span class="n">stochas</span><span class="o">.</span><span class="n">ValueName</span><span class="p">(</span><span class="s2">"joint_friction"</span><span class="p">),</span> <span class="n">stored_value</span><span class="o">=</span><span class="mi">1234</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4"></a><span class="p">)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5"></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6"></a><span class="k">try</span><span class="p">:</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7"></a>    <span class="c1"># "joint_friction" is already in state_registry (fails to update)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8"></a>    <span class="n">state_registry</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">new_friction</span><span class="p">)</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9"></a><span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Failed to update registry!"</span><span class="p">)</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11"></a>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12"></a><span class="c1"># force the value in anyway</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13"></a><span class="n">state_registry</span><span class="o">.</span><span class="n">force_update</span><span class="p">(</span><span class="n">new_friction</span><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 

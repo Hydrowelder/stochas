@@ -9332,9 +9332,10 @@ or disabling a specific sensor or randomized model feature.</p>
 
 
 <p><span class="doc-section-title">Examples:</span></p>
-    <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 50% chance to enable gravity compensation for this trial</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">BernoulliDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"use_grav_comp"</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-</span></code></pre></div>
+    <div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># 50% chance to enable gravity compensation for this trial</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">BernoulliDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"use_grav_comp"</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 <details class="references" open>
@@ -9731,15 +9732,22 @@ materials, object types, or floor textures.</p>
 
 
 <p><span class="doc-section-title">Examples:</span></p>
-    <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Material</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">STEEL</span> <span class="o">=</span> <span class="s2">"steel"</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">WOOD</span> <span class="o">=</span> <span class="s2">"wood"</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">CategoricalDistribution</span><span class="p">[</span><span class="n">Material</span><span class="p">](</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"floor_material"</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">choices</span><span class="o">=</span><span class="p">{</span><span class="n">Material</span><span class="o">.</span><span class="n">STEEL</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">Material</span><span class="o">.</span><span class="n">WOOD</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">}</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span>
-</span></code></pre></div>
+    <div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span>
+<span class="normal"><a href="#__codelineno-0-5">5</a></span>
+<span class="normal"><a href="#__codelineno-0-6">6</a></span>
+<span class="normal"><a href="#__codelineno-0-7">7</a></span>
+<span class="normal"><a href="#__codelineno-0-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Material</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a>    <span class="n">STEEL</span> <span class="o">=</span> <span class="s2">"steel"</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a>    <span class="n">WOOD</span> <span class="o">=</span> <span class="s2">"wood"</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">CategoricalDistribution</span><span class="p">[</span><span class="n">Material</span><span class="p">](</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"floor_material"</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7"></a>    <span class="n">choices</span><span class="o">=</span><span class="p">{</span><span class="n">Material</span><span class="o">.</span><span class="n">STEEL</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">Material</span><span class="o">.</span><span class="n">WOOD</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">}</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 <details class="references" open>
@@ -10263,8 +10271,8 @@ array indices where you need equal probability across the whole range.</p>
 
 
 <p><span class="doc-section-title">Examples:</span></p>
-    <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">DiscreteUniformDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">low</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-</span></code></pre></div>
+    <div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">DiscreteUniformDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">low</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 <details class="references" open>
@@ -12661,9 +12669,10 @@ between random perturbations.</p>
 
 
 <p><span class="doc-section-title">Examples:</span></p>
-    <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Time in seconds between sensor noise "glitches"</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">ExponentialDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"glitch_interval"</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-</span></code></pre></div>
+    <div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># Time in seconds between sensor noise "glitches"</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">ExponentialDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"glitch_interval"</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 <details class="references" open>
@@ -13059,9 +13068,10 @@ between random perturbations.</p>
 
 
 <p><span class="doc-section-title">Examples:</span></p>
-    <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Modeling a scale factor that is usually 1.0 but can occasionally be 5.0</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">LogNormalDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"stiffness_scale"</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-</span></code></pre></div>
+    <div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># Modeling a scale factor that is usually 1.0 but can occasionally be 5.0</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">LogNormalDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"stiffness_scale"</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 <details class="references" open>
@@ -13483,9 +13493,10 @@ between random perturbations.</p>
 
 
 <p><span class="doc-section-title">Examples:</span></p>
-    <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Modeling the mass of a link with 10% standard deviation</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">NormalDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"link_mass"</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>
-</span></code></pre></div>
+    <div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># Modeling the mass of a link with 10% standard deviation</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">NormalDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"link_mass"</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 <details class="references" open>
@@ -14331,9 +14342,10 @@ Trial &gt; 0 returns a unique random permutation of those items.</p>
 
 
 <p><span class="doc-section-title">Examples:</span></p>
-    <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Sampling the number of random noise impulses to apply during a trial</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">PoissonDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"impulse_count"</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="mf">3.5</span><span class="p">)</span>
-</span></code></pre></div>
+    <div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># Sampling the number of random noise impulses to apply during a trial</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">PoissonDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"impulse_count"</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="mf">3.5</span><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 <details class="references" open>
@@ -14729,9 +14741,10 @@ Trial &gt; 0 returns a unique random permutation of those items.</p>
 
 
 <p><span class="doc-section-title">Examples:</span></p>
-    <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Damping where 1.0 is the spec, but it might range from 0.8 to 1.5</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">TriangularDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"joint_damping"</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-</span></code></pre></div>
+    <div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># Damping where 1.0 is the spec, but it might range from 0.8 to 1.5</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">TriangularDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"joint_damping"</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 <details class="references" open>
@@ -15177,9 +15190,10 @@ Trial &gt; 0 returns a unique random permutation of those items.</p>
 
 
 <p><span class="doc-section-title">Examples:</span></p>
-    <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Friction coefficient with a lower bound of 0 to prevent anti-friction</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">TruncatedNormalDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"friction"</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
-</span></code></pre></div>
+    <div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># Friction coefficient with a lower bound of 0 to prevent anti-friction</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">TruncatedNormalDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"friction"</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 <details class="references" open>
@@ -15651,9 +15665,10 @@ Trial &gt; 0 returns a unique random permutation of those items.</p>
 
 
 <p><span class="doc-section-title">Examples:</span></p>
-    <div class="language-python highlight"><span class="filename">Python</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Randomizing a starting joint position between -0.5 and 0.5 radians</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">UniformDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"init_pos"</span><span class="p">,</span> <span class="n">low</span><span class="o">=-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-</span></code></pre></div>
+    <div class="language-python highlight"><table class="highlighttable"><tbody><tr><th colspan="2" class="filename"><span class="filename">Python</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># Randomizing a starting joint position between -0.5 and 0.5 radians</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">UniformDistribution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"init_pos"</span><span class="p">,</span> <span class="n">low</span><span class="o">=-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</span></code></pre></div></td></tr></tbody></table></div>
 
 
 <details class="references" open>
