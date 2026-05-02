@@ -28,24 +28,24 @@ A `DistributionDict` acts as a centralized record of the "rules" used during a s
 
 This is critical for:
 
-* **Serialization**: Saving exactly what settings were used so a colleague can recreate the simulation.
-* **Bulk Updates**: Changing the `trial_num` for every distribution at once as the simulation progresses.
+- **Serialization**: Saving exactly what settings were used so a colleague can recreate the simulation.
+- **Bulk Updates**: Changing the `trial_num` for every distribution at once as the simulation progresses.
 
 ### Supported Distribution Types
 
 !!! info
     [Click here to see the technical API for all supported types][stochas.distribution].
 
-* **Normal**: The classic Bell Curve for natural variation.
-* **Uniform**: For strict ranges where any value is equally likely.
-* **Discrete Uniform**: Similar to a uniform distribution, but only allows for integers to be returned.
-* **Categorical**: To pick from a fixed set of named choices (e.g., Materials).
-* **Bernoulli**: A simple True/False coin flip.
-* **Truncated Normal**: A Bell Curve with hard physical limits (e.g., mass cannot be negative).
-* **Log Normal**: For positive values with "long-tail" outliers (e.g., contact forces).
-* **Triangular**: A simpler alternative to Normal when you only know min, max, and peak.
-* **Poisson / Exponential**: For modeling the frequency or time between random events.
-* **Permutation**: To return a shuffled version of a master list.
+- **Normal**: The classic Bell Curve for natural variation.
+- **Uniform**: For strict ranges where any value is equally likely.
+- **Discrete Uniform**: Similar to a uniform distribution, but only allows for integers to be returned.
+- **Categorical**: To pick from a fixed set of named choices (e.g., Materials).
+- **Bernoulli**: A simple True/False coin flip.
+- **Truncated Normal**: A Bell Curve with hard physical limits (e.g., mass cannot be negative).
+- **Log Normal**: For positive values with "long-tail" outliers (e.g., contact forces).
+- **Triangular**: A simpler alternative to Normal when you only know min, max, and peak.
+- **Poisson / Exponential**: For modeling the frequency or time between random events.
+- **Permutation**: To return a shuffled version of a master list.
 
 ---
 

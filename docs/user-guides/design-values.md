@@ -46,15 +46,15 @@ One of the primary advantages of this toolkit is its Solver-Agnostic nature. You
 
 For single-objective tuning, the variable suggests a value to a trial.
 
-* **Continuous:** Uses Bayesian TPE or CMA-ES sampling.
-* **Refinement:** The refine method allows the search space to "shrink" around the best known solution for more precision.
+- **Continuous:** Uses Bayesian TPE or CMA-ES sampling.
+- **Refinement:** The refine method allows the search space to "shrink" around the best known solution for more precision.
 
 ### pymoo Integration (`to_pymoo`)
 
 For multi-objective trade-offs, the variable generates a pymoo.core.variable object.
 
-* **Population-based:** Allows for genetic operators (Crossover and Mutation).
-* **Pareto Front:** Enables the discovery of the frontier of efficiency.
+- **Population-based:** Allows for genetic operators (Crossover and Mutation).
+- **Pareto Front:** Enables the discovery of the frontier of efficiency.
 
 ---
 

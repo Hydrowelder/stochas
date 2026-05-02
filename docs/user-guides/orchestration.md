@@ -11,8 +11,8 @@
 
 A single instance of `StochasBase` manages [two distinct pillars](https://en.wikipedia.org/wiki/Uncertainty_quantification#Aleatoric_and_epistemic) of simulation inputs:
 
-* **Aleatory Uncertainty (`sample_dist`):** Represents "luck" or noise. These are random draws from probability distributions (Normal, Uniform, etc.) that you cannot control but must account for.
-* **Epistemic Uncertainty (`sample_design`):** Represents "choices." These are tunable parameters (Design Variables) used by optimizers like Optuna or pymoo to find peak performance.
+- **Aleatory Uncertainty (`sample_dist`):** Represents "luck" or noise. These are random draws from probability distributions (Normal, Uniform, etc.) that you cannot control but must account for.
+- **Epistemic Uncertainty (`sample_design`):** Represents "choices." These are tunable parameters (Design Variables) used by optimizers like Optuna or pymoo to find peak performance.
 
 ### The Pillars of Repeatability
 
@@ -20,9 +20,9 @@ To ensure that a simulation can be perfectly recreated by a colleague, the orche
 
 $$Seed_{local} = \mathcal{H}(Seed_{global}, Trial_{num}, Variable_{name})$$
 
-* **Global Seed:** Controls the entire campaign.
-* **Trial Number:** Ensures trial 10 is different from trial 11.
-* **Variable Name:** Ensures "stiffness" doesn't get the same random value as "damping."
+- **Global Seed:** Controls the entire campaign.
+- **Trial Number:** Ensures trial 10 is different from trial 11.
+- **Variable Name:** Ensures "stiffness" doesn't get the same random value as "damping."
 
 ---
 
