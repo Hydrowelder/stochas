@@ -7,6 +7,8 @@ from typing import overload
 import numpy as np
 from pydantic import Field, RootModel
 
+from stochas.utils import _reconstruct_obj
+
 logger = logging.getLogger(__name__)
 
 __all__ = ["BaseDict", "BaseList"]
@@ -14,6 +16,12 @@ __all__ = ["BaseDict", "BaseList"]
 
 class BaseDict[T](RootModel[dict[str, T]]):
     root: dict[str, T] = Field(default_factory=dict)
+
+    def __reduce__(self):
+        return (
+            _reconstruct_obj,
+            (self.__class__.__module__, self.__class__.__name__, self.model_dump()),
+        )
 
     def __getitem__(self, key: str) -> T:
         """Get an item in the dictionary with the specified key."""
@@ -86,6 +94,12 @@ class BaseDict[T](RootModel[dict[str, T]]):
 
 class BaseList[T](RootModel[list[T]]):
     root: list[T] = Field(default_factory=list)
+
+    def __reduce__(self):
+        return (
+            _reconstruct_obj,
+            (self.__class__.__module__, self.__class__.__name__, self.model_dump()),
+        )
 
     def __array__(self, dtype=None, copy=None) -> np.ndarray:
         return np.array(self.root, dtype=dtype, copy=copy)

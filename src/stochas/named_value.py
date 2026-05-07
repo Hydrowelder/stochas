@@ -17,6 +17,7 @@ from pydantic_core import to_jsonable_python
 
 from stochas.base_collections import BaseDict, BaseList
 from stochas.mixins import NumericMixin
+from stochas.utils import _reconstruct_obj
 
 __all__ = [
     "NamedValue",
@@ -96,6 +97,16 @@ class NamedValue[T](BaseModel, NumericMixin):
         Field(default=UNSET_SENTINEL)
     )
     """The actual data held by this container."""
+
+    def __reduce__(self):
+        return (
+            _reconstruct_obj,
+            (self.__class__.__module__, self.__class__.__name__, self.model_dump()),
+        )
+
+    def __setstate__(self, state):
+        """Re-injects the data into the Pydantic model after unpickling."""
+        self.__dict__.update(state)  # pyright: ignore[reportAttributeAccessIssue]
 
     @field_serializer("stored_value", mode="plain", when_used="always")
     def _serialize_value(self, v: Any, info: FieldSerializationInfo) -> Any:
