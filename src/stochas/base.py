@@ -61,12 +61,16 @@ class StochasBase(BaseModel):
 
         """
         dist.with_seed(self.seed).with_trial_num(self.trial_num)
-        self.dists.update(dist)
+
+        if dist.name not in self.dists:
+            self.dists.update(dist)
+        elif force:
+            self.dists.force_update(dist)
 
         nv = dist.sample_to_named_value(size=size)
 
         if nv in self.named and not force:
-            # defined with global override
+            # defined with global override or already sampled
             if warn:
                 logger.warning(
                     f"NamedValue {nv.name} already registered. Returning it instead of the sampled value."
