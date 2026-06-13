@@ -1,15 +1,20 @@
+from collections.abc import Sequence
+from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
+from typing import Any, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
+from matplotlib.colors import to_hex, to_rgb
 from matplotlib.figure import Figure
 
 from stochas import (
     BernoulliDistribution,
     CategoricalDistribution,
     DiscreteUniformDistribution,
+    Dist,
     DistName,
     DistType,
     ExponentialDistribution,
@@ -33,45 +38,43 @@ WIDTH = 6  # inches
 HEIGHT = WIDTH / ASPECT_RATIO
 
 
-def get_dist(
-    dist_type: DistType,
-) -> (
-    tuple[
-        BernoulliDistribution
-        | CategoricalDistribution
-        | ExponentialDistribution
-        | LogNormalDistribution
-        | NormalDistribution
-        | PoissonDistribution
-        | RayleighDistribution
-        | TriangularDistribution
-        | TruncatedNormalDistribution
-        | DiscreteUniformDistribution
-        | UniformDistribution,
-        str,
-    ]
-    | None
-):
-    name = DistName(dist_type)
+@dataclass
+class DistSweep:
+    """A family of same-typed distributions, varying one "critical" parameter."""
 
-    sup_title = f"{name.replace('_', ' ').title()} Distribution "
+    distributions: Sequence[Dist]
+    labels: list[str]
+    sup_title: str
+
+
+DiscreteDist = BernoulliDistribution | PoissonDistribution | DiscreteUniformDistribution
+
+
+def get_dist_sweep(dist_type: DistType) -> DistSweep | None:
+    name = DistName(dist_type)
+    sup_title = f"{name.replace('_', ' ').title()} Distribution"
 
     match dist_type:
         case DistType.NORMAL:
-            mu = 0
-            sigma = 1
-            dist = NormalDistribution(name=name, mu=mu, sigma=sigma)
-            sup_title += f"({mu=} {sigma=})"
+            sigmas = [0.5, 1.0, 2.0]
+            dists = [
+                NormalDistribution(name=name, mu=0, sigma=sigma) for sigma in sigmas
+            ]
+            labels = [f"sigma={sigma}" for sigma in sigmas]
+            sup_title += " (sweeping sigma)"
         case DistType.UNIFORM:
-            low = -1
-            high = 2
-            dist = UniformDistribution(name=name, low=low, high=high)
-            sup_title += f"({low=} {high=})"
+            highs = [1.0, 2.0, 4.0]
+            dists = [UniformDistribution(name=name, low=0, high=high) for high in highs]
+            labels = [f"[0, {high}]" for high in highs]
+            sup_title += " (sweeping high)"
         case DistType.DISCRETE_UNIFORM:
-            low = -1
-            high = 2
-            dist = DiscreteUniformDistribution(name=name, low=low, high=high)
-            sup_title += f"({low=} {high=})"
+            highs = [2, 5, 10]
+            dists = [
+                DiscreteUniformDistribution(name=name, low=0, high=high)
+                for high in highs
+            ]
+            labels = [f"[0, {high}]" for high in highs]
+            sup_title += " (sweeping high)"
         case DistType.CATEGORICAL:
 
             class Blood(StrEnum):
@@ -84,172 +87,195 @@ def get_dist(
                 AB_P = "AB+"
                 AB_N = "AB-"
 
-            dist = CategoricalDistribution[Blood](
-                name=name,
-                choices={
-                    Blood.O_P: 0.36,
-                    Blood.O_N: 0.14,
-                    Blood.A_P: 0.28,
-                    Blood.A_N: 0.08,
-                    Blood.B_P: 0.08,
-                    Blood.B_N: 0.03,
-                    Blood.AB_P: 0.02,
-                    Blood.AB_N: 0.01,
-                },
-                nominal=Blood.O_P,
-            )
-            sup_title += "(blood types)"
+            dists = [
+                CategoricalDistribution[Blood](
+                    name=name,
+                    choices={
+                        Blood.O_P: 0.36,
+                        Blood.O_N: 0.14,
+                        Blood.A_P: 0.28,
+                        Blood.A_N: 0.08,
+                        Blood.B_P: 0.08,
+                        Blood.B_N: 0.03,
+                        Blood.AB_P: 0.02,
+                        Blood.AB_N: 0.01,
+                    },
+                    nominal=Blood.O_P,
+                )
+            ]
+            labels = ["blood types"]
+            sup_title += " (blood types)"
         case DistType.TRIANGULAR:
-            low = 0
-            high = 1
-            mode = 0.75
-            dist = TriangularDistribution(name=name, low=low, high=high, mode=mode)
-            sup_title += f"({low=} {high=} {mode=})"
+            modes = [0.25, 0.5, 0.75]
+            dists = [
+                TriangularDistribution(name=name, low=0, high=1, mode=mode)
+                for mode in modes
+            ]
+            labels = [f"mode={mode}" for mode in modes]
+            sup_title += " (sweeping mode)"
         case DistType.TRUNCATED_NORMAL:
-            mu = 1
-            sigma = 1
-            low = 0
-            dist = TruncatedNormalDistribution(name=name, mu=mu, sigma=sigma, low=low)
-            sup_title += f"({mu=} {sigma=} {low=})"
+            lows = [-2.0, -1.0, 0.0]
+            dists = [
+                TruncatedNormalDistribution(name=name, mu=0, sigma=1, low=low)
+                for low in lows
+            ]
+            labels = [f"low={low}" for low in lows]
+            sup_title += " (sweeping low)"
         case DistType.LOG_NORMAL:
-            s = 1
-            scale = 1
-            dist = LogNormalDistribution(name=name, s=s, scale=scale)
-            sup_title += f"({s=} {scale=})"
+            shapes = [0.25, 0.5, 1.0]
+            dists = [LogNormalDistribution(name=name, s=s, scale=1) for s in shapes]
+            labels = [f"s={s}" for s in shapes]
+            sup_title += " (sweeping s)"
         case DistType.POISSON:
-            lam = 4
-            dist = PoissonDistribution(name=name, lam=lam)
-            sup_title += f"({lam=})"
+            lams = [1.0, 4.0, 10.0]
+            dists = [PoissonDistribution(name=name, lam=lam) for lam in lams]
+            labels = [f"λ={lam}" for lam in lams]
+            sup_title += " (sweeping λ)"
         case DistType.EXPONENTIAL:
-            lam = 1
-            dist = ExponentialDistribution(name=name, lam=lam)
-            sup_title += f"({lam=})"
+            lams = [0.5, 1.0, 2.0]
+            dists = [ExponentialDistribution(name=name, lam=lam) for lam in lams]
+            labels = [f"λ={lam}" for lam in lams]
+            sup_title += " (sweeping λ)"
         case DistType.RAYLEIGH:
-            scale = 1
-            dist = RayleighDistribution(name=name, scale=scale)
-            sup_title += f"({scale=})"
+            scales = [0.5, 1.0, 2.0]
+            dists = [RayleighDistribution(name=name, scale=scale) for scale in scales]
+            labels = [f"scale={scale}" for scale in scales]
+            sup_title += " (sweeping scale)"
         case DistType.BERNOULLI:
-            p = 0.75
-            dist = BernoulliDistribution(name=name, p=p)
-            sup_title += f"({p=})"
+            ps = [0.25, 0.5, 0.75]
+            dists = [BernoulliDistribution(name=name, p=p) for p in ps]
+            labels = [f"p={p}" for p in ps]
+            sup_title += " (sweeping p)"
         case _:
             print(f"Distribution of type {dist_type} is not implemented")
-            return
+            return None
 
-    return dist, sup_title
+    return DistSweep(distributions=dists, labels=labels, sup_title=sup_title)
 
 
-def plot_and_save(
-    dist: BernoulliDistribution
-    | CategoricalDistribution
-    | ExponentialDistribution
-    | LogNormalDistribution
-    | NormalDistribution
-    | PoissonDistribution
-    | RayleighDistribution
-    | TriangularDistribution
-    | DiscreteUniformDistribution
-    | TruncatedNormalDistribution
-    | UniformDistribution,
-    sup_title: str,
-):
-    """Generates a dual-panel plot for a distribution and saves it."""
+def shades(base_color: str, n: int) -> list[tuple[float, float, float]]:
+    """Returns n shades of base_color, from a light tint to the full color."""
+    base = np.array(to_rgb(base_color))
+    white = np.array([1.0, 1.0, 1.0])
+    if n == 1:
+        return [tuple(base)]
+    fracs = np.linspace(0.7, 0.0, n)
+    return [tuple((1 - f) * base + f * white) for f in fracs]
+
+
+def plot_and_save_sweep(sweep: DistSweep):
+    """Generates a dual-panel plot for a family of distributions and saves it."""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(WIDTH, HEIGHT))
     fig: Figure
     ax1: Axes
     ax2: Axes
 
-    # Determine support/range
-    if dist.is_continuous:
-        # Use PPF to find reasonable bounds (0.1% to 99.9%)
+    n = len(sweep.distributions)
+    pdf_colors = shades(ROSE_500, n)
+    cdf_colors = shades(SKY_500, n)
+    first = sweep.distributions[0]
+
+    if first.is_continuous:
+        # use ppf to find a shared support across the whole sweep (0.1% to 99.9%)
         try:
-            x_min, x_max = dist.ppf(0.001), dist.ppf(0.999)
-        except Exception:  # Fallback for edge cases
+            bounds = [
+                (dist.ppf(0.001), dist.ppf(0.999)) for dist in sweep.distributions
+            ]
+            x_min = min(lo for lo, _ in bounds)
+            x_max = max(hi for _, hi in bounds)
+        except Exception:  # fallback for edge cases
             x_min, x_max = -5, 5
         x = np.linspace(x_min, x_max, 500)
-        y_pdf = dist.pdf(x)
-        y_cdf = dist.cdf(x)
 
-        # Plot PDF with shading
-        ax1.plot(x, y_pdf, lw=2, color=ROSE_500)
-        ax1.fill_between(x, y_pdf, alpha=0.2, color=ROSE_500)
+        for dist, label, pdf_color, cdf_color in zip(
+            sweep.distributions, sweep.labels, pdf_colors, cdf_colors
+        ):
+            y_pdf = dist.pdf(x)
+            y_cdf = dist.cdf(x)
+
+            ax1.plot(x, y_pdf, lw=2, color=pdf_color, label=label)
+            ax1.fill_between(x, y_pdf, alpha=0.1, color=pdf_color)
+
+            ax2.plot(x, y_cdf, lw=2, color=cdf_color, label=label)
+
         ax1.set_ylabel("Density (PDF)")
+        ax2.set_ylabel("Cumulative Prob (CDF)")
 
-        # Plot CDF with shading
-        ax2.plot(x, y_cdf, lw=2, color=SKY_500)
-        ax2.fill_between(x, y_cdf, alpha=0.2, color=SKY_500)
+    elif isinstance(first, CategoricalDistribution):
+        categorical_dists = cast(
+            "list[CategoricalDistribution[Any]]", sweep.distributions
+        )
+
+        x = np.arange(len(first.choices))
+        eval_at = first.categories
+        tick_labels = [str(c) for c in first.choices]
+        ax1.set_xticks(x, tick_labels, rotation=45)
+        ax2.set_xticks(x, tick_labels, rotation=45)
+
+        for dist, label, pdf_color, cdf_color in zip(
+            categorical_dists, sweep.labels, pdf_colors, cdf_colors
+        ):
+            y_pmf = [dist.pmf(val) for val in eval_at]
+            y_cdf = [dist.cdf(val) for val in eval_at]
+
+            ax1.stem(
+                x,
+                y_pmf,
+                basefmt=" ",
+                linefmt=to_hex(pdf_color),
+                markerfmt="o",
+                label=label,
+            )
+            ax2.step(x, y_cdf, where="post", color=cdf_color, lw=2, label=label)
+
+        ax1.set_ylabel("Probability (PMF)")
         ax2.set_ylabel("Cumulative Prob (CDF)")
 
     else:
-        # Discrete logic (Bernoulli, Poisson, Categorical)
-        if isinstance(dist, CategoricalDistribution):
-            x = np.arange(len(dist.choices))
-            eval_at = dist.categories
-            labels = [str(c) for c in dist.choices]
+        discrete_dists = cast("list[DiscreteDist]", sweep.distributions)
 
-            ax1.set_xticks(x, labels, rotation=45)
-            ax2.set_xticks(x, labels, rotation=45)
-        else:
-            if isinstance(dist, PoissonDistribution):
-                x = np.arange(0, 10)
-                eval_at = x
-            elif isinstance(dist, BernoulliDistribution):
-                x = np.array([0, 1])
-                eval_at = x
-            elif isinstance(dist, DiscreteUniformDistribution):
-                x = np.arange(dist.low, dist.high + 1)
-                eval_at = x
-            else:
-                raise NotImplementedError(
-                    f"Distribution of {type(dist)=} not supported"
-                )
-            labels = x
+        # use ppf to find a shared integer support across the sweep
+        bounds = [(dist.ppf(0.001), dist.ppf(0.999)) for dist in discrete_dists]
+        x_min = int(np.floor(min(lo for lo, _ in bounds)))
+        x_max = int(np.ceil(max(hi for _, hi in bounds)))
+        x = list(range(x_min, x_max + 1))
 
-        y_pmf = [dist.pmf(val) for val in eval_at]  # pyright: ignore[reportArgumentType]
-        y_cdf = [dist.cdf(val) for val in eval_at]  # pyright: ignore[reportArgumentType]
+        for dist, label, pdf_color, cdf_color in zip(
+            discrete_dists, sweep.labels, pdf_colors, cdf_colors
+        ):
+            y_pmf = np.asarray([dist.pmf(val) for val in x], dtype=float)
+            y_cdf = np.asarray([dist.cdf(val) for val in x], dtype=float)
 
-        # Plot PMF
-        ax1.stem(
-            x,
-            y_pmf,  # pyright: ignore[reportArgumentType]
-            basefmt=" ",
-            linefmt=ROSE_500,
-            markerfmt="o",
-        )
+            ax1.plot(x, y_pmf, "o-", color=pdf_color, label=label)
+            ax2.step(x, y_cdf, where="post", color=cdf_color, lw=2, label=label)
+
         ax1.set_ylabel("Probability (PMF)")
-
-        # Plot CDF (Step)
-        ax2.step(x, y_cdf, where="post", color=SKY_500, lw=2)  # pyright: ignore[reportArgumentType]
-        ax2.fill_between(x, y_cdf, step="post", alpha=0.2, color=SKY_500)  # pyright: ignore[reportArgumentType]
-
-        # Optional: step plots don't fill_between well, but you can fill_between x and y_cdf
-        # with step mode if you really want color under the staircase.
         ax2.set_ylabel("Cumulative Prob (CDF)")
 
-    # Cleanup and labeling
-
+    # cleanup and labeling
     ax1.set_ylim(bottom=0)
     ax2.set_ylim(bottom=0)
 
-    fig.suptitle(sup_title, fontsize=14)
+    fig.suptitle(sweep.sup_title, fontsize=14)
 
     for ax in [ax1, ax2]:
         ax.grid(True, alpha=0.3)
         ax.set_xlabel("Value")
 
+    if n > 1:
+        ax1.legend(fontsize=8)
+
     fig.tight_layout()
-    fig.savefig(ASSET_DIR / f"{dist.dist_type.lower()}.png", dpi=DPI)
+    fig.savefig(ASSET_DIR / f"{first.dist_type.lower()}.png", dpi=DPI)
     plt.close(fig)
 
 
 def main():
     for dist_type in DistType:
         print(f"{dist_type=}")
-        res = get_dist(dist_type)
-        if res:
-            dist, label = res
-            plot_and_save(dist, label)
-        # breakpoint()
+        sweep = get_dist_sweep(dist_type)
+        if sweep:
+            plot_and_save_sweep(sweep)
 
 
 if __name__ == "__main__":
