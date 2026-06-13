@@ -3,11 +3,11 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import Annotated, Any, Literal, cast
+from typing import Annotated, Any, Literal, Self, cast
 
 import numpy as np
 import optuna
-from pydantic import Field
+from pydantic import Field, model_validator
 from pymoo.core.variable import Binary, Choice, Integer, Real
 
 from stochas.base_collections import BaseDict, BaseList
@@ -95,6 +95,22 @@ class DesignFloat(NamedValue[float], OptimizationSuggestor):
     step: float | None = None
     """Discretize the search space (e.g., step=0.5)."""
 
+    @model_validator(mode="after")
+    def validate_bounds(self) -> Self:
+        if self.high <= self.low:
+            msg = f"DesignFloat '{self.name}': high must be greater than low"
+            logger.error(msg)
+            raise ValueError(msg)
+        if self.log and self.low <= 0:
+            msg = f"DesignFloat '{self.name}': low must be greater than 0 when log=True"
+            logger.error(msg)
+            raise ValueError(msg)
+        if self.step is not None and self.step <= 0:
+            msg = f"DesignFloat '{self.name}': step must be greater than 0"
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
     def to_optuna(self, trial: optuna.Trial):
         return trial.suggest_float(
             name=self.name,
@@ -136,6 +152,22 @@ class DesignInt(NamedValue[int], OptimizationSuggestor):
 
     log: bool = False
     """Whether to sample from a log-scale (useful for orders of magnitude)."""
+
+    @model_validator(mode="after")
+    def validate_bounds(self) -> Self:
+        if self.high <= self.low:
+            msg = f"DesignInt '{self.name}': high must be greater than low"
+            logger.error(msg)
+            raise ValueError(msg)
+        if self.log and self.low <= 0:
+            msg = f"DesignInt '{self.name}': low must be greater than 0 when log=True"
+            logger.error(msg)
+            raise ValueError(msg)
+        if self.step <= 0:
+            msg = f"DesignInt '{self.name}': step must be greater than 0"
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
 
     def to_optuna(self, trial: optuna.Trial) -> int:
         return trial.suggest_int(

@@ -45,6 +45,7 @@ This is critical for:
 - **Log Normal**: For positive values with "long-tail" outliers (e.g., contact forces).
 - **Triangular**: A simpler alternative to Normal when you only know min, max, and peak.
 - **Poisson / Exponential**: For modeling the frequency or time between random events.
+- **Rayleigh**: For modeling the magnitude of a 2D vector with independent Normal components (e.g., radial positioning error).
 - **Permutation**: To return a shuffled version of a master list.
 
 ---
