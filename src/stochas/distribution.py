@@ -52,6 +52,7 @@ __all__ = [
     "NormalDistribution",
     "PermutationDistribution",
     "PoissonDistribution",
+    "RayleighDistribution",
     "TriangularDistribution",
     "TruncatedNormalDistribution",
     "UniformDistribution",
@@ -94,6 +95,9 @@ class DistType(StrEnum):
 
     EXPONENTIAL = "exponential"
     """Exponential distribution."""
+
+    RAYLEIGH = "rayleigh"
+    """Rayleigh distribution."""
 
     BERNOULLI = "bernoulli"
     """Bernoulli distribution."""
@@ -917,6 +921,65 @@ class ExponentialDistribution(Distribution[float]):
         return self._scipy.ppf(q)
 
 
+class RayleighDistribution(Distribution[float]):
+    """
+    Represent the magnitude of a 2D vector whose components are independent, identically distributed Normal variables.
+
+    Commonly used to model wind speed, signal amplitude noise, or radial positioning error where the underlying x and y errors are independent Gaussians.
+
+    Examples:
+        ```python
+        # Modeling radial placement error of an object on a table
+        dist = RayleighDistribution(name="placement_error", scale=0.02)
+        ```
+
+    References:
+        1. [NumPy](https://numpy.org/doc/stable/reference/random/generated/numpy.random.rayleigh.html)
+        2. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rayleigh.html)
+        3. [Wikipedia](https://en.wikipedia.org/wiki/Rayleigh_distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/rayleigh.png" width="600" />
+
+    """
+
+    scale: float
+    """Scale parameter (sigma). Must be positive."""
+
+    _scipy: rv_continuous = PrivateAttr()
+
+    dist_type: Literal[DistType.RAYLEIGH] = DistType.RAYLEIGH
+
+    @model_validator(mode="after")
+    def validate_scale(self) -> Self:
+        if self.scale <= 0:
+            msg = f"Distribution {self.name} has a non-positive scale. It must be greater than 0."
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.rayleigh(scale=self.scale)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return self.rng.rayleigh(scale=self.scale, size=size)
+
+    @property
+    def is_continuous(self) -> Literal[True]:
+        return True
+
+    def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.pdf(x)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+
 class BernoulliDistribution(Distribution[bool]):
     """
     Represent a single binary trial (Success/Failure).
@@ -993,6 +1056,7 @@ Dist = Annotated[
     | LogNormalDistribution
     | PoissonDistribution
     | ExponentialDistribution
+    | RayleighDistribution
     | BernoulliDistribution,
     Field(discriminator="dist_type"),
 ]

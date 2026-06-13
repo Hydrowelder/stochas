@@ -16,6 +16,7 @@ from stochas import (
     LogNormalDistribution,
     NormalDistribution,
     PoissonDistribution,
+    RayleighDistribution,
     TriangularDistribution,
     TruncatedNormalDistribution,
     UniformDistribution,
@@ -42,6 +43,7 @@ def get_dist(
         | LogNormalDistribution
         | NormalDistribution
         | PoissonDistribution
+        | RayleighDistribution
         | TriangularDistribution
         | TruncatedNormalDistribution
         | DiscreteUniformDistribution
@@ -122,6 +124,10 @@ def get_dist(
             lam = 1
             dist = ExponentialDistribution(name=name, lam=lam)
             sup_title += f"({lam=})"
+        case DistType.RAYLEIGH:
+            scale = 1
+            dist = RayleighDistribution(name=name, scale=scale)
+            sup_title += f"({scale=})"
         case DistType.BERNOULLI:
             p = 0.75
             dist = BernoulliDistribution(name=name, p=p)
@@ -140,6 +146,7 @@ def plot_and_save(
     | LogNormalDistribution
     | NormalDistribution
     | PoissonDistribution
+    | RayleighDistribution
     | TriangularDistribution
     | DiscreteUniformDistribution
     | TruncatedNormalDistribution

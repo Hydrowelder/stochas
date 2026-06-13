@@ -6,6 +6,7 @@ from stochas import (
     ExponentialDistribution,
     LogNormalDistribution,
     NormalDistribution,
+    RayleighDistribution,
     TriangularDistribution,
     TruncatedNormalDistribution,
     UniformDistribution,
@@ -100,6 +101,29 @@ def test_exponential_properties():
     assert np.isclose(dist.cdf(expected_mean), 1 - np.exp(-1))
 
 
+def test_rayleigh_properties():
+    """Verify Rayleigh distribution follows the scale (sigma) parameter."""
+    scale = 2.0
+    dist = RayleighDistribution(name=DistName("error"), scale=scale)
+
+    samples = dist.sample(1000)
+    assert np.all(samples >= 0)
+
+    # Theoretical mean of Rayleigh is scale * sqrt(pi / 2)
+    expected_mean = scale * np.sqrt(np.pi / 2)
+    assert np.isclose(np.mean(samples), expected_mean, atol=0.2)
+
+    # Median of Rayleigh is scale * sqrt(ln(4))
+    median = scale * np.sqrt(np.log(4))
+    assert np.isclose(dist.cdf(median), 0.5)
+    assert np.isclose(dist.ppf(0.5), median)
+
+
+def test_rayleigh_validation():
+    with pytest.raises(ValueError, match="non-positive scale"):
+        RayleighDistribution(name=DistName("bad"), scale=0)
+
+
 @pytest.mark.parametrize(
     "dist_instance",
     [
@@ -108,6 +132,7 @@ def test_exponential_properties():
         ),
         LogNormalDistribution(name=DistName("ln"), s=0.5, scale=10),
         ExponentialDistribution(name=DistName("ex"), lam=2.0),
+        RayleighDistribution(name=DistName("ry"), scale=2.0),
     ],
 )
 def test_continuous_ppf_consistency(dist_instance):
