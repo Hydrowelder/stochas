@@ -43,7 +43,7 @@ class DesignBool(NamedValue[bool], OptimizationSuggestor):
 
     type: Literal["binary"] = "binary"
 
-    def suggest(self, trial: optuna.Trial) -> bool:
+    def to_optuna(self, trial: optuna.Trial) -> bool:
         return trial.suggest_categorical(self.name, [True, False])
 
     def to_pymoo(self) -> Binary:

@@ -90,6 +90,7 @@ ignore = ["typings"]
 [tool.coverage.report]
 exclude_also = [
     "if __name__ == .__main__.:",
+    "@(abc\\.)?abstractmethod",
 ]
 
 [dependency-groups]
