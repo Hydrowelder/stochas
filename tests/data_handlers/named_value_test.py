@@ -1,3 +1,5 @@
+import pickle
+
 import pytest
 from pydantic import ValidationError
 
@@ -94,6 +96,16 @@ def test_string_named_value():
 
     assert isinstance(nv.value, str)
     assert nv.value == "david"
+
+
+def test_pickle_roundtrip_preserves_generic_type():
+    """Ensure __reduce__ preserves the generic type parameter when pickling and unpickling."""
+    nv = NamedValue[int](name=ValueName("count"), stored_value=7)
+
+    restored = pickle.loads(pickle.dumps(nv))
+
+    assert restored == nv
+    assert restored.__class__ is nv.__class__
 
 
 def test_generic_type_propagation_for_type_checkers():

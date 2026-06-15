@@ -17,7 +17,7 @@ from pydantic_core import to_jsonable_python
 
 from stochas.base_collections import BaseDict, BaseList
 from stochas.mixins import NumericMixin
-from stochas.utils import _reconstruct_obj
+from stochas.utils import _reduce_obj
 
 __all__ = [
     "NamedValue",
@@ -99,10 +99,7 @@ class NamedValue[T](BaseModel, NumericMixin):
     """The actual data held by this container."""
 
     def __reduce__(self):
-        return (
-            _reconstruct_obj,
-            (self.__class__.__module__, self.__class__.__name__, self.model_dump()),
-        )
+        return _reduce_obj(self)
 
     def __setstate__(self, state):
         """Re-injects the data into the Pydantic model after unpickling."""

@@ -87,6 +87,11 @@ venvPath = ".."
 venv = ".venv"
 ignore = ["typings"]
 
+[tool.coverage.report]
+exclude_also = [
+    "if __name__ == .__main__.:",
+]
+
 [dependency-groups]
 dev = [
     "callouts>=0.1.1",
