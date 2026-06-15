@@ -1,3 +1,5 @@
+"""Tests for design variables (DesignBool, DesignCategorical, DesignFloat, DesignInt) and their collections."""
+
 import numpy as np
 import optuna
 import pytest

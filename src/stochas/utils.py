@@ -1,3 +1,5 @@
+"""Helpers for pickling pydantic generic models while preserving their type parameters."""
+
 import importlib
 from typing import Any
 

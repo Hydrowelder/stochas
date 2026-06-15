@@ -1,3 +1,5 @@
+"""Tests for continuous distributions."""
+
 import numpy as np
 import pytest
 
@@ -21,11 +23,27 @@ def test_normal_distribution_properties():
     assert dist.pdf(mu) > 0
     assert np.isclose(dist.cdf(mu), 0.5)
     assert np.isclose(dist.ppf(0.5), mu)
+    assert dist.is_continuous is True
 
     # Sampling
     samples = dist.sample(1000)
     assert np.isclose(np.mean(samples), mu, atol=2.0)
     assert np.isclose(np.std(samples), sigma, atol=2.0)
+
+
+def test_normal_distribution_invalid_sigma():
+    """Ensure sigma must be positive."""
+    with pytest.raises(ValueError, match="negative standard deviation"):
+        NormalDistribution(name=DistName("bad"), mu=0, sigma=0)
+
+
+def test_normal_distribution_nominal_sample():
+    """Ensure sample() returns the nominal value when trial_num is nominal."""
+    dist = NormalDistribution(name=DistName("iq"), mu=100, sigma=15, nominal=110)
+
+    samples = dist.sample(3)
+
+    assert np.array_equal(samples, np.full(3, 110))
 
 
 def test_uniform_distribution_bounds():
@@ -35,11 +53,35 @@ def test_uniform_distribution_bounds():
     assert np.all(samples >= 10)
     assert np.all(samples <= 20)
     assert np.isclose(dist.cdf(15), 0.5)
+    assert dist.pdf(15) > 0
+    assert np.isclose(dist.ppf(0.5), 15)
+    assert dist.is_continuous is True
+
+
+def test_uniform_distribution_validation():
+    """Ensure high must be greater than low."""
+    with pytest.raises(ValueError, match="high must be greater than low"):
+        UniformDistribution(name=DistName("bad"), low=20, high=10)
 
 
 def test_triangular_validation():
     with pytest.raises(ValueError, match="Must satisfy low <= mode <= high"):
         TriangularDistribution(name=DistName("bad"), low=10, mode=5, high=20)
+
+
+def test_triangular_properties():
+    """Verify Triangular sampling, PDF, CDF, PPF, and is_continuous."""
+    dist = TriangularDistribution(name=DistName("tri"), low=0, mode=5, high=10)
+
+    samples = dist.sample(100)
+    assert np.all(samples >= 0)
+    assert np.all(samples <= 10)
+
+    assert dist.pdf(5) > 0
+    assert np.isclose(dist.cdf(0), 0.0)
+    assert np.isclose(dist.cdf(10), 1.0)
+    assert np.isclose(dist.ppf(0.5), dist.mode, atol=1.0)
+    assert dist.is_continuous is True
 
 
 def test_truncated_normal_bounds():
@@ -57,6 +99,9 @@ def test_truncated_normal_bounds():
     # CDF at lower bound should be 0, upper should be 1
     assert np.isclose(dist.cdf(lower), 0.0, atol=1e-7)
     assert np.isclose(dist.cdf(upper), 1.0, atol=1e-7)
+
+    assert dist.pdf(mu) > 0
+    assert dist.is_continuous is True
 
 
 def test_truncated_normal_extreme_bounds():
@@ -83,6 +128,9 @@ def test_log_normal_properties():
     assert np.isclose(dist.cdf(scale), 0.5)
     assert np.isclose(dist.ppf(0.5), scale)
 
+    assert dist.pdf(scale) > 0
+    assert dist.is_continuous is True
+
 
 def test_exponential_properties():
     """Verify Exponential distribution follows the rate lambda."""
@@ -99,6 +147,9 @@ def test_exponential_properties():
     # CDF of Exponential is 1 - exp(-lam * x)
     # At x = 1/lam, CDF is 1 - exp(-1) ≈ 0.632
     assert np.isclose(dist.cdf(expected_mean), 1 - np.exp(-1))
+
+    assert dist.pdf(expected_mean) > 0
+    assert dist.is_continuous is True
 
 
 def test_rayleigh_properties():
@@ -117,6 +168,9 @@ def test_rayleigh_properties():
     median = scale * np.sqrt(np.log(4))
     assert np.isclose(dist.cdf(median), 0.5)
     assert np.isclose(dist.ppf(0.5), median)
+
+    assert dist.pdf(median) > 0
+    assert dist.is_continuous is True
 
 
 def test_rayleigh_validation():

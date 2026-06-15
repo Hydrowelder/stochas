@@ -1,3 +1,5 @@
+"""Tests for StochasBase."""
+
 import numpy as np
 
 from stochas import (

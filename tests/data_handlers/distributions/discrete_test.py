@@ -1,3 +1,5 @@
+"""Tests for discrete distributions."""
+
 import numpy as np
 import pytest
 
@@ -25,6 +27,29 @@ def test_categorical_pmf_cdf():
     assert np.isclose(dist.cdf("Medium"), 0.7)
     assert np.isclose(dist.cdf("High"), 1.0)
 
+    # An unknown category is not in the choices list, so cdf falls back to 0.0
+    assert dist.cdf("Unknown") == 0.0
+
+    assert dist.pdf("Low") == dist.pmf("Low")
+    assert dist.is_continuous is False
+    assert dist.ppf(0.01) == 0
+
+
+def test_categorical_sampling():
+    """Verify Categorical sampling draws only from the provided choices."""
+    choices = {"Low": 0.2, "Medium": 0.5, "High": 0.3}
+    dist = CategoricalDistribution(name=DistName("risk"), choices=choices, seed=42)
+
+    samples = dist.sample(100)
+
+    assert set(samples).issubset(set(choices))
+
+
+def test_categorical_validate_probabilities():
+    """Ensure probabilities must sum to 1."""
+    with pytest.raises(ValueError, match="do not sum to 1"):
+        CategoricalDistribution(name=DistName("bad"), choices={"a": 0.5, "b": 0.6})
+
 
 def test_poisson_properties():
     """Verify Poisson PMF and step-function CDF."""
@@ -42,6 +67,9 @@ def test_poisson_properties():
 
     # PPF
     assert dist.ppf(0.01) >= 0
+
+    assert dist.is_continuous is False
+    assert dist.pdf(0) == dist.pmf(0)
 
 
 def test_poisson_sampling():
@@ -83,6 +111,9 @@ def test_bernoulli_math_properties():
     # PPF: Inverse CDF
     assert dist.ppf(0.1) == 0  # Since P(X<=0) = 0.3, 0.1 quantile is 0
     assert dist.ppf(0.8) == 1  # Since P(X<=0) = 0.3, 0.8 quantile must be 1
+
+    assert dist.is_continuous is False
+    assert dist.pdf(1) == dist.pmf(1)
 
 
 def test_bernoulli_sampling():
@@ -207,6 +238,18 @@ def test_permutation_errors():
     dist = PermutationDistribution(name=DistName("test"), items=[1, 2])
     with pytest.raises(NotImplementedError):
         dist.cdf([1, 2])
+
+    with pytest.raises(NotImplementedError):
+        dist.ppf(0.5)
+
+
+def test_permutation_pdf_and_is_continuous():
+    """Verify pdf proxies to pmf and is_continuous is False."""
+    items = ["A", "B", "C"]
+    dist = PermutationDistribution[str](name=DistName("pdf"), items=items)
+
+    assert dist.is_continuous is False
+    assert dist.pdf(np.array(["A", "B", "C"])) == dist.pmf(np.array(["A", "B", "C"]))
 
 
 if __name__ == "__main__":

@@ -1,3 +1,5 @@
+"""Tests for NumericMixin, via NamedValue."""
+
 import numpy as np
 
 from stochas import NamedValue

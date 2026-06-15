@@ -57,7 +57,7 @@ ignore = [
     "TID", # flake8-tidy-imports
 
     # specific rules
-    "D100",   # ignore missing docs
+    # "D100",   # ignore missing docs
     "D101",
     "D102",
     "D103",
@@ -88,14 +88,12 @@ venv = ".venv"
 ignore = ["typings"]
 
 [tool.coverage.report]
-exclude_also = [
-    "if __name__ == .__main__.:",
-    "@(abc\\.)?abstractmethod",
-]
+exclude_also = ["if __name__ == .__main__.:", "@(abc\\.)?abstractmethod"]
 
 [dependency-groups]
 dev = [
     "callouts>=0.1.1",
+    "genbadge[coverage]>=1.1.2",
     "matplotlib>=3.10.8",
     "mkdocs>=1.6.1",
     "mkdocs-gen-files>=0.6.0",

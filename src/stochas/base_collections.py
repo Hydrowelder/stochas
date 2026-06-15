@@ -1,3 +1,5 @@
+"""Generic dict- and list-like pydantic RootModel base classes."""
+
 from __future__ import annotations
 
 import logging

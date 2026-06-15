@@ -1,10 +1,12 @@
+"""Tests for NamedValueDict and NamedValueList."""
+
 import pickle
 
 import numpy as np
 import pytest
 
 from stochas import NamedValue, NamedValueDict, NamedValueList
-from stochas.named_value import ValueName
+from stochas.named_value import UNSET_SENTINEL, ValueName
 
 
 def test_dict_getitem_missing_key():
@@ -166,6 +168,16 @@ def test_dict_popitem_and_clear():
     d.update(nv)
     d.clear()
     assert len(d) == 0
+
+
+def test_dict_get_raw_value():
+    """Ensure get_raw_value returns the underlying stored_value, including the unset sentinel."""
+    d = NamedValueDict[int]()
+    d.update(NamedValue[int](name=ValueName("x"), stored_value=1))
+    d.update(NamedValue[int](name=ValueName("y")))
+
+    assert d.get_raw_value("x") == 1
+    assert d.get_raw_value("y") == UNSET_SENTINEL
 
 
 def test_dict_to_list_conversion():

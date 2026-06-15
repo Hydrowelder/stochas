@@ -1,3 +1,5 @@
+"""NamedValue and its dict/list collections for tracking sampled and override values."""
+
 from __future__ import annotations
 
 import logging
@@ -101,10 +103,6 @@ class NamedValue[T](BaseModel, NumericMixin):
     def __reduce__(self):
         return _reduce_obj(self)
 
-    def __setstate__(self, state):
-        """Re-injects the data into the Pydantic model after unpickling."""
-        self.__dict__.update(state)  # pyright: ignore[reportAttributeAccessIssue]
-
     @field_serializer("stored_value", mode="plain", when_used="always")
     def _serialize_value(self, v: Any, info: FieldSerializationInfo) -> Any:
         """
@@ -142,10 +140,6 @@ class NamedValue[T](BaseModel, NumericMixin):
                     msg = f"{self.name} stored value cannot be set to `NamedValueState.UNSET`"
                     logger.error(msg)
                     raise ValueError(msg)
-            case _:
-                msg = f"The enumeration for {self.state} has not been implemented."
-                logger.error(msg)
-                raise NotImplementedError(msg)
         return self
 
     @property

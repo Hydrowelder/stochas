@@ -1,3 +1,5 @@
+"""StochasBase, the top-level model for registering distributions and named/design values."""
+
 import logging
 from typing import Any, Self, TypeVar, overload
 

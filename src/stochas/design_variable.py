@@ -1,3 +1,5 @@
+"""Design variables (optimizable NamedValue subclasses) and their dict/list collections."""
+
 from __future__ import annotations
 
 import logging

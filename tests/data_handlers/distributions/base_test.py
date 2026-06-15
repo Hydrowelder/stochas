@@ -1,8 +1,10 @@
+"""Tests for the Distribution base class and its dict/list registries."""
+
 import numpy as np
 from numpydantic import NDArray
 
 from stochas import DistName, NormalDistribution
-from stochas.distribution import DistributionDict
+from stochas.distribution import DistributionDict, DistributionList
 from stochas.named_value import NamedValueDict
 
 
@@ -49,6 +51,62 @@ def test_serialization_roundtrip_dict():
 
     json_data = named_dict.model_dump_json()
     _new_dist_dict = NamedValueDict[NDArray].model_validate_json(json_data)
+
+
+def test_sample_and_update_dicts_returns_existing_without_force():
+    """Ensure a second call without force returns the already-registered NamedValue."""
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1)
+    dist_dict = DistributionDict()
+    named_dict = NamedValueDict()
+
+    nv1 = dist.sample_and_update_dicts(dist_dict=dist_dict, named_value_dict=named_dict)
+    nv2 = dist.sample_and_update_dicts(dist_dict=dist_dict, named_value_dict=named_dict)
+
+    assert nv2 is nv1
+
+
+def test_sample_and_update_dicts_force_overwrites_and_warns(caplog):
+    """Ensure force=True overwrites the existing NamedValue and logs a warning."""
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1)
+    dist_dict = DistributionDict()
+    named_dict = NamedValueDict()
+
+    nv1 = dist.sample_and_update_dicts(dist_dict=dist_dict, named_value_dict=named_dict)
+    nv2 = dist.sample_and_update_dicts(
+        dist_dict=dist_dict, named_value_dict=named_dict, force=True
+    )
+
+    assert nv2 is not nv1
+    assert named_dict["x"] is nv2
+    assert "already exists in named_value_list" in caplog.text
+
+
+def test_distribution_dict_helpers():
+    """Verify DistributionDict's conversion and trial-number propagation."""
+    dist_dict = DistributionDict()
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1)
+    dist_dict.update(dist)
+
+    dist_list = dist_dict.distribution_list
+    assert isinstance(dist_list, DistributionList)
+    assert list(dist_list) == [dist]
+
+    dist_dict.set_trial_nums(3)
+    assert dist_dict["x"].trial_num == 3
+
+
+def test_distribution_list_helpers():
+    """Verify DistributionList's conversion and trial-number propagation."""
+    dist_list = DistributionList()
+    dist = NormalDistribution(name=DistName("y"), mu=0, sigma=1)
+    dist_list.append(dist)
+
+    dist_dict = dist_list.to_distribution_dict
+    assert isinstance(dist_dict, DistributionDict)
+    assert dist_dict["y"] is dist
+
+    dist_list.set_trial_nums(2)
+    assert dist_list[0].trial_num == 2
 
 
 if __name__ == "__main__":
