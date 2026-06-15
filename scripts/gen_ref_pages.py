@@ -1,35 +1,46 @@
-"""Generate the code reference pages and navigation."""
+"""
+Generate API reference pages in docs/reference/.
+
+Run this script before building the docs site:
+
+    python scripts/gen_ref_pages.py
+
+The output is written to docs/reference/ and is consumed by zensical (or
+mkdocs) via the ::: autodoc directives. The directory is gitignored; this
+script must be run as part of the CI pipeline before zensical build.
+"""
 
 from pathlib import Path
 
-import mkdocs_gen_files
+ROOT = Path(__file__).parent.parent
+DOCS_REF = ROOT / "docs" / "reference"
 
-nav = mkdocs_gen_files.Nav()  # type: ignore
+# ---------------------------------------------------------------------------
+# Modules to document: (dotted identifier, output path relative to DOCS_REF)
+# ---------------------------------------------------------------------------
+MODULES: list[tuple[str, str]] = [
+    ("stochas", "stochas/index.md"),
+    ("stochas.base", "stochas/base.md"),
+    ("stochas.base_collections", "stochas/base_collections.md"),
+    ("stochas.design_variable", "stochas/design_variable.md"),
+    ("stochas.distribution", "stochas/distribution.md"),
+    ("stochas.mixins", "stochas/mixins.md"),
+    ("stochas.named_value", "stochas/named_value.md"),
+    ("stochas.utils", "stochas/utils.md"),
+]
 
-root = Path(__file__).parent.parent
-src = root / "src"
 
-for path in sorted(src.rglob("*.py")):
-    module_path = path.relative_to(src).with_suffix("")
-    doc_path = path.relative_to(src).with_suffix(".md")
-    full_doc_path = Path("reference", doc_path)
+def main() -> None:
+    DOCS_REF.mkdir(parents=True, exist_ok=True)
 
-    parts = tuple(module_path.parts)
+    for module, rel_path in MODULES:
+        dest = DOCS_REF / rel_path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(f"::: {module}\n", encoding="utf-8")
+        print(f"  {dest.relative_to(ROOT)}")
 
-    if parts[-1] == "__init__":
-        parts = parts[:-1]
-        doc_path = doc_path.with_name("index.md")
-        full_doc_path = full_doc_path.with_name("index.md")
-    elif parts[-1] == "__main__":
-        continue
+    print(f"\nWrote {len(MODULES)} pages to {DOCS_REF.relative_to(ROOT)}/")
 
-    nav[parts] = doc_path.as_posix()
 
-    with mkdocs_gen_files.open(full_doc_path, "w") as fd:
-        ident = ".".join(parts)
-        fd.write(f"::: {ident}")
-
-    mkdocs_gen_files.set_edit_path(full_doc_path, path.relative_to(root))
-
-with mkdocs_gen_files.open("reference/SUMMARY.md", "w") as nav_file:
-    nav_file.writelines(nav.build_literate_nav())
+if __name__ == "__main__":
+    main()

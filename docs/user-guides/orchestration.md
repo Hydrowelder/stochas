@@ -1,6 +1,7 @@
 # StochasBase: The Simulation Conductor
 
 !!! abstract
+
     **StochasBase** serves as the central conductor for your simulation lifecycle, synchronizing **Aleatory** randomness with **Epistemic** design choices into a single, deterministic stream. By leveraging "Salted Seed" logic, it ensures that complex Monte Carlo campaigns remain perfectly repeatable across different machines and collaborators. This guide explores the orchestration of model inputs, the mechanics of the "Baked" registry, and the use of manual overrides to isolate variables for high-fidelity debugging and "Golden Case" testing.
 
 ---
