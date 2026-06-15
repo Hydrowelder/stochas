@@ -1,8 +1,12 @@
+"""Tests for NamedValue."""
+
+import pickle
+
 import pytest
 from pydantic import ValidationError
 
 from stochas import NamedValue, NamedValueState
-from stochas.named_value import ValueName
+from stochas.named_value import UNSET_SENTINEL, ValueName
 
 
 def test_initial_state_unset():
@@ -94,6 +98,52 @@ def test_string_named_value():
 
     assert isinstance(nv.value, str)
     assert nv.value == "david"
+
+
+def test_pickle_roundtrip_preserves_generic_type():
+    """Ensure __reduce__ preserves the generic type parameter when pickling and unpickling."""
+    nv = NamedValue[int](name=ValueName("count"), stored_value=7)
+
+    restored = pickle.loads(pickle.dumps(nv))
+
+    assert restored == nv
+    assert restored.__class__ is nv.__class__
+
+
+def test_validate_state_set_without_stored_value_raises():
+    """Ensure declaring state=SET without a stored_value is rejected."""
+    with pytest.raises(ValueError, match=r"cannot be set to `NamedValueState\.UNSET`"):
+        NamedValue[int](name=ValueName("x"), state=NamedValueState.SET)
+
+
+def test_value_getter_raises_runtime_error_on_corrupted_state():
+    """Ensure the value getter detects a SET state with a sentinel stored_value."""
+    nv = NamedValue[int].model_construct(
+        name=ValueName("x"), state=NamedValueState.SET, stored_value=UNSET_SENTINEL
+    )
+
+    with pytest.raises(RuntimeError, match="implying something was corrupted"):
+        _ = nv.value
+
+
+def test_value_getter_raises_not_implemented_for_unknown_state():
+    """Ensure the value getter rejects an unrecognized state value."""
+    nv = NamedValue[int].model_construct(
+        name=ValueName("x"), state="bogus", stored_value=1
+    )
+
+    with pytest.raises(NotImplementedError, match="has not been implemented"):
+        _ = nv.value
+
+
+def test_value_setter_raises_not_implemented_for_unknown_state():
+    """Ensure the value setter rejects an unrecognized state value."""
+    nv = NamedValue[int].model_construct(
+        name=ValueName("x"), state="bogus", stored_value=1
+    )
+
+    with pytest.raises(NotImplementedError, match="has not been implemented"):
+        nv.value = 5
 
 
 def test_generic_type_propagation_for_type_checkers():

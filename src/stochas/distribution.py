@@ -1,3 +1,5 @@
+"""Probability distributions used to sample design and named values."""
+
 from __future__ import annotations
 
 import hashlib
@@ -253,7 +255,11 @@ class Distribution[T](BaseModel, ABC):
 
         nv = self.sample_to_named_value(size=size)
 
-        dist_dict.update(self)  # pyright: ignore[reportArgumentType]
+        if self.name not in dist_dict:
+            dist_dict.update(self)  # pyright: ignore[reportArgumentType]
+        elif force:
+            dist_dict.force_update(self)  # pyright: ignore[reportArgumentType]
+
         if force:
             named_value_dict.force_update(nv, warn=warn)
         else:

@@ -1,6 +1,7 @@
 # Distributions: Defining the Rules of Chance
 
 !!! abstract
+
     **Distributions** serve as the probabilistic blueprints for your simulation's uncertainty. By defining the "shape" of possible variations, they enable rigorous Monte Carlo analysis. This guide details the mechanics of **Salted Seeds** for deterministic reproducibility, the distinction between configuration registries (`DistributionDict`) and result registries (`NamedValueDict`), and the core workflows for both locked and repeated sampling.
 
 ---
@@ -8,6 +9,7 @@
 A **Distribution** is a mathematical recipe for generating random numbers. While a `NamedValue` represents a single point in time, a `Distribution` represents the "shape" of all possible values.
 
 ### The "What" and the "Why"
+
 Simulations are often used for **[Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method)** analysis—running the same task hundreds of times with slight variations to see how often it fails. Distributions define those variations.
 
 Instead of saying "the floor is slippery," you define a `UniformDistribution` for friction between 0.1 and 0.4. The system will then pick a new, valid number for every trial.
@@ -15,6 +17,7 @@ Instead of saying "the floor is slippery," you define a `UniformDistribution` fo
 ### Advanced Features
 
 #### Repeatable Randomness (The "Salted" Seed)
+
 To make sure your results are repeatable (great for debugging), we use a "salted" seeding method. If you provide a single global `seed`, the system automatically mixes it with other parameters to create a unique local seed for every draw.
 
 The three ingredients in the "Salt" are:
@@ -24,6 +27,7 @@ The three ingredients in the "Salt" are:
 3. **Trial Number**: Ensures that every iteration in your Monte Carlo run gets a unique value from the dispersion.
 
 #### The Registry: DistributionDict
+
 A `DistributionDict` acts as a centralized record of the "rules" used during a simulation. While a `NamedValueDict` stores the **results** (the numbers), the `DistributionDict` stores the **config** (the math).
 
 This is critical for:
@@ -34,7 +38,8 @@ This is critical for:
 ### Supported Distribution Types
 
 !!! info
-    [Click here to see the technical API for all supported types][stochas.distribution].
+
+    [Click here to see the technical API for all supported types](../reference/stochas/distribution.md).
 
 - **Normal**: The classic Bell Curve for natural variation.
 - **Uniform**: For strict ranges where any value is equally likely.
@@ -59,6 +64,7 @@ When using `sample_and_update_dicts`, the system checks if a value with that nam
 ```
 
 ### Example: Repeated Sampling
+
 If you need to pull many different random numbers from the same distribution without locking them into a registry (e.g., for noise injection or redraws to meet some constraint), use the `.sample()` or `.draw()` methods directly. These move the Random Number Generator forward with every call.
 
 ```python

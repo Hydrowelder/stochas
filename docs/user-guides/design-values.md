@@ -1,6 +1,7 @@
 # Design Values: Evolving Your System
 
 !!! abstract
+
     **Design Values** represent the controllable "knobs" of your simulation, defining the mathematical search space for automated optimization. Unlike random distributions, which assess reliability, these variables empower solvers like `optuna` and `pymoo` to navigate complex performance landscapes and identify optimal system trade-offs. This guide covers the Search Space API, solver-agnostic integration patterns, and the automated refinement process for narrowing in on high-precision "Golden Case" solutions.
 
 ---
@@ -81,4 +82,5 @@ $$high_{new} = \min(high_{old}, x_{best} + \frac{(high_{old} - low_{old}) \cdot 
 ---
 
 !!! success
+
     By using the `sample_design` pattern, you have decoupled your **Design Intent** from the **Optimization Math**. You can switch from Optuna's Bayesian search to pymoo's Genetic algorithms without changing a single line of your model generation logic.

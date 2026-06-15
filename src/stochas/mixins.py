@@ -59,13 +59,8 @@ class NumericMixin:
         # 1. Perform the squeeze on the data
         squeezed_data = self.value.squeeze(axis=axis)
 
-        # 2. Update the underlying container
-        # We use force_set_value to bypass any "frozen" state checks
-        if hasattr(self, "force_set_value"):
-            self.force_set_value(squeezed_data, warn=False)
-        else:
-            # Fallback for simple containers
-            self.stored_value = squeezed_data
+        # 2. Update the underlying container, bypassing any "frozen" state checks
+        self.force_set_value(squeezed_data, warn=False)
 
         return self  # pyright: ignore[reportReturnType]
 
@@ -76,9 +71,6 @@ class NumericMixin:
     def __float__(self: HasValue) -> float:
         return float(self.value)
 
-    def __str__(self: HasValue) -> str:
-        return str(self.value)
-
     def __bool__(self: HasValue) -> bool:
         return bool(self.value)
 
@@ -88,9 +80,6 @@ class NumericMixin:
 
     def __getitem__(self: HasValue, key):
         return self.value[key]
-
-    def __iter__(self: HasValue):
-        return iter(self.value)
 
     def __contains__(self: HasValue, item: Any) -> bool:
         return item in self.value
@@ -148,6 +137,3 @@ class NumericMixin:
 
     def __ge__(self: HasValue, other):
         return self.value >= self._extract(other)
-
-    def __eq__(self: HasValue, other):
-        return self.value == self._extract(other)

@@ -29,6 +29,9 @@ hide:
   <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml" class="badge-link">
     <img src="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml/badge.svg?branch=main" alt="Tests & Release Status">
   </a>
+  <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml" class="badge-link">
+    <img src="assets/coverage-badge.svg" alt="Coverage">
+  </a>
   <a href="https://github.com/astral-sh/ruff" class="badge-link" style="text-decoration:none;">
     <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff">
   </a>
