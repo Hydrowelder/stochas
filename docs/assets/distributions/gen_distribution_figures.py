@@ -268,8 +268,7 @@ def plot_and_save_sweep(sweep: DistSweep):
         ax1.legend(fontsize=8)
 
     fig.tight_layout()
-    # fig.savefig(ASSET_DIR / f"{first.dist_type.lower()}.png", dpi=DPI)
-    fig.savefig(ASSET_DIR / f"{first.dist_type.lower()}.svg")
+    fig.savefig(ASSET_DIR / f"{first.dist_type.lower()}.png", dpi=DPI)
     plt.close(fig)
 
 
