@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import math
 from abc import ABC, abstractmethod
 from enum import StrEnum
 from pathlib import Path
@@ -26,6 +27,8 @@ from pydantic import (
     Field,
     PlainSerializer,
     PrivateAttr,
+    field_serializer,
+    field_validator,
     model_validator,
 )
 
@@ -661,8 +664,6 @@ class PermutationDistribution[T](Distribution[T]):
 
     def pmf(self, x: list[T] | np.ndarray) -> float:
         """Uniform probability of 1/n! if x is a valid permutation."""
-        import math
-
         n = len(self.items)
         if len(x) != n or set(x) != set(self.items):
             return 0.0
@@ -789,6 +790,24 @@ class TruncatedNormalDistribution(Distribution[float]):
     _scipy: rv_continuous = PrivateAttr()
 
     dist_type: Literal[DistType.TRUNCATED_NORMAL] = DistType.TRUNCATED_NORMAL
+
+    @field_validator("low", mode="before")
+    @classmethod
+    def _coerce_low(cls, v: float | None) -> float:
+        return float("-inf") if v is None else float(v)
+
+    @field_validator("high", mode="before")
+    @classmethod
+    def _coerce_high(cls, v: float | None) -> float:
+        return float("inf") if v is None else float(v)
+
+    @field_serializer("low")
+    def _serialize_low(self, v: float) -> float | None:
+        return None if math.isinf(v) else v
+
+    @field_serializer("high")
+    def _serialize_high(self, v: float) -> float | None:
+        return None if math.isinf(v) else v
 
     @model_validator(mode="after")
     def validate_and_setup(self) -> Self:
