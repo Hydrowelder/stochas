@@ -70,3 +70,61 @@ If you need to pull many different random numbers from the same distribution wit
 ```python
 --8<-- "docs/user-guides/distributions.py:repeat_draw"
 ```
+
+---
+
+### Generating Report Tables
+
+When a simulation uses many distributions, it is useful to export a human-readable summary for inclusion in a design document or report. `DistributionDict` supports this with the `to_tables()` method.
+
+#### Categorizing Distributions
+
+Each distribution has a `category` field. Setting it to a meaningful label groups related distributions together. One subdirectory is created per unique category value, and each distribution type within it gets its own CSV file.
+
+```python
+--8<-- "docs/hooks.py:report_tables"
+```
+
+!!! tip
+
+    Any distribution that does not have `category` set will land in an `uncategorized/` subdirectory.
+
+#### Output Format
+
+`to_tables(directory)` creates one subdirectory per category, then writes one `.csv` file per distribution type within it. The filename is the distribution type name (e.g. `normal.csv`, `truncated_normal.csv`). Each file is a flat table whose columns are `Name` plus every parameter specific to that type.
+
+The example above produces the following layout:
+
+``` linenums="0" title=""
+report_tables/
+├── link_properties/
+│   ├── normal.csv
+│   └── truncated_normal.csv
+└── initial_conditions/
+    └── uniform.csv
+```
+
+???+ example "link_properties/normal.csv"
+
+    === "Table"
+
+        --8<-- "docs/assets/example_tables/link_properties/normal.md"
+
+    === "Plaintext"
+
+        ``` linenums="0"
+        --8<-- "docs/assets/example_tables/link_properties/normal.csv"
+        ```
+
+
+???+ example "link_properties/truncated_normal.csv"
+
+    === "Table"
+
+        --8<-- "docs/assets/example_tables/link_properties/truncated_normal.md"
+
+    === "Plaintext"
+
+        ``` linenums="0"
+        --8<-- "docs/assets/example_tables/link_properties/truncated_normal.csv"
+        ```

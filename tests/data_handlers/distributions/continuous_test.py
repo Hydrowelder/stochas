@@ -195,3 +195,42 @@ def test_continuous_ppf_consistency(dist_instance):
     for q in qs:
         val = dist_instance.ppf(q)
         assert np.isclose(dist_instance.cdf(val), q, atol=1e-7)
+
+
+@pytest.mark.parametrize(
+    "dist, expected",
+    [
+        (
+            NormalDistribution(name=DistName("n"), mu=1.0, sigma=2.0),
+            {"mu": 1.0, "sigma": 2.0},
+        ),
+        (
+            UniformDistribution(name=DistName("u"), low=0.5, high=1.5),
+            {"low": 0.5, "high": 1.5},
+        ),
+        (
+            TriangularDistribution(name=DistName("t"), low=0.0, mode=0.5, high=1.0),
+            {"low": 0.0, "mode": 0.5, "high": 1.0},
+        ),
+        (
+            TruncatedNormalDistribution(
+                name=DistName("tn"), mu=0.0, sigma=1.0, low=-2.0, high=2.0
+            ),
+            {"mu": 0.0, "sigma": 1.0, "low": -2.0, "high": 2.0},
+        ),
+        (
+            LogNormalDistribution(name=DistName("ln"), s=0.5, scale=2.0),
+            {"s": 0.5, "scale": 2.0},
+        ),
+        (
+            ExponentialDistribution(name=DistName("ex"), lam=1.5),
+            {"lam": 1.5},
+        ),
+        (
+            RayleighDistribution(name=DistName("ry"), scale=3.0),
+            {"scale": 3.0},
+        ),
+    ],
+)
+def test_continuous_table_params(dist, expected):
+    assert dist.table_params == expected

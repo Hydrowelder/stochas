@@ -6,6 +6,7 @@ import hashlib
 import logging
 from abc import ABC, abstractmethod
 from enum import StrEnum
+from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Annotated,
@@ -104,6 +105,10 @@ class DistType(StrEnum):
     BERNOULLI = "bernoulli"
     """Bernoulli distribution."""
 
+    @property
+    def table_header(self) -> str:
+        return self.replace("_", " ").title()
+
 
 class Undefined(StrEnum):
     """Undefined value."""
@@ -157,20 +162,29 @@ class Distribution[T](BaseModel, ABC):
     trial_num: int = NOMINAL_TRIAL_NUM
     """Run number for sampling from the distribution. This is used to salt the seed (if specified)."""
 
+    category: str = "uncategorized"
+    """Category for distribution. Used to set the table this distribution will be written to."""
+
+    units: str = "unset"
+    """Physical units of the sampled value. Defaults to unset."""
+
     _rng: np.random.Generator = PrivateAttr()
     """Random number generator."""
 
     def with_seed(self, seed: int | None) -> Self:
+        """Sets the seed for the distribution to the provided and resets the pseudorandom number generator."""
         self.seed = seed
         self.refresh_seed()
         return self
 
     def with_trial_num(self, trial_num: int) -> Self:
+        """Sets the trial number for the distribution to the provided and resets the pseudorandom number generator."""
         self.trial_num = trial_num
         self.refresh_seed()
         return self
 
     def refresh_seed(self) -> None:
+        """Resets the pseudorandom number generator."""
         if self.seed is not None:
             # combine name and run number to salt
             name_to_salt = f"{self.name}_{self.trial_num}"
@@ -186,6 +200,7 @@ class Distribution[T](BaseModel, ABC):
 
     @model_validator(mode="after")
     def validate_seed(self) -> Self:
+        """Validates that random number generators have been set for the distribution."""
         self.refresh_seed()
         return self
 
@@ -201,6 +216,11 @@ class Distribution[T](BaseModel, ABC):
         msg = f"This method has not been implemented for {self.__class__.__name__}"
         logger.error(msg)
         raise NotImplementedError(msg)
+
+    @property
+    def is_discrete(self) -> bool:
+        """Flag indicating if the distribution is discrete (True) or continuous (False)."""
+        return not self.is_continuous
 
     @abstractmethod
     def draw(self, size: int = 1) -> NDArray[Any, T]:
@@ -231,6 +251,7 @@ class Distribution[T](BaseModel, ABC):
         raise NotImplementedError(msg)
 
     def sample_to_named_value(self, size: int = 1) -> NamedValue[NDArray[Any, T]]:
+        """Samples the distribution and returns the NamedValue it makes."""
         samples = self.sample(size=size)
         concrete_type = samples.dtype.type().item().__class__  # pyright: ignore[reportAttributeAccessIssue]
         return NamedValue[NDArray[Any, concrete_type]](
@@ -281,11 +302,18 @@ class Distribution[T](BaseModel, ABC):
 
     @property
     def has_nominal(self) -> bool:
+        """Returns whether or not the distribution has a nominal value."""
         return self.nominal is not UNDEFINED
 
     @property
     def is_nominal(self) -> bool:
+        """Returns whether or not the distribution will be treated as a nominal (when sampled it will always return the nominal if set)."""
         return self.trial_num == NOMINAL_TRIAL_NUM and self.has_nominal
+
+    @property
+    @abstractmethod
+    def table_params(self) -> dict[str, Any]:
+        """Distribution-specific parameters to include as columns in a report table row."""
 
 
 class NormalDistribution(Distribution[float]):
@@ -306,7 +334,7 @@ class NormalDistribution(Distribution[float]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Normal_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/normal.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/normal.svg" width="600" />
 
     """
 
@@ -349,6 +377,10 @@ class NormalDistribution(Distribution[float]):
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"mu": self.mu, "sigma": self.sigma}
+
 
 class UniformDistribution(Distribution[float]):
     """
@@ -368,7 +400,7 @@ class UniformDistribution(Distribution[float]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Continuous_uniform_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/uniform.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/uniform.svg" width="600" />
 
     """
 
@@ -415,6 +447,10 @@ class UniformDistribution(Distribution[float]):
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"low": self.low, "high": self.high}
+
 
 class DiscreteUniformDistribution(Distribution[int]):
     """
@@ -434,7 +470,7 @@ class DiscreteUniformDistribution(Distribution[int]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Discrete_uniform_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/discrete_uniform.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/discrete_uniform.svg" width="600" />
 
     """
 
@@ -479,6 +515,10 @@ class DiscreteUniformDistribution(Distribution[int]):
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"low": self.low, "high": self.high}
+
 
 class CategoricalDistribution[T](Distribution[T]):
     """
@@ -505,7 +545,7 @@ class CategoricalDistribution[T](Distribution[T]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Categorical_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/categorical.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/categorical.svg" width="600" />
 
     """
 
@@ -579,6 +619,10 @@ class CategoricalDistribution[T](Distribution[T]):
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"choices": ", ".join(f"{k}: {v}" for k, v in self.choices.items())}
+
 
 class PermutationDistribution[T](Distribution[T]):
     """
@@ -630,6 +674,10 @@ class PermutationDistribution[T](Distribution[T]):
     def ppf(self, q: Any) -> Any:
         raise NotImplementedError("PPF not defined for ShuffledDistribution")
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"items": str(self.items)}
+
 
 class TriangularDistribution(Distribution[float]):
     """
@@ -649,7 +697,7 @@ class TriangularDistribution(Distribution[float]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Triangular_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/triangular.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/triangular.svg" width="600" />
 
     """
 
@@ -700,6 +748,10 @@ class TriangularDistribution(Distribution[float]):
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"low": self.low, "mode": self.mode, "high": self.high}
+
 
 class TruncatedNormalDistribution(Distribution[float]):
     """
@@ -718,7 +770,7 @@ class TruncatedNormalDistribution(Distribution[float]):
         2. [Wikipedia](https://en.wikipedia.org/wiki/Truncated_normal_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/truncated_normal.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/truncated_normal.svg" width="600" />
 
     """
 
@@ -763,6 +815,10 @@ class TruncatedNormalDistribution(Distribution[float]):
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"mu": self.mu, "sigma": self.sigma, "low": self.low, "high": self.high}
+
 
 class LogNormalDistribution(Distribution[float]):
     """
@@ -782,7 +838,7 @@ class LogNormalDistribution(Distribution[float]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Log-normal_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/log_normal.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/log_normal.svg" width="600" />
 
     """
 
@@ -817,6 +873,10 @@ class LogNormalDistribution(Distribution[float]):
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"s": self.s, "scale": self.scale}
+
 
 class PoissonDistribution(Distribution[int]):
     """
@@ -836,7 +896,7 @@ class PoissonDistribution(Distribution[int]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Poisson_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/poisson.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/poisson.svg" width="600" />
 
     """
 
@@ -874,6 +934,10 @@ class PoissonDistribution(Distribution[int]):
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"lam": self.lam}
+
 
 class ExponentialDistribution(Distribution[float]):
     """
@@ -894,7 +958,7 @@ class ExponentialDistribution(Distribution[float]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Exponential_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/exponential.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/exponential.svg" width="600" />
 
     """
 
@@ -926,6 +990,10 @@ class ExponentialDistribution(Distribution[float]):
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"lam": self.lam}
+
 
 class RayleighDistribution(Distribution[float]):
     """
@@ -945,7 +1013,7 @@ class RayleighDistribution(Distribution[float]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Rayleigh_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/rayleigh.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/rayleigh.svg" width="600" />
 
     """
 
@@ -985,6 +1053,10 @@ class RayleighDistribution(Distribution[float]):
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"scale": self.scale}
+
 
 class BernoulliDistribution(Distribution[bool]):
     """
@@ -1005,7 +1077,7 @@ class BernoulliDistribution(Distribution[bool]):
         3. [Wikipedia](https://en.wikipedia.org/wiki/Bernoulli_distribution)
 
     Note:
-        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/bernoulli.png" width="600" />
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/bernoulli.svg" width="600" />
 
     """
 
@@ -1050,6 +1122,10 @@ class BernoulliDistribution(Distribution[bool]):
     def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.ppf(q)
 
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"p": self.p}
+
 
 Dist = Annotated[
     NormalDistribution
@@ -1080,6 +1156,36 @@ class DistributionDict(BaseDict[Dist]):
         for dist in self.values():
             if dist.trial_num != trial_num:
                 dist.trial_num = trial_num
+
+    def to_tables(self, directory: Path) -> None:
+        """Writes one CSV per dist type, organized into per-category subdirectories."""
+        import csv
+        import io
+        from collections import defaultdict
+
+        by_category: defaultdict[str, list[Dist]] = defaultdict(list)
+        for dist in self.values():
+            by_category[dist.category].append(dist)
+
+        for category, dists in by_category.items():
+            category_dir = directory / category
+            category_dir.mkdir(parents=True, exist_ok=True)
+
+            by_type: defaultdict[str, list[Dist]] = defaultdict(list)
+            for dist in dists:
+                by_type[dist.dist_type].append(dist)
+
+            for dist_type_key, type_dists in by_type.items():
+                # columns are inferred from the first dist; all same-type dists share identical keys
+                buf = io.StringIO()
+                fieldnames = ["Name", "Units", *type_dists[0].table_params.keys()]
+                writer = csv.DictWriter(buf, fieldnames=fieldnames)
+                writer.writeheader()
+                for d in type_dists:
+                    writer.writerow(
+                        {"Name": d.name, "Units": d.units, **d.table_params}
+                    )
+                (category_dir / f"{dist_type_key}.csv").write_text(buf.getvalue())
 
 
 class DistributionList(BaseList[Dist]):
