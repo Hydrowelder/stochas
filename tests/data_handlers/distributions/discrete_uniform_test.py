@@ -44,3 +44,8 @@ def test_discrete_uniform_pmf_pdf_cdf_ppf():
 
     assert dist.ppf(0.25) == 1
     assert dist.ppf(1.0) == 4
+
+
+def test_discrete_uniform_table_params():
+    dist = DiscreteUniformDistribution(name=DistName("d"), low=2, high=8)
+    assert dist.table_params == {"low": 2, "high": 8}

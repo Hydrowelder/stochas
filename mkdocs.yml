@@ -7,6 +7,9 @@ repo_name: stochas
 remote_branch: gh-pages
 remote_name: origin
 
+hooks:
+  - docs/hooks.py
+
 watch:
   - docs
   - src
@@ -119,7 +122,6 @@ plugins:
             - https://mkdocstrings.github.io/griffe/objects.inv
             - https://docs.pydantic.dev/latest/objects.inv
             - https://numpy.org/doc/stable/objects.inv
-  - glightbox
 
 markdown_extensions:
   - abbr
@@ -162,6 +164,7 @@ markdown_extensions:
   - pymdownx.tilde
   - zensical.extensions.glightbox:
       auto_themed: true
+  - zensical.extensions.macros
 
 extra:
   generator: false

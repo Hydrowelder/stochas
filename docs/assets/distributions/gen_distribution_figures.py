@@ -1,3 +1,7 @@
+"""Generates figures to be included as previews on docstrings."""
+
+from __future__ import annotations
+
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -201,53 +205,51 @@ def plot_and_save_sweep(sweep: DistSweep):
         ax1.set_ylabel("Density (PDF)")
         ax2.set_ylabel("Cumulative Prob (CDF)")
 
-    elif isinstance(first, CategoricalDistribution):
-        categorical_dists = cast(
-            "list[CategoricalDistribution[Any]]", sweep.distributions
-        )
-
-        x = np.arange(len(first.choices))
-        eval_at = first.categories
-        tick_labels = [str(c) for c in first.choices]
-        ax1.set_xticks(x, tick_labels, rotation=45)
-        ax2.set_xticks(x, tick_labels, rotation=45)
-
-        for dist, label, pdf_color, cdf_color in zip(
-            categorical_dists, sweep.labels, pdf_colors, cdf_colors
-        ):
-            y_pmf = [dist.pmf(val) for val in eval_at]
-            y_cdf = [dist.cdf(val) for val in eval_at]
-
-            ax1.stem(
-                x,
-                y_pmf,
-                basefmt=" ",
-                linefmt=to_hex(pdf_color),
-                markerfmt="o",
-                label=label,
+    elif first.is_discrete:
+        if isinstance(first, CategoricalDistribution):
+            # categorical x-axis uses named labels rather than a numeric range
+            categorical_dists = cast(
+                list[CategoricalDistribution[Any]], sweep.distributions
             )
-            ax2.step(x, y_cdf, where="post", color=cdf_color, lw=2, label=label)
+            x = np.arange(len(first.choices))
+            eval_at = first.categories
+            tick_labels = [str(c) for c in first.choices]
+            ax1.set_xticks(x, tick_labels, rotation=45)
+            ax2.set_xticks(x, tick_labels, rotation=45)
 
-        ax1.set_ylabel("Probability (PMF)")
-        ax2.set_ylabel("Cumulative Prob (CDF)")
+            for dist, label, pdf_color, cdf_color in zip(
+                categorical_dists, sweep.labels, pdf_colors, cdf_colors
+            ):
+                y_pmf = [dist.pmf(val) for val in eval_at]
+                y_cdf = [dist.cdf(val) for val in eval_at]
 
-    else:
-        discrete_dists = cast("list[DiscreteDist]", sweep.distributions)
+                ax1.stem(
+                    x,
+                    y_pmf,
+                    basefmt=" ",
+                    linefmt=to_hex(pdf_color),
+                    markerfmt="o",
+                    label=label,
+                )
+                ax2.step(x, y_cdf, where="post", color=cdf_color, lw=2, label=label)
 
-        # use ppf to find a shared integer support across the sweep
-        bounds = [(dist.ppf(0.001), dist.ppf(0.999)) for dist in discrete_dists]
-        x_min = int(np.floor(min(lo for lo, _ in bounds)))
-        x_max = int(np.ceil(max(hi for _, hi in bounds)))
-        x = list(range(x_min, x_max + 1))
+        else:
+            discrete_dists = cast("list[DiscreteDist]", sweep.distributions)
 
-        for dist, label, pdf_color, cdf_color in zip(
-            discrete_dists, sweep.labels, pdf_colors, cdf_colors
-        ):
-            y_pmf = np.asarray([dist.pmf(val) for val in x], dtype=float)
-            y_cdf = np.asarray([dist.cdf(val) for val in x], dtype=float)
+            # use ppf to find a shared integer support across the sweep
+            bounds = [(dist.ppf(0.001), dist.ppf(0.999)) for dist in discrete_dists]
+            x_min = int(np.floor(min(lo for lo, _ in bounds)))
+            x_max = int(np.ceil(max(hi for _, hi in bounds)))
+            x = list(range(x_min, x_max + 1))
 
-            ax1.plot(x, y_pmf, "o-", color=pdf_color, label=label)
-            ax2.step(x, y_cdf, where="post", color=cdf_color, lw=2, label=label)
+            for dist, label, pdf_color, cdf_color in zip(
+                discrete_dists, sweep.labels, pdf_colors, cdf_colors
+            ):
+                y_pmf = np.asarray([dist.pmf(val) for val in x], dtype=float)
+                y_cdf = np.asarray([dist.cdf(val) for val in x], dtype=float)
+
+                ax1.plot(x, y_pmf, "o-", color=pdf_color, label=label)
+                ax2.step(x, y_cdf, where="post", color=cdf_color, lw=2, label=label)
 
         ax1.set_ylabel("Probability (PMF)")
         ax2.set_ylabel("Cumulative Prob (CDF)")
@@ -266,7 +268,8 @@ def plot_and_save_sweep(sweep: DistSweep):
         ax1.legend(fontsize=8)
 
     fig.tight_layout()
-    fig.savefig(ASSET_DIR / f"{first.dist_type.lower()}.png", dpi=DPI)
+    # fig.savefig(ASSET_DIR / f"{first.dist_type.lower()}.png", dpi=DPI)
+    fig.savefig(ASSET_DIR / f"{first.dist_type.lower()}.svg")
     plt.close(fig)
 
 

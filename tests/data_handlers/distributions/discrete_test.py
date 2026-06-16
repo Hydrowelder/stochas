@@ -252,5 +252,30 @@ def test_permutation_pdf_and_is_continuous():
     assert dist.pdf(np.array(["A", "B", "C"])) == dist.pmf(np.array(["A", "B", "C"]))
 
 
+@pytest.mark.parametrize(
+    "dist, expected",
+    [
+        (
+            PoissonDistribution(name=DistName("p"), lam=3.0),
+            {"lam": 3.0},
+        ),
+        (
+            BernoulliDistribution(name=DistName("b"), p=0.4),
+            {"p": 0.4},
+        ),
+        (
+            CategoricalDistribution(name=DistName("c"), choices={"a": 0.3, "b": 0.7}),
+            {"choices": "a: 0.3, b: 0.7"},
+        ),
+        (
+            PermutationDistribution(name=DistName("perm"), items=[1, 2, 3]),
+            {"items": "[1, 2, 3]"},
+        ),
+    ],
+)
+def test_discrete_table_params(dist, expected):
+    assert dist.table_params == expected
+
+
 if __name__ == "__main__":
     test_permutation_integrity()
