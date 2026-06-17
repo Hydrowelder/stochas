@@ -124,6 +124,8 @@ UNDEFINED = Undefined.UNDEFINED
 
 DISCRETE_MSG = "Discrete distributions use pmf, not pdf. Using pmf method instead."
 
+_INVALID_CATEGORY_CHARS: frozenset[str] = frozenset(r'\/:*?"<>|' + "\x00")
+
 
 def validate_undefined(v: Any) -> Any:
     if v == "__UNDEFINED__":
@@ -200,6 +202,17 @@ class Distribution[T](BaseModel, ABC):
         else:
             # use pure random value
             self._rng = np.random.default_rng(seed=self.seed)
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v: str) -> str:
+        """Rejects characters that are illegal in directory names on any major OS."""
+        bad = _INVALID_CATEGORY_CHARS & set(v)
+        if bad:
+            raise ValueError(
+                f"category contains characters invalid in directory names: {sorted(bad)}"
+            )
+        return v
 
     @model_validator(mode="after")
     def validate_seed(self) -> Self:
@@ -1204,7 +1217,9 @@ class DistributionDict(BaseDict[Dist]):
                     writer.writerow(
                         {"Name": d.name, "Units": d.units, **d.table_params}
                     )
-                (category_dir / f"{dist_type_key}.csv").write_text(buf.getvalue())
+                (category_dir / f"{dist_type_key}.csv").write_text(
+                    buf.getvalue(), newline=""
+                )
 
 
 class DistributionList(BaseList[Dist]):
