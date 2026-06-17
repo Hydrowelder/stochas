@@ -12,6 +12,8 @@ from .design_variable import (
 from .distribution import (
     NOMINAL_TRIAL_NUM,
     BernoulliDistribution,
+    BetaDistribution,
+    BinomialDistribution,
     CategoricalDistribution,
     DiscreteUniformDistribution,
     Dist,
@@ -21,6 +23,7 @@ from .distribution import (
     DistributionList,
     DistType,
     ExponentialDistribution,
+    GammaDistribution,
     LogNormalDistribution,
     NormalDistribution,
     PermutationDistribution,
@@ -29,6 +32,7 @@ from .distribution import (
     TriangularDistribution,
     TruncatedNormalDistribution,
     UniformDistribution,
+    WeibullDistribution,
 )
 from .named_value import (
     NamedValue,
@@ -45,6 +49,8 @@ __all__ = [
     "BaseDict",
     "BaseList",
     "BernoulliDistribution",
+    "BetaDistribution",
+    "BinomialDistribution",
     "CategoricalDistribution",
     "DesignBool",
     "DesignCategorical",
@@ -60,6 +66,7 @@ __all__ = [
     "DistributionDict",
     "DistributionList",
     "ExponentialDistribution",
+    "GammaDistribution",
     "LogNormalDistribution",
     "NamedValue",
     "NamedValueDict",
@@ -75,4 +82,5 @@ __all__ = [
     "UniformDistribution",
     "Val",
     "ValueName",
+    "WeibullDistribution",
 ]

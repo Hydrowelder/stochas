@@ -5,6 +5,7 @@ import pytest
 
 from stochas import (
     BernoulliDistribution,
+    BinomialDistribution,
     CategoricalDistribution,
     DistName,
     PoissonDistribution,
@@ -252,6 +253,44 @@ def test_permutation_pdf_and_is_continuous():
     assert dist.pdf(np.array(["A", "B", "C"])) == dist.pmf(np.array(["A", "B", "C"]))
 
 
+def test_binomial_properties():
+    """Verify Binomial PMF, CDF, and mean."""
+    n, p = 20, 0.4
+    dist = BinomialDistribution(name=DistName("bin"), n=n, p=p)
+
+    # PMF at k=0 should be (1-p)^n
+    assert np.isclose(dist.pmf(0), (1 - p) ** n)
+
+    # CDF is monotone non-decreasing and reaches 1 at k=n
+    assert dist.cdf(n) == 1.0
+    assert dist.cdf(5) <= dist.cdf(10)
+
+    # PPF
+    assert dist.ppf(0.5) >= 0
+
+    assert dist.is_continuous is False
+    assert dist.pdf(8) == dist.pmf(8)
+
+
+def test_binomial_sampling():
+    """Verify Binomial samples are non-negative integers bounded by n."""
+    n, p = 10, 0.3
+    dist = BinomialDistribution(name=DistName("bin_sample"), n=n, p=p, seed=42)
+    samples = dist.sample(500)
+
+    assert np.all(samples >= 0)
+    assert np.all(samples <= n)
+    assert np.all(samples % 1 == 0)
+    assert np.isclose(np.mean(samples), n * p, atol=0.5)
+
+
+def test_binomial_validation():
+    with pytest.raises(ValueError, match="n must be at least 1"):
+        BinomialDistribution(name=DistName("bad"), n=0, p=0.5)
+    with pytest.raises(ValueError, match="p must be between 0 and 1"):
+        BinomialDistribution(name=DistName("bad"), n=5, p=1.5)
+
+
 @pytest.mark.parametrize(
     "dist, expected",
     [
@@ -270,6 +309,10 @@ def test_permutation_pdf_and_is_continuous():
         (
             PermutationDistribution(name=DistName("perm"), items=[1, 2, 3]),
             {"items": "[1, 2, 3]"},
+        ),
+        (
+            BinomialDistribution(name=DistName("bin"), n=10, p=0.3),
+            {"n": 10, "p": 0.3},
         ),
     ],
 )

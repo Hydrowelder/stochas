@@ -4,14 +4,17 @@ import numpy as np
 import pytest
 
 from stochas import (
+    BetaDistribution,
     DistName,
     ExponentialDistribution,
+    GammaDistribution,
     LogNormalDistribution,
     NormalDistribution,
     RayleighDistribution,
     TriangularDistribution,
     TruncatedNormalDistribution,
     UniformDistribution,
+    WeibullDistribution,
 )
 
 
@@ -197,6 +200,78 @@ def test_continuous_ppf_consistency(dist_instance):
         assert np.isclose(dist_instance.cdf(val), q, atol=1e-7)
 
 
+def test_gamma_properties():
+    """Verify Gamma sampling is positive and mean tracks alpha*beta."""
+    alpha, beta = 3.0, 2.0
+    dist = GammaDistribution(name=DistName("g"), alpha=alpha, beta=beta)
+
+    samples = dist.sample(1000)
+    assert np.all(samples > 0)
+    assert np.isclose(np.mean(samples), alpha * beta, atol=0.3)
+
+    assert dist.pdf(alpha * beta) > 0
+    assert np.isclose(dist.cdf(0), 0.0, atol=1e-6)
+    assert np.isclose(dist.cdf(dist.ppf(0.5)), 0.5, atol=1e-6)
+    assert dist.is_continuous is True
+
+
+def test_gamma_validation():
+    with pytest.raises(ValueError, match="alpha"):
+        GammaDistribution(name=DistName("bad"), alpha=0.0, beta=1.0)
+    with pytest.raises(ValueError, match="beta"):
+        GammaDistribution(name=DistName("bad"), alpha=1.0, beta=-1.0)
+
+
+def test_beta_properties():
+    """Verify Beta samples are in (0,1) and CDF at mode is consistent."""
+    alpha, beta = 2.0, 5.0
+    dist = BetaDistribution(name=DistName("b"), alpha=alpha, beta=beta)
+
+    samples = dist.sample(1000)
+    assert np.all(samples > 0)
+    assert np.all(samples < 1)
+
+    # mean of Beta(alpha, beta) = alpha / (alpha + beta)
+    expected_mean = alpha / (alpha + beta)
+    assert np.isclose(np.mean(samples), expected_mean, atol=0.05)
+
+    assert dist.pdf(0.5) > 0
+    assert np.isclose(dist.cdf(0.0), 0.0, atol=1e-6)
+    assert np.isclose(dist.cdf(1.0), 1.0, atol=1e-6)
+    assert dist.is_continuous is True
+
+
+def test_beta_validation():
+    with pytest.raises(ValueError, match="alpha"):
+        BetaDistribution(name=DistName("bad"), alpha=0.0, beta=1.0)
+    with pytest.raises(ValueError, match="beta"):
+        BetaDistribution(name=DistName("bad"), alpha=1.0, beta=0.0)
+
+
+def test_weibull_properties():
+    """Verify Weibull samples are positive and PPF/CDF are consistent."""
+    shape, scale = 2.0, 100.0
+    dist = WeibullDistribution(name=DistName("w"), shape=shape, scale=scale)
+
+    samples = dist.sample(1000)
+    assert np.all(samples > 0)
+
+    # median of Weibull = scale * ln(2)^(1/shape)
+    median = scale * (np.log(2) ** (1 / shape))
+    assert np.isclose(dist.cdf(median), 0.5, atol=0.01)
+    assert np.isclose(dist.ppf(0.5), median, atol=0.5)
+
+    assert dist.pdf(scale) > 0
+    assert dist.is_continuous is True
+
+
+def test_weibull_validation():
+    with pytest.raises(ValueError, match="shape"):
+        WeibullDistribution(name=DistName("bad"), shape=0.0, scale=1.0)
+    with pytest.raises(ValueError, match="scale"):
+        WeibullDistribution(name=DistName("bad"), shape=1.0, scale=-1.0)
+
+
 @pytest.mark.parametrize(
     "dist, expected",
     [
@@ -229,6 +304,18 @@ def test_continuous_ppf_consistency(dist_instance):
         (
             RayleighDistribution(name=DistName("ry"), scale=3.0),
             {"scale": 3.0},
+        ),
+        (
+            GammaDistribution(name=DistName("ga"), alpha=2.0, beta=1.5),
+            {"alpha": 2.0, "beta": 1.5},
+        ),
+        (
+            BetaDistribution(name=DistName("be"), alpha=2.0, beta=5.0),
+            {"alpha": 2.0, "beta": 5.0},
+        ),
+        (
+            WeibullDistribution(name=DistName("wb"), shape=2.0, scale=100.0),
+            {"shape": 2.0, "scale": 100.0},
         ),
     ],
 )
