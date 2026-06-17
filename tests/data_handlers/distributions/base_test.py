@@ -1,19 +1,50 @@
 """Tests for the Distribution base class and its dict/list registries."""
 
 import numpy as np
-from numpydantic import NDArray
-
 import pytest
+from numpydantic import NDArray
 
 from stochas import DistName, NormalDistribution, UniformDistribution
 from stochas.distribution import (
     BernoulliDistribution,
-    DistType,
     DistributionDict,
     DistributionList,
+    DistType,
     PoissonDistribution,
 )
 from stochas.named_value import NamedValueDict
+
+
+def test_with_seed_resets_rng():
+    """Verify with_seed returns self, sets the seed, and produces reproducible draws."""
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1)
+    result = dist.with_seed(42)
+
+    assert result is dist
+    assert dist.seed == 42
+
+    s1 = dist.sample(5)
+    dist.with_seed(42)
+    s2 = dist.sample(5)
+    assert np.array_equal(s1, s2)
+
+
+def test_with_trial_num_resets_rng():
+    """Verify with_trial_num returns self, updates trial_num, and changes draws."""
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1, seed=99)
+
+    s1 = dist.sample(5)
+    result = dist.with_trial_num(0)
+
+    assert result is dist
+    assert dist.trial_num == 0
+
+    s2 = dist.sample(5)
+    assert np.array_equal(s1, s2)
+
+    dist.with_trial_num(1)
+    s3 = dist.sample(5)
+    assert not np.array_equal(s1, s3)
 
 
 def test_distribution_seeding_and_salting():
@@ -227,6 +258,33 @@ def test_to_tables_creates_nested_directory(tmp_path):
     dist_dict.to_tables(nested)
 
     assert (nested / "test" / "normal.csv").exists()
+
+
+@pytest.mark.parametrize("char", [*list(r'\/:*?"<>|'), "\x00"])
+def test_category_rejects_invalid_chars(char):
+    """Each filesystem-illegal character raises ValueError on construction."""
+    with pytest.raises(ValueError, match="category contains characters invalid"):
+        NormalDistribution(
+            name=DistName("x"), mu=0.0, sigma=1.0, category=f"bad{char}name"
+        )
+
+
+@pytest.mark.parametrize(
+    "category",
+    [
+        "uncategorized",
+        "my-category",
+        "my_category",
+        "with spaces",
+        "v1.0",
+        "sensors123",
+        "café",
+    ],
+)
+def test_category_accepts_valid_names(category):
+    """Legal category names including hyphens, spaces, dots, and unicode do not raise."""
+    dist = NormalDistribution(name=DistName("x"), mu=0.0, sigma=1.0, category=category)
+    assert dist.category == category
 
 
 if __name__ == "__main__":

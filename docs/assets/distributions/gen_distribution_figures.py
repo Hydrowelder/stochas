@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -15,20 +16,36 @@ from matplotlib.colors import to_hex, to_rgb
 from matplotlib.figure import Figure
 
 from stochas import (
+    AnyDist,
     BernoulliDistribution,
+    BetaBinomialDistribution,
+    BetaDistribution,
+    BinomialDistribution,
     CategoricalDistribution,
+    CauchyDistribution,
+    ChiSquaredDistribution,
     DiscreteUniformDistribution,
-    Dist,
     DistName,
     DistType,
     ExponentialDistribution,
+    FDistribution,
+    GammaDistribution,
+    GeometricDistribution,
+    HypergeometricDistribution,
+    LaplaceDistribution,
+    LogisticDistribution,
     LogNormalDistribution,
+    NegativeBinomialDistribution,
     NormalDistribution,
+    ParetoDistribution,
+    PermutationDistribution,
     PoissonDistribution,
     RayleighDistribution,
+    StudentTDistribution,
     TriangularDistribution,
     TruncatedNormalDistribution,
     UniformDistribution,
+    WeibullDistribution,
 )
 
 ASSET_DIR = Path(__file__).parent
@@ -46,12 +63,22 @@ HEIGHT = WIDTH / ASPECT_RATIO
 class DistSweep:
     """A family of same-typed distributions, varying one "critical" parameter."""
 
-    distributions: Sequence[Dist]
+    distributions: Sequence[AnyDist]
     labels: list[str]
     sup_title: str
+    x_bounds: tuple[float, float] | None = None
 
 
-DiscreteDist = BernoulliDistribution | PoissonDistribution | DiscreteUniformDistribution
+DiscreteDist = (
+    BernoulliDistribution
+    | PoissonDistribution
+    | DiscreteUniformDistribution
+    | HypergeometricDistribution
+    | BetaBinomialDistribution
+    | BinomialDistribution
+    | NegativeBinomialDistribution
+    | GeometricDistribution
+)
 
 
 def get_dist_sweep(dist_type: DistType) -> DistSweep | None:
@@ -150,6 +177,132 @@ def get_dist_sweep(dist_type: DistType) -> DistSweep | None:
             dists = [BernoulliDistribution(name=name, p=p) for p in ps]
             labels = [f"p={p}" for p in ps]
             sup_title += " (sweeping p)"
+        case DistType.PARETO:
+            alphas = [1.5, 2.5, 4.0]
+            dists = [
+                ParetoDistribution(name=name, alpha=alpha, beta=1.0) for alpha in alphas
+            ]
+            labels = [f"alpha={alpha}" for alpha in alphas]
+            sup_title += " (sweeping alpha, beta=1)"
+            return DistSweep(
+                distributions=dists,
+                labels=labels,
+                sup_title=sup_title,
+                x_bounds=(1.0, 8.0),
+            )
+        case DistType.STUDENT_T:
+            nus = [1.0, 5.0, 30.0]
+            dists = [StudentTDistribution(name=name, nu=nu) for nu in nus]
+            labels = [f"nu={nu}" for nu in nus]
+            sup_title += " (sweeping nu)"
+            return DistSweep(
+                distributions=dists,
+                labels=labels,
+                sup_title=sup_title,
+                x_bounds=(-6.0, 6.0),
+            )
+        case DistType.CAUCHY:
+            sigmas = [0.5, 1.0, 2.0]
+            dists = [
+                CauchyDistribution(name=name, theta=0.0, sigma=sigma)
+                for sigma in sigmas
+            ]
+            labels = [f"sigma={sigma}" for sigma in sigmas]
+            sup_title += " (sweeping sigma, theta=0)"
+            return DistSweep(
+                distributions=dists,
+                labels=labels,
+                sup_title=sup_title,
+                x_bounds=(-10.0, 10.0),
+            )
+        case DistType.CHI_SQUARED:
+            ps = [2, 4, 9]
+            dists = [ChiSquaredDistribution(name=name, p=p) for p in ps]
+            labels = [f"p={p}" for p in ps]
+            sup_title += " (sweeping p)"
+        case DistType.LAPLACE:
+            sigmas = [0.5, 1.0, 2.0]
+            dists = [
+                LaplaceDistribution(name=name, mu=0.0, sigma=sigma) for sigma in sigmas
+            ]
+            labels = [f"sigma={sigma}" for sigma in sigmas]
+            sup_title += " (sweeping sigma, mu=0)"
+        case DistType.F:
+            nu1s = [2.0, 5.0, 10.0]
+            dists = [FDistribution(name=name, nu1=nu1, nu2=10.0) for nu1 in nu1s]
+            labels = [f"nu1={nu1}" for nu1 in nu1s]
+            sup_title += " (sweeping nu1, nu2=10)"
+            return DistSweep(
+                distributions=dists,
+                labels=labels,
+                sup_title=sup_title,
+                x_bounds=(0.0, 8.0),
+            )
+        case DistType.HYPERGEOMETRIC:
+            ms = [10, 20, 40]
+            dists = [HypergeometricDistribution(name=name, N=50, M=m, K=20) for m in ms]
+            labels = [f"M={m}" for m in ms]
+            sup_title += " (sweeping M, N=50, K=20)"
+        case DistType.BETA_BINOMIAL:
+            params = [(2, 8), (5, 5), (8, 2)]
+            dists = [
+                BetaBinomialDistribution(name=name, n=20, alpha=float(a), beta=float(b))
+                for a, b in params
+            ]
+            labels = [f"alpha={a}, beta={b}" for a, b in params]
+            sup_title += " (sweeping alpha/beta, n=20)"
+        case DistType.GAMMA:
+            alphas = [1.0, 2.0, 5.0]
+            dists = [
+                GammaDistribution(name=name, alpha=alpha, beta=1.0) for alpha in alphas
+            ]
+            labels = [f"alpha={alpha}" for alpha in alphas]
+            sup_title += " (sweeping alpha, beta=1)"
+        case DistType.BETA:
+            params = [(2.0, 5.0), (2.0, 2.0), (5.0, 2.0)]
+            dists = [BetaDistribution(name=name, alpha=a, beta=b) for a, b in params]
+            labels = [f"alpha={a}, beta={b}" for a, b in params]
+            sup_title += " (sweeping alpha/beta)"
+            return DistSweep(
+                distributions=dists,
+                labels=labels,
+                sup_title=sup_title,
+                x_bounds=(0.0, 1.0),
+            )
+        case DistType.WEIBULL:
+            shapes = [1.0, 1.5, 3.0]
+            dists = [
+                WeibullDistribution(name=name, shape=shape, scale=1.0)
+                for shape in shapes
+            ]
+            labels = [f"shape={shape}" for shape in shapes]
+            sup_title += " (sweeping shape, scale=1)"
+        case DistType.BINOMIAL:
+            ps = [0.2, 0.5, 0.8]
+            dists = [BinomialDistribution(name=name, n=20, p=p) for p in ps]
+            labels = [f"p={p}" for p in ps]
+            sup_title += " (sweeping p, n=20)"
+        case DistType.NEGATIVE_BINOMIAL:
+            rs = [1, 3, 5]
+            dists = [NegativeBinomialDistribution(name=name, r=r, p=0.5) for r in rs]
+            labels = [f"r={r}" for r in rs]
+            sup_title += " (sweeping r, p=0.5)"
+        case DistType.GEOMETRIC:
+            ps = [0.3, 0.5, 0.8]
+            dists = [GeometricDistribution(name=name, p=p) for p in ps]
+            labels = [f"p={p}" for p in ps]
+            sup_title += " (sweeping p)"
+        case DistType.LOGISTIC:
+            betas = [0.5, 1.0, 2.0]
+            dists = [
+                LogisticDistribution(name=name, mu=0.0, beta=beta) for beta in betas
+            ]
+            labels = [f"beta={beta}" for beta in betas]
+            sup_title += " (sweeping beta, mu=0)"
+        case DistType.PERMUTATION:
+            dists = [PermutationDistribution[str](name=name, items=["A", "B", "C"])]
+            labels = ["items=[A, B, C]"]
+            sup_title += " (n=3 items)"
         case _:
             print(f"Distribution of type {dist_type} is not implemented")
             return None
@@ -180,15 +333,17 @@ def plot_and_save_sweep(sweep: DistSweep):
     first = sweep.distributions[0]
 
     if first.is_continuous:
-        # use ppf to find a shared support across the whole sweep (0.1% to 99.9%)
-        try:
-            bounds = [
-                (dist.ppf(0.001), dist.ppf(0.999)) for dist in sweep.distributions
-            ]
-            x_min = min(lo for lo, _ in bounds)
-            x_max = max(hi for _, hi in bounds)
-        except Exception:  # fallback for edge cases
-            x_min, x_max = -5, 5
+        if sweep.x_bounds is not None:
+            x_min, x_max = sweep.x_bounds
+        else:
+            try:
+                bounds = [
+                    (dist.ppf(0.001), dist.ppf(0.999)) for dist in sweep.distributions
+                ]
+                x_min = min(lo for lo, _ in bounds)
+                x_max = max(hi for _, hi in bounds)
+            except Exception:  # fallback for edge cases
+                x_min, x_max = -5, 5
         x = np.linspace(x_min, x_max, 500)
 
         for dist, label, pdf_color, cdf_color in zip(
@@ -232,6 +387,32 @@ def plot_and_save_sweep(sweep: DistSweep):
                     label=label,
                 )
                 ax2.step(x, y_cdf, where="post", color=cdf_color, lw=2, label=label)
+
+        elif isinstance(first, PermutationDistribution):
+            perm_dist = cast("PermutationDistribution[Any]", first)
+            all_perms = list(itertools.permutations(perm_dist.items))
+            n_perms = len(all_perms)
+            prob = 1.0 / n_perms
+            xs = list(range(n_perms))
+            perm_labels = ["-".join(str(v) for v in p) for p in all_perms]
+            y_pmf = [prob] * n_perms
+            y_cdf = [(i + 1) * prob for i in range(n_perms)]
+
+            ax1.set_xticks(xs, perm_labels, rotation=45)
+            ax2.set_xticks(xs, perm_labels, rotation=45)
+
+            for _, label, pdf_color, cdf_color in zip(
+                sweep.distributions, sweep.labels, pdf_colors, cdf_colors
+            ):
+                ax1.stem(
+                    xs,
+                    y_pmf,
+                    basefmt=" ",
+                    linefmt=to_hex(pdf_color),
+                    markerfmt="o",
+                    label=label,
+                )
+                ax2.step(xs, y_cdf, where="post", color=cdf_color, lw=2, label=label)
 
         else:
             discrete_dists = cast("list[DiscreteDist]", sweep.distributions)

@@ -5,8 +5,13 @@ import pytest
 
 from stochas import (
     BernoulliDistribution,
+    BetaBinomialDistribution,
+    BinomialDistribution,
     CategoricalDistribution,
     DistName,
+    GeometricDistribution,
+    HypergeometricDistribution,
+    NegativeBinomialDistribution,
     PoissonDistribution,
 )
 from stochas.distribution import DistributionDict, PermutationDistribution
@@ -252,6 +257,174 @@ def test_permutation_pdf_and_is_continuous():
     assert dist.pdf(np.array(["A", "B", "C"])) == dist.pmf(np.array(["A", "B", "C"]))
 
 
+def test_binomial_properties():
+    """Verify Binomial PMF, CDF, and mean."""
+    n, p = 20, 0.4
+    dist = BinomialDistribution(name=DistName("bin"), n=n, p=p)
+
+    # PMF at k=0 should be (1-p)^n
+    assert np.isclose(dist.pmf(0), (1 - p) ** n)
+
+    # CDF is monotone non-decreasing and reaches 1 at k=n
+    assert dist.cdf(n) == 1.0
+    assert dist.cdf(5) <= dist.cdf(10)
+
+    # PPF
+    assert dist.ppf(0.5) >= 0
+
+    assert dist.is_continuous is False
+    assert dist.pdf(8) == dist.pmf(8)
+
+
+def test_binomial_sampling():
+    """Verify Binomial samples are non-negative integers bounded by n."""
+    n, p = 10, 0.3
+    dist = BinomialDistribution(name=DistName("bin_sample"), n=n, p=p, seed=42)
+    samples = dist.sample(500)
+
+    assert np.all(samples >= 0)
+    assert np.all(samples <= n)
+    assert np.all(samples % 1 == 0)
+    assert np.isclose(np.mean(samples), n * p, atol=0.5)
+
+
+def test_binomial_validation():
+    with pytest.raises(ValueError, match="n must be at least 1"):
+        BinomialDistribution(name=DistName("bad"), n=0, p=0.5)
+    with pytest.raises(ValueError, match="p must be between 0 and 1"):
+        BinomialDistribution(name=DistName("bad"), n=5, p=1.5)
+
+
+def test_negative_binomial_properties():
+    """Verify NegativeBinomial PMF/CDF and mean tracks r*(1-p)/p."""
+    r, p = 5, 0.4
+    dist = NegativeBinomialDistribution(name=DistName("nb"), r=r, p=p)
+
+    # PMF at k=0 is p^r
+    assert np.isclose(dist.pmf(0), p**r)
+
+    assert np.isclose(dist.cdf(50), 1.0, atol=1e-6)
+    assert dist.cdf(5) <= dist.cdf(10)
+
+    assert dist.ppf(0.5) >= 0
+    assert dist.is_continuous is False
+    assert dist.pdf(3) == dist.pmf(3)
+
+
+def test_negative_binomial_sampling():
+    """Verify NegativeBinomial samples are non-negative integers with correct mean."""
+    r, p = 3, 0.5
+    dist = NegativeBinomialDistribution(name=DistName("nb_s"), r=r, p=p, seed=42)
+    samples = dist.sample(1000)
+
+    assert np.all(samples >= 0)
+    assert np.all(samples % 1 == 0)
+    assert np.isclose(np.mean(samples), r * (1 - p) / p, atol=0.5)
+
+
+def test_negative_binomial_validation():
+    with pytest.raises(ValueError, match="r must be at least 1"):
+        NegativeBinomialDistribution(name=DistName("bad"), r=0, p=0.5)
+    with pytest.raises(ValueError, match="p must be in"):
+        NegativeBinomialDistribution(name=DistName("bad"), r=1, p=0.0)
+
+
+def test_geometric_properties():
+    """Verify Geometric PMF/CDF and mean tracks 1/p."""
+    p = 0.3
+    dist = GeometricDistribution(name=DistName("geo"), p=p)
+
+    # PMF at k=1 is p (first trial is a success)
+    assert np.isclose(dist.pmf(1), p)
+
+    assert dist.cdf(5) <= dist.cdf(10)
+    assert np.isclose(dist.cdf(100), 1.0, atol=1e-6)
+
+    assert dist.ppf(0.5) >= 1
+    assert dist.is_continuous is False
+    assert dist.pdf(2) == dist.pmf(2)
+
+
+def test_geometric_sampling():
+    """Verify Geometric samples are positive integers (1-indexed) with correct mean."""
+    p = 0.25
+    dist = GeometricDistribution(name=DistName("geo_s"), p=p, seed=42)
+    samples = dist.sample(1000)
+
+    assert np.all(samples >= 1)
+    assert np.all(samples % 1 == 0)
+    assert np.isclose(np.mean(samples), 1 / p, atol=0.5)
+
+
+def test_geometric_validation():
+    with pytest.raises(ValueError, match="p must be in"):
+        GeometricDistribution(name=DistName("bad"), p=0.0)
+    with pytest.raises(ValueError, match="p must be in"):
+        GeometricDistribution(name=DistName("bad"), p=1.5)
+
+
+def test_hypergeometric_properties():
+    """Verify Hypergeometric samples are in [0, min(M, K)] and mean tracks M*K/N."""
+    N, M, K = 50, 10, 8
+    dist = HypergeometricDistribution(name=DistName("hg"), N=N, M=M, K=K)
+
+    samples = dist.sample(1000)
+    assert np.all(samples >= 0)
+    assert np.all(samples <= min(M, K))
+    assert np.all(samples % 1 == 0)
+
+    # mean of Hypergeometric = M * K / N
+    expected_mean = M * K / N
+    assert np.isclose(np.mean(samples), expected_mean, atol=0.3)
+
+    # PMF at mode and CDF/PPF consistency
+    assert dist.pmf(round(expected_mean)) >= 0
+    assert dist.cdf(M) == 1.0
+    assert dist.ppf(0.5) >= 0
+    assert dist.is_continuous is False
+    assert dist.pdf(2) == dist.pmf(2)
+
+
+def test_hypergeometric_validation():
+    with pytest.raises(ValueError, match="N"):
+        HypergeometricDistribution(name=DistName("bad"), N=0, M=1, K=0)
+    with pytest.raises(ValueError, match="M"):
+        HypergeometricDistribution(name=DistName("bad"), N=10, M=0, K=5)
+    with pytest.raises(ValueError, match="M"):
+        HypergeometricDistribution(name=DistName("bad"), N=10, M=11, K=5)
+    with pytest.raises(ValueError, match="K"):
+        HypergeometricDistribution(name=DistName("bad"), N=10, M=5, K=11)
+
+
+def test_beta_binomial_properties():
+    """Verify BetaBinomial samples are in [0, n] and mean tracks n*alpha/(alpha+beta)."""
+    n, alpha, beta = 20, 8.0, 2.0
+    dist = BetaBinomialDistribution(name=DistName("bb"), n=n, alpha=alpha, beta=beta)
+
+    samples = dist.sample(1000)
+    assert np.all(samples >= 0)
+    assert np.all(samples <= n)
+    assert np.all(samples % 1 == 0)
+
+    # mean of BetaBinomial = n * alpha / (alpha + beta)
+    expected_mean = n * alpha / (alpha + beta)
+    assert np.isclose(np.mean(samples), expected_mean, atol=0.5)
+
+    assert dist.cdf(n) == 1.0
+    assert dist.ppf(0.5) >= 0
+    assert dist.is_continuous is False
+    assert dist.pdf(10) == dist.pmf(10)
+
+
+def test_beta_binomial_validation():
+    with pytest.raises(ValueError, match="n must be at least 1"):
+        BetaBinomialDistribution(name=DistName("bad"), n=0, alpha=1.0, beta=1.0)
+    with pytest.raises(ValueError, match="alpha"):
+        BetaBinomialDistribution(name=DistName("bad"), n=5, alpha=0.0, beta=1.0)
+    with pytest.raises(ValueError, match="beta"):
+        BetaBinomialDistribution(name=DistName("bad"), n=5, alpha=1.0, beta=-1.0)
+
+
 @pytest.mark.parametrize(
     "dist, expected",
     [
@@ -270,6 +443,26 @@ def test_permutation_pdf_and_is_continuous():
         (
             PermutationDistribution(name=DistName("perm"), items=[1, 2, 3]),
             {"items": "[1, 2, 3]"},
+        ),
+        (
+            BinomialDistribution(name=DistName("bin"), n=10, p=0.3),
+            {"n": 10, "p": 0.3},
+        ),
+        (
+            NegativeBinomialDistribution(name=DistName("nb"), r=3, p=0.5),
+            {"r": 3, "p": 0.5},
+        ),
+        (
+            GeometricDistribution(name=DistName("geo"), p=0.4),
+            {"p": 0.4},
+        ),
+        (
+            HypergeometricDistribution(name=DistName("hg"), N=50, M=10, K=8),
+            {"N": 50, "M": 10, "K": 8},
+        ),
+        (
+            BetaBinomialDistribution(name=DistName("bb"), n=10, alpha=2.0, beta=5.0),
+            {"n": 10, "alpha": 2.0, "beta": 5.0},
         ),
     ],
 )
