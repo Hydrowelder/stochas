@@ -14,7 +14,7 @@ from stochas.design_variable import (
     DesignInt,
     DesignValueDict,
 )
-from stochas.distribution import NOMINAL_TRIAL_NUM, Dist, DistributionDict
+from stochas.distribution import NOMINAL_TRIAL_NUM, AnyDist, DistributionDict
 from stochas.named_value import NamedValue, NamedValueDict
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class StochasBase(BaseModel):
 
     def sample_dist(
         self,
-        dist: Dist,
+        dist: AnyDist,
         size: int = 1,
         force: bool = False,
         warn: bool = True,

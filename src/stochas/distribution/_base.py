@@ -95,6 +95,39 @@ class DistType(StrEnum):
     BINOMIAL = "binomial"
     """Binomial distribution."""
 
+    NEGATIVE_BINOMIAL = "negative_binomial"
+    """Negative Binomial distribution."""
+
+    GEOMETRIC = "geometric"
+    """Geometric distribution."""
+
+    LOGISTIC = "logistic"
+    """Logistic distribution."""
+
+    PARETO = "pareto"
+    """Pareto distribution."""
+
+    STUDENT_T = "student_t"
+    """Student's t distribution."""
+
+    HYPERGEOMETRIC = "hypergeometric"
+    """Hypergeometric distribution."""
+
+    BETA_BINOMIAL = "beta_binomial"
+    """Beta-Binomial distribution."""
+
+    CAUCHY = "cauchy"
+    """Cauchy distribution."""
+
+    CHI_SQUARED = "chi_squared"
+    """Chi-squared distribution."""
+
+    LAPLACE = "laplace"
+    """Laplace distribution."""
+
+    F = "f"
+    """F distribution."""
+
     @property
     def table_header(self) -> str:
         return self.replace("_", " ").title()

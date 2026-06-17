@@ -444,3 +444,312 @@ class BinomialDistribution(Distribution[int]):
     @property
     def table_params(self) -> dict[str, Any]:
         return {"n": self.n, "p": self.p}
+
+
+class NegativeBinomialDistribution(Distribution[int]):
+    """
+    Represent the number of failures before achieving a fixed number of successes.
+
+    Use this when modeling "how many attempts fail before r successes occur", such as the number of test runs that fail before a robot achieves r consecutive successful grasps.
+
+    Examples:
+        ```python
+        # Number of failed grasps before 3 successful ones (85% success rate)
+        dist = NegativeBinomialDistribution(name="grasp_failures", r=3, p=0.85)
+        ```
+
+    References:
+        1. [NumPy](https://numpy.org/doc/stable/reference/random/generated/numpy.random.negative_binomial.html)
+        2. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.nbinom.html)
+        3. [Wikipedia](https://en.wikipedia.org/wiki/Negative_binomial_distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/negative_binomial.png" width="600" />
+
+    """
+
+    r: int
+    """Number of successes required. Must be at least 1."""
+
+    p: float
+    """Probability of success on each trial (0 < p <= 1)."""
+
+    _scipy: rv_discrete = PrivateAttr()
+
+    dist_type: Literal[DistType.NEGATIVE_BINOMIAL] = DistType.NEGATIVE_BINOMIAL
+
+    @model_validator(mode="after")
+    def validate_params(self) -> Self:
+        if self.r < 1:
+            msg = f"Distribution {self.name}: r must be at least 1."
+            logger.error(msg)
+            raise ValueError(msg)
+        if not (0 < self.p <= 1):
+            msg = f"Distribution {self.name}: p must be in (0, 1]. Got {self.p}"
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.nbinom(n=self.r, p=self.p)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return self.rng.negative_binomial(n=self.r, p=self.p, size=size)
+
+    @property
+    def is_continuous(self) -> Literal[False]:
+        return False
+
+    def pdf(self, x: int | np.ndarray) -> float | np.ndarray:  # pyright: ignore[reportIncompatibleMethodOverride]
+        logger.warning(DISCRETE_MSG)
+        return self.pmf(k=x)
+
+    def pmf(self, k: int | np.ndarray) -> float | np.ndarray:
+        """Probability Mass Function."""
+        return self._scipy.pmf(k)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"r": self.r, "p": self.p}
+
+
+class GeometricDistribution(Distribution[int]):
+    """
+    Represent the number of trials until the first success.
+
+    Use this when modeling "how many attempts before the first success", such as the number of samples taken before a sensor detects an event.
+
+    Examples:
+        ```python
+        # Number of attempts before first successful detection (70% detection rate)
+        dist = GeometricDistribution(name="detection_attempts", p=0.7)
+        ```
+
+    References:
+        1. [NumPy](https://numpy.org/doc/stable/reference/random/generated/numpy.random.geometric.html)
+        2. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.geom.html)
+        3. [Wikipedia](https://en.wikipedia.org/wiki/Geometric_distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/geometric.png" width="600" />
+
+    """
+
+    p: float
+    """Probability of success on each trial (0 < p <= 1)."""
+
+    _scipy: rv_discrete = PrivateAttr()
+
+    dist_type: Literal[DistType.GEOMETRIC] = DistType.GEOMETRIC
+
+    @model_validator(mode="after")
+    def validate_params(self) -> Self:
+        if not (0 < self.p <= 1):
+            msg = f"Distribution {self.name}: p must be in (0, 1]. Got {self.p}"
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.geom(p=self.p)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return self.rng.geometric(p=self.p, size=size)
+
+    @property
+    def is_continuous(self) -> Literal[False]:
+        return False
+
+    def pdf(self, x: int | np.ndarray) -> float | np.ndarray:  # pyright: ignore[reportIncompatibleMethodOverride]
+        logger.warning(DISCRETE_MSG)
+        return self.pmf(k=x)
+
+    def pmf(self, k: int | np.ndarray) -> float | np.ndarray:
+        """Probability Mass Function."""
+        return self._scipy.pmf(k)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"p": self.p}
+
+
+class HypergeometricDistribution(Distribution[int]):
+    """
+    Represent the number of successes when drawing without replacement from a finite population.
+
+    Unlike the Binomial distribution, the Hypergeometric accounts for the fact that each draw changes the composition of the remaining population. Use this when modeling selection from a fixed pool, such as how many of M sampled objects from a bin of N total are defective (K of which are known to be defective).
+
+    Examples:
+        ```python
+        # Drawing 10 items from a batch of 50 where 8 are defective
+        dist = HypergeometricDistribution(name="defective_count", N=50, M=10, K=8)
+        ```
+
+    References:
+        1. [NumPy](https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.hypergeometric.html)
+        2. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.hypergeom.html)
+        3. [Wikipedia](https://en.wikipedia.org/wiki/Hypergeometric_distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/hypergeometric.png" width="600" />
+
+    """
+
+    N: int
+    """Total population size. Must be at least 1."""
+
+    M: int
+    """Number of draws. Must satisfy 1 <= M <= N."""
+
+    K: int
+    """Number of success states in the population. Must satisfy 0 <= K <= N."""
+
+    _scipy: rv_discrete = PrivateAttr()
+
+    dist_type: Literal[DistType.HYPERGEOMETRIC] = DistType.HYPERGEOMETRIC
+
+    @model_validator(mode="after")
+    def validate_params(self) -> Self:
+        if self.N < 1:
+            msg = f"Distribution {self.name}: N (population size) must be at least 1."
+            logger.error(msg)
+            raise ValueError(msg)
+        if not (1 <= self.M <= self.N):
+            msg = f"Distribution {self.name}: M (draws) must satisfy 1 <= M <= N."
+            logger.error(msg)
+            raise ValueError(msg)
+        if not (0 <= self.K <= self.N):
+            msg = f"Distribution {self.name}: K (successes in population) must satisfy 0 <= K <= N."
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        # scipy hypergeom: M=population, n=successes in pop, N=draws
+        self._scipy = stats.hypergeom(M=self.N, n=self.K, N=self.M)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return self.rng.hypergeometric(
+            ngood=self.K, nbad=self.N - self.K, nsample=self.M, size=size
+        )
+
+    @property
+    def is_continuous(self) -> Literal[False]:
+        return False
+
+    def pdf(self, x: int | np.ndarray) -> float | np.ndarray:  # pyright: ignore[reportIncompatibleMethodOverride]
+        logger.warning(DISCRETE_MSG)
+        return self.pmf(k=x)
+
+    def pmf(self, k: int | np.ndarray) -> float | np.ndarray:
+        """Probability Mass Function."""
+        return self._scipy.pmf(k)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"N": self.N, "M": self.M, "K": self.K}
+
+
+class BetaBinomialDistribution(Distribution[int]):
+    """
+    Represent an overdispersed count distribution where the success probability is itself Beta-distributed.
+
+    The Beta-Binomial is a compound distribution: each trial has a different success probability drawn from a Beta(alpha, beta) distribution. Use this when modeling counts that are more variable than a plain Binomial would predict, such as the number of successful grasps when grip success rate varies across trials.
+
+    Examples:
+        ```python
+        # Number of successful grasps out of 10 attempts with variable success rate
+        dist = BetaBinomialDistribution(name="grasp_successes", n=10, alpha=8.0, beta=2.0)
+        ```
+
+    References:
+        1. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.betabinom.html)
+        2. [Wikipedia](https://en.wikipedia.org/wiki/Beta-binomial_distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/beta_binomial.png" width="600" />
+
+    """
+
+    n: int
+    """Number of trials. Must be at least 1."""
+
+    alpha: float
+    """First shape parameter of the Beta prior. Must be positive."""
+
+    beta: float
+    """Second shape parameter of the Beta prior. Must be positive."""
+
+    _scipy: rv_discrete = PrivateAttr()
+
+    dist_type: Literal[DistType.BETA_BINOMIAL] = DistType.BETA_BINOMIAL
+
+    @model_validator(mode="after")
+    def validate_params(self) -> Self:
+        if self.n < 1:
+            msg = f"Distribution {self.name}: n must be at least 1."
+            logger.error(msg)
+            raise ValueError(msg)
+        if self.alpha <= 0:
+            msg = f"Distribution {self.name}: alpha must be greater than 0."
+            logger.error(msg)
+            raise ValueError(msg)
+        if self.beta <= 0:
+            msg = f"Distribution {self.name}: beta must be greater than 0."
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.betabinom(n=self.n, a=self.alpha, b=self.beta)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return np.asarray(self._scipy.rvs(size=size, random_state=self.rng))
+
+    @property
+    def is_continuous(self) -> Literal[False]:
+        return False
+
+    def pdf(self, x: int | np.ndarray) -> float | np.ndarray:  # pyright: ignore[reportIncompatibleMethodOverride]
+        logger.warning(DISCRETE_MSG)
+        return self.pmf(k=x)
+
+    def pmf(self, k: int | np.ndarray) -> float | np.ndarray:
+        """Probability Mass Function."""
+        return self._scipy.pmf(k)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"n": self.n, "alpha": self.alpha, "beta": self.beta}

@@ -701,3 +701,469 @@ class WeibullDistribution(Distribution[float]):
     @property
     def table_params(self) -> dict[str, Any]:
         return {"shape": self.shape, "scale": self.scale}
+
+
+class LogisticDistribution(Distribution[float]):
+    """
+    Represent a symmetric, bell-shaped distribution with heavier tails than Normal.
+
+    Common in modeling growth processes and any quantity where an S-shaped CDF is appropriate. Shares the same location-scale form as Normal but assigns more probability mass to extreme values.
+
+    Examples:
+        ```python
+        # Modeling a centered score with moderate spread
+        dist = LogisticDistribution(name="score", mu=0.0, beta=1.0)
+        ```
+
+    References:
+        1. [NumPy](https://numpy.org/doc/stable/reference/random/generated/numpy.random.logistic.html)
+        2. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.logistic.html)
+        3. [Wikipedia](https://en.wikipedia.org/wiki/Logistic_distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/logistic.png" width="600" />
+
+    """
+
+    mu: float
+    """Location parameter (mean and median)."""
+
+    beta: float
+    """Scale parameter. Must be positive. Controls the spread."""
+
+    _scipy: rv_continuous = PrivateAttr()
+
+    dist_type: Literal[DistType.LOGISTIC] = DistType.LOGISTIC
+
+    @model_validator(mode="after")
+    def validate_params(self) -> Self:
+        if self.beta <= 0:
+            msg = f"Distribution {self.name}: beta (scale) must be greater than 0."
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.logistic(loc=self.mu, scale=self.beta)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return self.rng.logistic(loc=self.mu, scale=self.beta, size=size)
+
+    @property
+    def is_continuous(self) -> Literal[True]:
+        return True
+
+    def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.pdf(x)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"mu": self.mu, "beta": self.beta}
+
+
+class ParetoDistribution(Distribution[float]):
+    """
+    Represent a heavy-tailed power-law distribution for modeling extreme events.
+
+    The Pareto distribution assigns most probability mass to small values while allowing rare, very large outliers. Use it when modeling phenomena that follow a power law, such as the magnitude of perturbation forces where small disturbances are common but large ones occasionally occur.
+
+    Examples:
+        ```python
+        # Modeling rare high-magnitude disturbance forces (alpha=3, min force=0.1 N)
+        dist = ParetoDistribution(name="disturbance_force", alpha=3.0, beta=0.1)
+        ```
+
+    References:
+        1. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pareto.html)
+        2. [Wikipedia](https://en.wikipedia.org/wiki/Pareto_distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/pareto.png" width="600" />
+
+    """
+
+    alpha: float
+    """Shape parameter. Must be positive. Controls the tail heaviness."""
+
+    beta: float
+    """Scale parameter (minimum value). Must be positive."""
+
+    _scipy: rv_continuous = PrivateAttr()
+
+    dist_type: Literal[DistType.PARETO] = DistType.PARETO
+
+    @model_validator(mode="after")
+    def validate_params(self) -> Self:
+        if self.alpha <= 0:
+            msg = f"Distribution {self.name}: alpha (shape) must be greater than 0."
+            logger.error(msg)
+            raise ValueError(msg)
+        if self.beta <= 0:
+            msg = f"Distribution {self.name}: beta (scale) must be greater than 0."
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.pareto(b=self.alpha, scale=self.beta)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        # numpy pareto returns Lomax samples (x >= 0); add 1 and scale to match scipy's Pareto
+        return (self.rng.pareto(a=self.alpha, size=size) + 1) * self.beta
+
+    @property
+    def is_continuous(self) -> Literal[True]:
+        return True
+
+    def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.pdf(x)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"alpha": self.alpha, "beta": self.beta}
+
+
+class StudentTDistribution(Distribution[float]):
+    """
+    Represent a symmetric, bell-shaped distribution with heavier tails than Normal.
+
+    The Student's t distribution is parameterized by degrees of freedom (nu). As nu increases, it approaches the Normal distribution. Use this when modeling noise or uncertainty estimated from a small number of samples, such as sensor calibration data with few observations.
+
+    Examples:
+        ```python
+        # Modeling measurement noise estimated from 5 calibration samples
+        dist = StudentTDistribution(name="measurement_noise", nu=5.0)
+        ```
+
+    References:
+        1. [NumPy](https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.standard_t.html)
+        2. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.t.html)
+        3. [Wikipedia](https://en.wikipedia.org/wiki/Student%27s_t-distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/student_t.png" width="600" />
+
+    """
+
+    nu: float
+    """Degrees of freedom. Must be positive."""
+
+    _scipy: rv_continuous = PrivateAttr()
+
+    dist_type: Literal[DistType.STUDENT_T] = DistType.STUDENT_T
+
+    @model_validator(mode="after")
+    def validate_params(self) -> Self:
+        if self.nu <= 0:
+            msg = f"Distribution {self.name}: nu (degrees of freedom) must be greater than 0."
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.t(df=self.nu)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return self.rng.standard_t(df=self.nu, size=size)
+
+    @property
+    def is_continuous(self) -> Literal[True]:
+        return True
+
+    def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.pdf(x)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"nu": self.nu}
+
+
+class CauchyDistribution(Distribution[float]):
+    """
+    Represent a symmetric, heavy-tailed distribution with undefined mean and variance.
+
+    The Cauchy distribution is a pathological location-scale distribution whose mean and variance are undefined, making it suitable for modeling highly uncertain processes or extreme perturbations where no central tendency can be assumed.
+
+    Examples:
+        ```python
+        # Modeling highly uncertain lateral force perturbations centered at zero
+        dist = CauchyDistribution(name="lateral_force", theta=0.0, sigma=0.5)
+        ```
+
+    References:
+        1. [NumPy](https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.standard_cauchy.html)
+        2. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.cauchy.html)
+        3. [Wikipedia](https://en.wikipedia.org/wiki/Cauchy_distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/cauchy.png" width="600" />
+
+    """
+
+    theta: float
+    """Location parameter (median)."""
+
+    sigma: float
+    """Scale parameter. Must be positive."""
+
+    _scipy: rv_continuous = PrivateAttr()
+
+    dist_type: Literal[DistType.CAUCHY] = DistType.CAUCHY
+
+    @model_validator(mode="after")
+    def validate_params(self) -> Self:
+        if self.sigma <= 0:
+            msg = f"Distribution {self.name}: sigma (scale) must be greater than 0."
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.cauchy(loc=self.theta, scale=self.sigma)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return self.rng.standard_cauchy(size=size) * self.sigma + self.theta
+
+    @property
+    def is_continuous(self) -> Literal[True]:
+        return True
+
+    def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.pdf(x)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"theta": self.theta, "sigma": self.sigma}
+
+
+class ChiSquaredDistribution(Distribution[float]):
+    """
+    Represent the distribution of a sum of squared standard Normal variables.
+
+    Parameterized by degrees of freedom p, this distribution arises naturally in variance estimation and hypothesis testing. In simulation, it can model the squared magnitude of a p-dimensional isotropic Gaussian perturbation.
+
+    Examples:
+        ```python
+        # Modeling the squared norm of a 3D position error with unit variance
+        dist = ChiSquaredDistribution(name="position_error_sq", p=3)
+        ```
+
+    References:
+        1. [NumPy](https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.chisquare.html)
+        2. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2.html)
+        3. [Wikipedia](https://en.wikipedia.org/wiki/Chi-squared_distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/chi_squared.png" width="600" />
+
+    """
+
+    p: int
+    """Degrees of freedom. Must be at least 1."""
+
+    _scipy: rv_continuous = PrivateAttr()
+
+    dist_type: Literal[DistType.CHI_SQUARED] = DistType.CHI_SQUARED
+
+    @model_validator(mode="after")
+    def validate_params(self) -> Self:
+        if self.p < 1:
+            msg = (
+                f"Distribution {self.name}: p (degrees of freedom) must be at least 1."
+            )
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.chi2(df=self.p)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return self.rng.chisquare(df=self.p, size=size)
+
+    @property
+    def is_continuous(self) -> Literal[True]:
+        return True
+
+    def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.pdf(x)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"p": self.p}
+
+
+class LaplaceDistribution(Distribution[float]):
+    """
+    Represent a symmetric, double-exponential distribution with heavier tails than Normal.
+
+    The Laplace distribution places more probability mass near the center and in the tails than Normal, making it useful for modeling sparse perturbations or sensor noise with occasional large spikes.
+
+    Examples:
+        ```python
+        # Modeling zero-mean joint torque noise with occasional large spikes
+        dist = LaplaceDistribution(name="torque_noise", mu=0.0, sigma=0.1)
+        ```
+
+    References:
+        1. [NumPy](https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.laplace.html)
+        2. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.laplace.html)
+        3. [Wikipedia](https://en.wikipedia.org/wiki/Laplace_distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/laplace.png" width="600" />
+
+    """
+
+    mu: float
+    """Location parameter (mean and median)."""
+
+    sigma: float
+    """Scale parameter. Must be positive."""
+
+    _scipy: rv_continuous = PrivateAttr()
+
+    dist_type: Literal[DistType.LAPLACE] = DistType.LAPLACE
+
+    @model_validator(mode="after")
+    def validate_params(self) -> Self:
+        if self.sigma <= 0:
+            msg = f"Distribution {self.name}: sigma (scale) must be greater than 0."
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.laplace(loc=self.mu, scale=self.sigma)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return self.rng.laplace(loc=self.mu, scale=self.sigma, size=size)
+
+    @property
+    def is_continuous(self) -> Literal[True]:
+        return True
+
+    def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.pdf(x)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"mu": self.mu, "sigma": self.sigma}
+
+
+class FDistribution(Distribution[float]):
+    """
+    Represent the ratio of two chi-squared distributions scaled by their degrees of freedom.
+
+    The F distribution is defined by two positive degrees-of-freedom parameters and arises naturally when comparing variance estimates. In simulation it can model the ratio of two independent squared-error magnitudes or uncertainty in variance ratios.
+
+    Examples:
+        ```python
+        # Modeling the ratio of two independent variance estimates (5 vs 10 DOF)
+        dist = FDistribution(name="variance_ratio", nu1=5.0, nu2=10.0)
+        ```
+
+    References:
+        1. [NumPy](https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.f.html)
+        2. [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.f.html)
+        3. [Wikipedia](https://en.wikipedia.org/wiki/F-distribution)
+
+    Note:
+        <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/distributions/f.png" width="600" />
+
+    """
+
+    nu1: float
+    """Numerator degrees of freedom. Must be positive."""
+
+    nu2: float
+    """Denominator degrees of freedom. Must be positive."""
+
+    _scipy: rv_continuous = PrivateAttr()
+
+    dist_type: Literal[DistType.F] = DistType.F
+
+    @model_validator(mode="after")
+    def validate_params(self) -> Self:
+        if self.nu1 <= 0:
+            msg = f"Distribution {self.name}: nu1 (numerator degrees of freedom) must be greater than 0."
+            logger.error(msg)
+            raise ValueError(msg)
+        if self.nu2 <= 0:
+            msg = f"Distribution {self.name}: nu2 (denominator degrees of freedom) must be greater than 0."
+            logger.error(msg)
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_scipy(self) -> Self:
+        self._scipy = stats.f(dfn=self.nu1, dfd=self.nu2)  # pyright: ignore[reportAttributeAccessIssue]
+        return self
+
+    def draw(self, size: int = 1) -> np.ndarray:
+        return self.rng.f(dfnum=self.nu1, dfden=self.nu2, size=size)
+
+    @property
+    def is_continuous(self) -> Literal[True]:
+        return True
+
+    def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.pdf(x)
+
+    def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.cdf(x)
+
+    def ppf(self, q: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.ppf(q)
+
+    @property
+    def table_params(self) -> dict[str, Any]:
+        return {"nu1": self.nu1, "nu2": self.nu2}

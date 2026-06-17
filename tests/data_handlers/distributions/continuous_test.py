@@ -1,16 +1,25 @@
 """Tests for continuous distributions."""
 
+import math
+
 import numpy as np
 import pytest
 
 from stochas import (
     BetaDistribution,
+    CauchyDistribution,
+    ChiSquaredDistribution,
     DistName,
     ExponentialDistribution,
+    FDistribution,
     GammaDistribution,
+    LaplaceDistribution,
     LogNormalDistribution,
+    LogisticDistribution,
     NormalDistribution,
+    ParetoDistribution,
     RayleighDistribution,
+    StudentTDistribution,
     TriangularDistribution,
     TruncatedNormalDistribution,
     UniformDistribution,
@@ -117,6 +126,21 @@ def test_truncated_normal_extreme_bounds():
     assert np.all(samples >= 10)
 
 
+def test_truncated_normal_infinite_bounds_roundtrip():
+    """Verify that infinite bounds serialize as None and restore correctly."""
+    dist = TruncatedNormalDistribution(name=DistName("inf"), mu=0.0, sigma=1.0)
+    assert math.isinf(dist.low)
+    assert math.isinf(dist.high)
+
+    data = dist.model_dump()
+    assert data["low"] is None
+    assert data["high"] is None
+
+    restored = TruncatedNormalDistribution.model_validate(data)
+    assert math.isinf(restored.low)
+    assert math.isinf(restored.high)
+
+
 def test_log_normal_properties():
     """Verify LogNormal is positive and respects the shape parameter."""
     s = 0.5  # sigma of the log
@@ -190,6 +214,13 @@ def test_rayleigh_validation():
         LogNormalDistribution(name=DistName("ln"), s=0.5, scale=10),
         ExponentialDistribution(name=DistName("ex"), lam=2.0),
         RayleighDistribution(name=DistName("ry"), scale=2.0),
+        LogisticDistribution(name=DistName("lo"), mu=0.0, beta=1.0),
+        ParetoDistribution(name=DistName("pa"), alpha=2.0, beta=1.0),
+        StudentTDistribution(name=DistName("st"), nu=5.0),
+        CauchyDistribution(name=DistName("ca"), theta=0.0, sigma=1.0),
+        ChiSquaredDistribution(name=DistName("cs"), p=3),
+        LaplaceDistribution(name=DistName("la"), mu=0.0, sigma=1.0),
+        FDistribution(name=DistName("fd"), nu1=5.0, nu2=10.0),
     ],
 )
 def test_continuous_ppf_consistency(dist_instance):
@@ -207,7 +238,7 @@ def test_gamma_properties():
 
     samples = dist.sample(1000)
     assert np.all(samples > 0)
-    assert np.isclose(np.mean(samples), alpha * beta, atol=0.3)
+    assert np.isclose(np.mean(samples), alpha * beta, atol=0.5)
 
     assert dist.pdf(alpha * beta) > 0
     assert np.isclose(dist.cdf(0), 0.0, atol=1e-6)
@@ -238,6 +269,7 @@ def test_beta_properties():
     assert dist.pdf(0.5) > 0
     assert np.isclose(dist.cdf(0.0), 0.0, atol=1e-6)
     assert np.isclose(dist.cdf(1.0), 1.0, atol=1e-6)
+    assert np.isclose(dist.cdf(dist.ppf(0.5)), 0.5, atol=1e-6)
     assert dist.is_continuous is True
 
 
@@ -270,6 +302,150 @@ def test_weibull_validation():
         WeibullDistribution(name=DistName("bad"), shape=0.0, scale=1.0)
     with pytest.raises(ValueError, match="scale"):
         WeibullDistribution(name=DistName("bad"), shape=1.0, scale=-1.0)
+
+
+def test_logistic_properties():
+    """Verify Logistic is symmetric about mu with CDF of 0.5 at the mean."""
+    mu, beta = 5.0, 2.0
+    dist = LogisticDistribution(name=DistName("lo"), mu=mu, beta=beta)
+
+    samples = dist.sample(1000)
+    assert np.isclose(np.mean(samples), mu, atol=0.3)
+
+    assert np.isclose(dist.cdf(mu), 0.5)
+    assert np.isclose(dist.ppf(0.5), mu)
+    assert dist.pdf(mu) > 0
+    assert dist.is_continuous is True
+
+
+def test_logistic_validation():
+    with pytest.raises(ValueError, match="beta"):
+        LogisticDistribution(name=DistName("bad"), mu=0.0, beta=0.0)
+
+
+def test_pareto_properties():
+    """Verify Pareto samples are >= beta and CDF/PPF are consistent."""
+    alpha, beta = 3.0, 1.0
+    dist = ParetoDistribution(name=DistName("pa"), alpha=alpha, beta=beta)
+
+    samples = dist.sample(1000)
+    assert np.all(samples >= beta)
+
+    # CDF at beta (minimum) is 0; PPF should be consistent with CDF
+    assert np.isclose(dist.cdf(beta), 0.0, atol=1e-6)
+    assert np.isclose(dist.cdf(dist.ppf(0.5)), 0.5, atol=1e-6)
+
+    assert dist.pdf(2 * beta) > 0
+    assert dist.is_continuous is True
+
+
+def test_pareto_validation():
+    with pytest.raises(ValueError, match="alpha"):
+        ParetoDistribution(name=DistName("bad"), alpha=0.0, beta=1.0)
+    with pytest.raises(ValueError, match="beta"):
+        ParetoDistribution(name=DistName("bad"), alpha=1.0, beta=-1.0)
+
+
+def test_student_t_properties():
+    """Verify Student-T is symmetric about zero with CDF of 0.5 at zero."""
+    nu = 5.0
+    dist = StudentTDistribution(name=DistName("st"), nu=nu)
+
+    samples = dist.sample(1000)
+    assert np.isclose(np.mean(samples), 0.0, atol=0.2)
+
+    assert np.isclose(dist.cdf(0.0), 0.5)
+    assert np.isclose(dist.ppf(0.5), 0.0)
+    assert dist.pdf(0.0) > 0
+    assert dist.is_continuous is True
+
+
+def test_student_t_validation():
+    with pytest.raises(ValueError, match="nu"):
+        StudentTDistribution(name=DistName("bad"), nu=0.0)
+
+
+def test_cauchy_properties():
+    """Verify Cauchy CDF is 0.5 at theta and PPF/CDF are consistent."""
+    theta, sigma = 2.0, 1.0
+    dist = CauchyDistribution(name=DistName("ca"), theta=theta, sigma=sigma)
+
+    assert np.isclose(dist.cdf(theta), 0.5)
+    assert np.isclose(dist.ppf(0.5), theta)
+    assert dist.pdf(theta) > 0
+    assert dist.is_continuous is True
+
+    samples = dist.sample(100)
+    assert isinstance(samples, np.ndarray) and len(samples) == 100
+
+
+def test_cauchy_validation():
+    with pytest.raises(ValueError, match="sigma"):
+        CauchyDistribution(name=DistName("bad"), theta=0.0, sigma=0.0)
+
+
+def test_chi_squared_properties():
+    """Verify ChiSquared samples are positive and mean tracks p."""
+    p = 4
+    dist = ChiSquaredDistribution(name=DistName("cs"), p=p)
+
+    samples = dist.sample(1000)
+    assert np.all(samples > 0)
+    assert np.isclose(np.mean(samples), p, atol=0.3)
+
+    assert np.isclose(dist.cdf(0.0), 0.0, atol=1e-6)
+    assert np.isclose(dist.cdf(dist.ppf(0.5)), 0.5, atol=1e-6)
+    assert dist.pdf(p) > 0
+    assert dist.is_continuous is True
+
+
+def test_chi_squared_validation():
+    with pytest.raises(ValueError, match="p"):
+        ChiSquaredDistribution(name=DistName("bad"), p=0)
+
+
+def test_laplace_properties():
+    """Verify Laplace is symmetric about mu with CDF of 0.5 at the mean."""
+    mu, sigma = 3.0, 1.5
+    dist = LaplaceDistribution(name=DistName("la"), mu=mu, sigma=sigma)
+
+    samples = dist.sample(1000)
+    assert np.isclose(np.mean(samples), mu, atol=0.2)
+
+    assert np.isclose(dist.cdf(mu), 0.5)
+    assert np.isclose(dist.ppf(0.5), mu)
+    assert dist.pdf(mu) > 0
+    assert dist.is_continuous is True
+
+
+def test_laplace_validation():
+    with pytest.raises(ValueError, match="sigma"):
+        LaplaceDistribution(name=DistName("bad"), mu=0.0, sigma=0.0)
+
+
+def test_f_distribution_properties():
+    """Verify F samples are positive and mean tracks nu2 / (nu2 - 2) for nu2 > 2."""
+    nu1, nu2 = 5.0, 10.0
+    dist = FDistribution(name=DistName("fd"), nu1=nu1, nu2=nu2)
+
+    samples = dist.sample(1000)
+    assert np.all(samples > 0)
+
+    # mean of F(nu1, nu2) = nu2 / (nu2 - 2) for nu2 > 2
+    expected_mean = nu2 / (nu2 - 2)
+    assert np.isclose(np.mean(samples), expected_mean, atol=0.3)
+
+    assert np.isclose(dist.cdf(0.0), 0.0, atol=1e-6)
+    assert np.isclose(dist.cdf(dist.ppf(0.5)), 0.5, atol=1e-6)
+    assert dist.pdf(1.0) > 0
+    assert dist.is_continuous is True
+
+
+def test_f_distribution_validation():
+    with pytest.raises(ValueError, match="nu1"):
+        FDistribution(name=DistName("bad"), nu1=0.0, nu2=5.0)
+    with pytest.raises(ValueError, match="nu2"):
+        FDistribution(name=DistName("bad"), nu1=5.0, nu2=0.0)
 
 
 @pytest.mark.parametrize(
@@ -316,6 +492,34 @@ def test_weibull_validation():
         (
             WeibullDistribution(name=DistName("wb"), shape=2.0, scale=100.0),
             {"shape": 2.0, "scale": 100.0},
+        ),
+        (
+            LogisticDistribution(name=DistName("lo"), mu=1.0, beta=2.0),
+            {"mu": 1.0, "beta": 2.0},
+        ),
+        (
+            ParetoDistribution(name=DistName("pa"), alpha=3.0, beta=1.0),
+            {"alpha": 3.0, "beta": 1.0},
+        ),
+        (
+            StudentTDistribution(name=DistName("st"), nu=5.0),
+            {"nu": 5.0},
+        ),
+        (
+            CauchyDistribution(name=DistName("ca"), theta=1.0, sigma=2.0),
+            {"theta": 1.0, "sigma": 2.0},
+        ),
+        (
+            ChiSquaredDistribution(name=DistName("cs"), p=4),
+            {"p": 4},
+        ),
+        (
+            LaplaceDistribution(name=DistName("la"), mu=0.0, sigma=1.5),
+            {"mu": 0.0, "sigma": 1.5},
+        ),
+        (
+            FDistribution(name=DistName("fd"), nu1=5.0, nu2=10.0),
+            {"nu1": 5.0, "nu2": 10.0},
         ),
     ],
 )

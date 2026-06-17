@@ -15,6 +15,38 @@ from stochas.distribution import (
 from stochas.named_value import NamedValueDict
 
 
+def test_with_seed_resets_rng():
+    """Verify with_seed returns self, sets the seed, and produces reproducible draws."""
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1)
+    result = dist.with_seed(42)
+
+    assert result is dist
+    assert dist.seed == 42
+
+    s1 = dist.sample(5)
+    dist.with_seed(42)
+    s2 = dist.sample(5)
+    assert np.array_equal(s1, s2)
+
+
+def test_with_trial_num_resets_rng():
+    """Verify with_trial_num returns self, updates trial_num, and changes draws."""
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1, seed=99)
+
+    s1 = dist.sample(5)
+    result = dist.with_trial_num(0)
+
+    assert result is dist
+    assert dist.trial_num == 0
+
+    s2 = dist.sample(5)
+    assert np.array_equal(s1, s2)
+
+    dist.with_trial_num(1)
+    s3 = dist.sample(5)
+    assert not np.array_equal(s1, s3)
+
+
 def test_distribution_seeding_and_salting():
     """Verify that names act as unique salts for the same seed."""
     seed = 42

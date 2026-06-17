@@ -12,25 +12,32 @@ from pydantic import Field
 
 from stochas.base_collections import BaseDict, BaseList
 from stochas.distribution._base import (
+    _INVALID_CATEGORY_CHARS,
     DISCRETE_MSG,
     NOMINAL_TRIAL_NUM,
     UNDEFINED,
     DistName,
-    DistType,
     Distribution,
+    DistType,
     SerializableUndefined,
     Undefined,
-    _INVALID_CATEGORY_CHARS,
     logger,
     validate_undefined,
 )
 from stochas.distribution._continuous import (
     BetaDistribution,
+    CauchyDistribution,
+    ChiSquaredDistribution,
     ExponentialDistribution,
+    FDistribution,
     GammaDistribution,
+    LaplaceDistribution,
+    LogisticDistribution,
     LogNormalDistribution,
     NormalDistribution,
+    ParetoDistribution,
     RayleighDistribution,
+    StudentTDistribution,
     TriangularDistribution,
     TruncatedNormalDistribution,
     UniformDistribution,
@@ -38,9 +45,13 @@ from stochas.distribution._continuous import (
 )
 from stochas.distribution._discrete import (
     BernoulliDistribution,
+    BetaBinomialDistribution,
     BinomialDistribution,
     CategoricalDistribution,
     DiscreteUniformDistribution,
+    GeometricDistribution,
+    HypergeometricDistribution,
+    NegativeBinomialDistribution,
     PermutationDistribution,
     PoissonDistribution,
 )
@@ -50,24 +61,35 @@ __all__ = [
     "NOMINAL_TRIAL_NUM",
     "UNDEFINED",
     "_INVALID_CATEGORY_CHARS",
+    "AnyDist",
     "BernoulliDistribution",
+    "BetaBinomialDistribution",
     "BetaDistribution",
     "BinomialDistribution",
     "CategoricalDistribution",
-    "Dist",
+    "CauchyDistribution",
+    "ChiSquaredDistribution",
     "DistName",
     "DistType",
     "Distribution",
     "DistributionDict",
     "DistributionList",
     "ExponentialDistribution",
+    "FDistribution",
     "GammaDistribution",
+    "GeometricDistribution",
+    "HypergeometricDistribution",
+    "LaplaceDistribution",
     "LogNormalDistribution",
+    "LogisticDistribution",
+    "NegativeBinomialDistribution",
     "NormalDistribution",
+    "ParetoDistribution",
     "PermutationDistribution",
     "PoissonDistribution",
     "RayleighDistribution",
     "SerializableUndefined",
+    "StudentTDistribution",
     "TriangularDistribution",
     "TruncatedNormalDistribution",
     "Undefined",
@@ -77,7 +99,7 @@ __all__ = [
     "validate_undefined",
 ]
 
-Dist = Annotated[
+AnyDist = Annotated[
     NormalDistribution
     | UniformDistribution
     | CategoricalDistribution
@@ -93,12 +115,23 @@ Dist = Annotated[
     | GammaDistribution
     | BetaDistribution
     | WeibullDistribution
-    | BinomialDistribution,
+    | BinomialDistribution
+    | NegativeBinomialDistribution
+    | GeometricDistribution
+    | LogisticDistribution
+    | ParetoDistribution
+    | StudentTDistribution
+    | HypergeometricDistribution
+    | BetaBinomialDistribution
+    | CauchyDistribution
+    | ChiSquaredDistribution
+    | LaplaceDistribution
+    | FDistribution,
     Field(discriminator="dist_type"),
 ]
 
 
-class DistributionDict(BaseDict[Dist]):
+class DistributionDict(BaseDict[AnyDist]):
     """Dictionary specifically for sampled results."""
 
     @property
@@ -113,7 +146,7 @@ class DistributionDict(BaseDict[Dist]):
 
     def to_tables(self, directory: Path) -> None:
         """Writes one CSV per dist type, organized into per-category subdirectories."""
-        by_category: defaultdict[str, list[Dist]] = defaultdict(list)
+        by_category: defaultdict[str, list[AnyDist]] = defaultdict(list)
         for dist in self.values():
             by_category[dist.category].append(dist)
 
@@ -121,7 +154,7 @@ class DistributionDict(BaseDict[Dist]):
             category_dir = directory / category
             category_dir.mkdir(parents=True, exist_ok=True)
 
-            by_type: defaultdict[str, list[Dist]] = defaultdict(list)
+            by_type: defaultdict[str, list[AnyDist]] = defaultdict(list)
             for dist in dists:
                 by_type[dist.dist_type].append(dist)
 
@@ -140,7 +173,7 @@ class DistributionDict(BaseDict[Dist]):
                 )
 
 
-class DistributionList(BaseList[Dist]):
+class DistributionList(BaseList[AnyDist]):
     """List specifically for distributions."""
 
     @property
