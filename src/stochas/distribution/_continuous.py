@@ -10,7 +10,7 @@ import scipy.stats as stats
 from pydantic import PrivateAttr, field_serializer, field_validator, model_validator
 
 from stochas.distribution._base import (
-    Distribution,
+    ContinuousDistribution,
     DistType,
     logger,
 )
@@ -21,7 +21,7 @@ else:
     rv_continuous = Any
 
 
-class NormalDistribution(Distribution[float]):
+class NormalDistribution(ContinuousDistribution[float]):
     """
     Represent a standard Gaussian "Bell Curve" distribution.
 
@@ -69,10 +69,6 @@ class NormalDistribution(Distribution[float]):
     def draw(self, size: int = 1):
         return self.rng.normal(loc=self.mu, scale=self.sigma, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x=x)
 
@@ -87,7 +83,7 @@ class NormalDistribution(Distribution[float]):
         return {"mu": self.mu, "sigma": self.sigma}
 
 
-class UniformDistribution(Distribution[float]):
+class UniformDistribution(ContinuousDistribution[float]):
     """
     Represent a distribution where every value in a range is equally likely.
 
@@ -139,10 +135,6 @@ class UniformDistribution(Distribution[float]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.uniform(low=self.low, high=self.high, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x=x)
 
@@ -157,7 +149,7 @@ class UniformDistribution(Distribution[float]):
         return {"low": self.low, "high": self.high}
 
 
-class TriangularDistribution(Distribution[float]):
+class TriangularDistribution(ContinuousDistribution[float]):
     """
     Represent a continuous distribution with a triangular shape.
 
@@ -213,10 +205,6 @@ class TriangularDistribution(Distribution[float]):
             left=self.low, mode=self.mode, right=self.high, size=size
         )
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -231,7 +219,7 @@ class TriangularDistribution(Distribution[float]):
         return {"low": self.low, "mode": self.mode, "high": self.high}
 
 
-class TruncatedNormalDistribution(Distribution[float]):
+class TruncatedNormalDistribution(ContinuousDistribution[float]):
     """
     Represent a Normal distribution restricted to a specific interval.
 
@@ -298,10 +286,6 @@ class TruncatedNormalDistribution(Distribution[float]):
         # numpy doesn't have a truncnorm generator
         return self._scipy.rvs(size=size, random_state=self.rng)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -316,7 +300,7 @@ class TruncatedNormalDistribution(Distribution[float]):
         return {"mu": self.mu, "sigma": self.sigma, "low": self.low, "high": self.high}
 
 
-class LogNormalDistribution(Distribution[float]):
+class LogNormalDistribution(ContinuousDistribution[float]):
     """
     Represent a distribution whose logarithm is normally distributed.
 
@@ -356,10 +340,6 @@ class LogNormalDistribution(Distribution[float]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.lognormal(mean=np.log(self.scale), sigma=self.s, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -374,7 +354,7 @@ class LogNormalDistribution(Distribution[float]):
         return {"s": self.s, "scale": self.scale}
 
 
-class ExponentialDistribution(Distribution[float]):
+class ExponentialDistribution(ContinuousDistribution[float]):
     """
     Represent the time between events in a Poisson process.
 
@@ -411,10 +391,6 @@ class ExponentialDistribution(Distribution[float]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.exponential(scale=1 / self.lam, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -429,7 +405,7 @@ class ExponentialDistribution(Distribution[float]):
         return {"lam": self.lam}
 
 
-class RayleighDistribution(Distribution[float]):
+class RayleighDistribution(ContinuousDistribution[float]):
     """
     Represent the magnitude of a 2D vector whose components are independent, identically distributed Normal variables.
 
@@ -474,10 +450,6 @@ class RayleighDistribution(Distribution[float]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.rayleigh(scale=self.scale, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -492,7 +464,7 @@ class RayleighDistribution(Distribution[float]):
         return {"scale": self.scale}
 
 
-class GammaDistribution(Distribution[float]):
+class GammaDistribution(ContinuousDistribution[float]):
     """
     Represent a flexible, right-skewed distribution for positive-valued quantities.
 
@@ -544,10 +516,6 @@ class GammaDistribution(Distribution[float]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.gamma(shape=self.alpha, scale=self.beta, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -562,7 +530,7 @@ class GammaDistribution(Distribution[float]):
         return {"alpha": self.alpha, "beta": self.beta}
 
 
-class BetaDistribution(Distribution[float]):
+class BetaDistribution(ContinuousDistribution[float]):
     """
     Represent a distribution over the interval (0, 1).
 
@@ -614,10 +582,6 @@ class BetaDistribution(Distribution[float]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.beta(a=self.alpha, b=self.beta, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -632,7 +596,7 @@ class BetaDistribution(Distribution[float]):
         return {"alpha": self.alpha, "beta": self.beta}
 
 
-class WeibullDistribution(Distribution[float]):
+class WeibullDistribution(ContinuousDistribution[float]):
     """
     Represent a flexible distribution for modeling time-to-failure and wind speed.
 
@@ -685,10 +649,6 @@ class WeibullDistribution(Distribution[float]):
         # numpy.weibull draws from the standard Weibull (scale=1); multiply by scale
         return self.rng.weibull(a=self.shape, size=size) * self.scale
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -703,7 +663,7 @@ class WeibullDistribution(Distribution[float]):
         return {"shape": self.shape, "scale": self.scale}
 
 
-class LogisticDistribution(Distribution[float]):
+class LogisticDistribution(ContinuousDistribution[float]):
     """
     Represent a symmetric, bell-shaped distribution with heavier tails than Normal.
 
@@ -751,10 +711,6 @@ class LogisticDistribution(Distribution[float]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.logistic(loc=self.mu, scale=self.beta, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -769,7 +725,7 @@ class LogisticDistribution(Distribution[float]):
         return {"mu": self.mu, "beta": self.beta}
 
 
-class ParetoDistribution(Distribution[float]):
+class ParetoDistribution(ContinuousDistribution[float]):
     """
     Represent a heavy-tailed power-law distribution for modeling extreme events.
 
@@ -821,10 +777,6 @@ class ParetoDistribution(Distribution[float]):
         # numpy pareto returns Lomax samples (x >= 0); add 1 and scale to match scipy's Pareto
         return (self.rng.pareto(a=self.alpha, size=size) + 1) * self.beta
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -839,7 +791,7 @@ class ParetoDistribution(Distribution[float]):
         return {"alpha": self.alpha, "beta": self.beta}
 
 
-class StudentTDistribution(Distribution[float]):
+class StudentTDistribution(ContinuousDistribution[float]):
     """
     Represent a symmetric, bell-shaped distribution with heavier tails than Normal.
 
@@ -884,10 +836,6 @@ class StudentTDistribution(Distribution[float]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.standard_t(df=self.nu, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -902,7 +850,7 @@ class StudentTDistribution(Distribution[float]):
         return {"nu": self.nu}
 
 
-class CauchyDistribution(Distribution[float]):
+class CauchyDistribution(ContinuousDistribution[float]):
     """
     Represent a symmetric, heavy-tailed distribution with undefined mean and variance.
 
@@ -950,10 +898,6 @@ class CauchyDistribution(Distribution[float]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.standard_cauchy(size=size) * self.sigma + self.theta
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -968,7 +912,7 @@ class CauchyDistribution(Distribution[float]):
         return {"theta": self.theta, "sigma": self.sigma}
 
 
-class ChiSquaredDistribution(Distribution[float]):
+class ChiSquaredDistribution(ContinuousDistribution[float]):
     """
     Represent the distribution of a sum of squared standard Normal variables.
 
@@ -1015,10 +959,6 @@ class ChiSquaredDistribution(Distribution[float]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.chisquare(df=self.p, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -1033,7 +973,7 @@ class ChiSquaredDistribution(Distribution[float]):
         return {"p": self.p}
 
 
-class LaplaceDistribution(Distribution[float]):
+class LaplaceDistribution(ContinuousDistribution[float]):
     """
     Represent a symmetric, double-exponential distribution with heavier tails than Normal.
 
@@ -1081,10 +1021,6 @@ class LaplaceDistribution(Distribution[float]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.laplace(loc=self.mu, scale=self.sigma, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
-
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)
 
@@ -1099,7 +1035,7 @@ class LaplaceDistribution(Distribution[float]):
         return {"mu": self.mu, "sigma": self.sigma}
 
 
-class FDistribution(Distribution[float]):
+class FDistribution(ContinuousDistribution[float]):
     """
     Represent the ratio of two chi-squared distributions scaled by their degrees of freedom.
 
@@ -1150,10 +1086,6 @@ class FDistribution(Distribution[float]):
 
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.f(dfnum=self.nu1, dfden=self.nu2, size=size)
-
-    @property
-    def is_continuous(self) -> Literal[True]:
-        return True
 
     def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.pdf(x)

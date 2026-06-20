@@ -1,7 +1,9 @@
 """StochasBase, the top-level model for registering distributions and named/design values."""
 
+from __future__ import annotations
+
 import logging
-from typing import Any, Self, TypeVar, overload
+from typing import Any, Self, TypeVar, cast, overload
 
 from numpydantic import NDArray
 from pydantic import BaseModel, Field, SerializeAsAny
@@ -14,7 +16,12 @@ from stochas.design_variable import (
     DesignInt,
     DesignValueDict,
 )
-from stochas.distribution import NOMINAL_TRIAL_NUM, AnyDist, DistributionDict
+from stochas.distribution import (
+    NOMINAL_TRIAL_NUM,
+    AnyDist,
+    Distribution,
+    DistributionDict,
+)
 from stochas.named_value import NamedValue, NamedValueDict
 
 logger = logging.getLogger(__name__)
@@ -40,13 +47,14 @@ class StochasBase(BaseModel):
     )
     """Final 'baked' values from a random draw, global override, or design study."""
 
-    def sample_dist(
+    def sample_dist[T](
         self,
-        dist: AnyDist,
+        dist: Distribution[T],
         size: int = 1,
         force: bool = False,
         warn: bool = True,
-    ) -> NamedValue[NDArray]:
+        reset_rng: bool = True,
+    ) -> NamedValue[NDArray[Any, T]]:
         """
         Sets the seed and trial number of the distribution, sample, registers it and the sampled value to the model, and returns the named value.
 
@@ -57,17 +65,23 @@ class StochasBase(BaseModel):
             size (int, optional): Number of samples to take. Will be embedded in the returned NamedValue. Defaults to 1.
             force (bool, optional): Force the sampled value into the NamedValueDict if it already exists. Defaults to False.
             warn (bool, optional): Whether or not to warn if there is a conflict while forcing. Defaults to True.
+            reset_rng (bool, optional): Whether or not to reset the seed and trial number for the distribution. Setting the seed and trial number will reset the random number cycle. This will not skip registering the distribution or NamedValues to the MojoModel. If you want pseudorandom number generation, setting to False will require you to manually set the seed and trial number before passing the distribution into `sample_dist`. Defaults to True.
 
         Returns:
             NamedValue[NDArray]: NamedValue containing the random draw.
 
         """
-        dist.with_seed(self.seed).with_trial_num(self.trial_num)
+        if reset_rng:
+            dist.with_seed(self.seed).with_trial_num(self.trial_num)
 
+        # Distribution is abstract; any instance is necessarily one of AnyDist's
+        # concrete members, so this cast just bridges the generic call-site type
+        # to the closed discriminated union DistributionDict stores.
+        concrete_dist = cast(AnyDist, dist)
         if dist.name not in self.dists:
-            self.dists.update(dist)
+            self.dists.update(concrete_dist)
         elif force:
-            self.dists.force_update(dist)
+            self.dists.force_update(concrete_dist)
 
         nv = dist.sample_to_named_value(size=size)
 

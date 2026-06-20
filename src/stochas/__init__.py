@@ -11,6 +11,8 @@ from .design_variable import (
 )
 from .distribution import (
     NOMINAL_TRIAL_NUM,
+    AnyContinuousDist,
+    AnyDiscreteDist,
     AnyDist,
     BernoulliDistribution,
     BetaBinomialDistribution,
@@ -19,6 +21,8 @@ from .distribution import (
     CategoricalDistribution,
     CauchyDistribution,
     ChiSquaredDistribution,
+    ContinuousDistribution,
+    DiscreteDistribution,
     DiscreteUniformDistribution,
     DistName,
     Distribution,
@@ -56,7 +60,9 @@ from .named_value import (
 
 __all__ = [
     "NOMINAL_TRIAL_NUM",
+    "AnyContinuousDist",
     "AnyDesignValue",
+    "AnyDiscreteDist",
     "AnyDist",
     "BaseDict",
     "BaseList",
@@ -67,12 +73,14 @@ __all__ = [
     "CategoricalDistribution",
     "CauchyDistribution",
     "ChiSquaredDistribution",
+    "ContinuousDistribution",
     "DesignBool",
     "DesignCategorical",
     "DesignFloat",
     "DesignInt",
     "DesignValueDict",
     "DesignValueList",
+    "DiscreteDistribution",
     "DiscreteUniformDistribution",
     "DistName",
     "DistType",

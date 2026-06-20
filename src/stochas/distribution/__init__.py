@@ -16,6 +16,8 @@ from stochas.distribution._base import (
     DISCRETE_MSG,
     NOMINAL_TRIAL_NUM,
     UNDEFINED,
+    ContinuousDistribution,
+    DiscreteDistribution,
     DistName,
     Distribution,
     DistType,
@@ -61,6 +63,8 @@ __all__ = [
     "NOMINAL_TRIAL_NUM",
     "UNDEFINED",
     "_INVALID_CATEGORY_CHARS",
+    "AnyContinuousDist",
+    "AnyDiscreteDist",
     "AnyDist",
     "BernoulliDistribution",
     "BetaBinomialDistribution",
@@ -69,6 +73,8 @@ __all__ = [
     "CategoricalDistribution",
     "CauchyDistribution",
     "ChiSquaredDistribution",
+    "ContinuousDistribution",
+    "DiscreteDistribution",
     "DistName",
     "DistType",
     "Distribution",
@@ -99,34 +105,43 @@ __all__ = [
     "validate_undefined",
 ]
 
-AnyDist = Annotated[
-    NormalDistribution
-    | UniformDistribution
-    | CategoricalDistribution
+AnyDiscreteDist = Annotated[
+    CategoricalDistribution
     | PermutationDistribution
     | DiscreteUniformDistribution
-    | TriangularDistribution
-    | TruncatedNormalDistribution
-    | LogNormalDistribution
     | PoissonDistribution
-    | ExponentialDistribution
-    | RayleighDistribution
     | BernoulliDistribution
-    | GammaDistribution
-    | BetaDistribution
-    | WeibullDistribution
     | BinomialDistribution
     | NegativeBinomialDistribution
     | GeometricDistribution
+    | HypergeometricDistribution
+    | BetaBinomialDistribution,
+    Field(discriminator="dist_type"),
+]
+
+AnyContinuousDist = Annotated[
+    NormalDistribution
+    | UniformDistribution
+    | TriangularDistribution
+    | TruncatedNormalDistribution
+    | LogNormalDistribution
+    | ExponentialDistribution
+    | RayleighDistribution
+    | GammaDistribution
+    | BetaDistribution
+    | WeibullDistribution
     | LogisticDistribution
     | ParetoDistribution
     | StudentTDistribution
-    | HypergeometricDistribution
-    | BetaBinomialDistribution
     | CauchyDistribution
     | ChiSquaredDistribution
     | LaplaceDistribution
     | FDistribution,
+    Field(discriminator="dist_type"),
+]
+
+AnyDist = Annotated[
+    AnyDiscreteDist | AnyContinuousDist,
     Field(discriminator="dist_type"),
 ]
 
