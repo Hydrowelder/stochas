@@ -10,6 +10,7 @@ from typing import (
     TYPE_CHECKING,
     Annotated,
     Any,
+    Literal,
     NewType,
     Self,
 )
@@ -346,3 +347,31 @@ class Distribution[T](BaseModel, ABC):
     @abstractmethod
     def table_params(self) -> dict[str, Any]:
         """Distribution-specific parameters to include as columns in a report table row."""
+
+
+class DiscreteDistribution[T](Distribution[T], ABC):
+    """Base class for distributions over a countable set of values, exposed through a probability mass function (pmf) rather than a pdf."""
+
+    @property
+    def is_continuous(self) -> Literal[False]:
+        return False
+
+    @abstractmethod
+    def pmf(self, x: Any) -> float | np.ndarray:
+        """Probability Mass Function."""
+        msg = f"This method has not been implemented for {self.__class__.__name__}"
+        logger.error(msg)
+        raise NotImplementedError(msg)
+
+    def pdf(self, x: Any) -> float | np.ndarray:
+        """Discrete distributions have no pdf; warns and delegates to pmf."""
+        logger.warning(DISCRETE_MSG)
+        return self.pmf(x)
+
+
+class ContinuousDistribution[T](Distribution[T], ABC):
+    """Base class for distributions over a continuous range, exposed through a probability density function (pdf)."""
+
+    @property
+    def is_continuous(self) -> Literal[True]:
+        return True

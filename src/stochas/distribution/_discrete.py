@@ -11,9 +11,8 @@ from numpydantic import NDArray
 from pydantic import Field, PrivateAttr, model_validator
 
 from stochas.distribution._base import (
-    DISCRETE_MSG,
     UNDEFINED,
-    Distribution,
+    DiscreteDistribution,
     DistType,
     SerializableUndefined,
     logger,
@@ -25,7 +24,7 @@ else:
     rv_discrete = Any
 
 
-class DiscreteUniformDistribution(Distribution[int]):
+class DiscreteUniformDistribution(DiscreteDistribution[int]):
     """
     Represent a distribution where every integer in a range is equally likely.
 
@@ -69,17 +68,9 @@ class DiscreteUniformDistribution(Distribution[int]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.integers(low=self.low, high=self.high, size=size, endpoint=True)
 
-    @property
-    def is_continuous(self) -> Literal[False]:
-        return False
-
-    def pdf(self, x: Any) -> float | NDArray[Any, float]:
-        logger.warning(DISCRETE_MSG)
-        return self.pmf(k=x)
-
-    def pmf(self, k: int | np.ndarray) -> float | np.ndarray:
+    def pmf(self, x: int | np.ndarray) -> float | np.ndarray:
         """Probability Mass Function."""
-        return self._scipy.pmf(k)
+        return self._scipy.pmf(x)
 
     def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.cdf(x)
@@ -92,7 +83,7 @@ class DiscreteUniformDistribution(Distribution[int]):
         return {"low": self.low, "high": self.high}
 
 
-class CategoricalDistribution[T](Distribution[T]):
+class CategoricalDistribution[T](DiscreteDistribution[T]):
     """
     Represent a discrete distribution over a fixed set of named choices.
 
@@ -155,15 +146,6 @@ class CategoricalDistribution[T](Distribution[T]):
     def draw(self, size: int = 1) -> NDArray[Any, T]:
         return self.rng.choice(a=self.categories, size=size, p=self.probabilities)  # type: ignore
 
-    @property
-    def is_continuous(self) -> Literal[False]:
-        return False
-
-    def pdf(self, x: Any) -> float | NDArray[Any, float]:
-        """Categorical distributions have no PDF. Did you mean to use pmf?"""
-        logger.warning(DISCRETE_MSG)
-        return self.pmf(x=x)
-
     def pmf(self, x: T) -> float:
         """Probability Mass Function. Returns the probability of a specific category 'x'."""
         try:
@@ -193,7 +175,7 @@ class CategoricalDistribution[T](Distribution[T]):
         return {"choices": ", ".join(f"{k}: {v}" for k, v in self.choices.items())}
 
 
-class PermutationDistribution[T](Distribution[T]):
+class PermutationDistribution[T](DiscreteDistribution[T]):
     """
     Takes a master list and returns either the original or a shuffled version.
 
@@ -208,23 +190,16 @@ class PermutationDistribution[T](Distribution[T]):
 
     dist_type: Literal[DistType.PERMUTATION] = DistType.PERMUTATION
 
-    @property
-    def is_continuous(self) -> Literal[False]:
-        return False
-
     def sample(self, size: int = 1) -> np.ndarray:
         """The core sampling logic for the distribution."""
         if self.is_nominal and self.nominal is not UNDEFINED:
-            return np.asarray([self.nominal])
+            return np.asarray([self.nominal] * size)
         else:
             return self.draw(size=size)
 
     def draw(self, size: int = 1) -> np.ndarray:
         """Returns a shuffled version of the items."""
         return np.array([self.rng.permutation(self.items) for _ in range(size)])  # pyright: ignore[reportArgumentType, reportCallIssue]
-
-    def pdf(self, x: Any) -> float:
-        return self.pmf(x)
 
     def pmf(self, x: list[T] | np.ndarray) -> float:
         """Uniform probability of 1/n! if x is a valid permutation."""
@@ -244,7 +219,7 @@ class PermutationDistribution[T](Distribution[T]):
         return {"items": str(self.items)}
 
 
-class PoissonDistribution(Distribution[int]):
+class PoissonDistribution(DiscreteDistribution[int]):
     """
     Represent the probability of a number of events occurring in a fixed interval.
 
@@ -281,16 +256,8 @@ class PoissonDistribution(Distribution[int]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.poisson(lam=self.lam, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[False]:
-        return False
-
-    def pdf(self, x: float | np.ndarray) -> float | np.ndarray:
-        logger.warning(DISCRETE_MSG)
-        return self.pmf(k=x)
-
-    def pmf(self, k: float | np.ndarray) -> float | np.ndarray:
-        return self._scipy.pmf(k)
+    def pmf(self, x: float | np.ndarray) -> float | np.ndarray:
+        return self._scipy.pmf(x)
 
     def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.cdf(x)
@@ -303,7 +270,7 @@ class PoissonDistribution(Distribution[int]):
         return {"lam": self.lam}
 
 
-class BernoulliDistribution(Distribution[bool]):
+class BernoulliDistribution(DiscreteDistribution[bool]):
     """
     Represent a single binary trial (Success/Failure).
 
@@ -349,14 +316,6 @@ class BernoulliDistribution(Distribution[bool]):
         # numpy doesn't have a 'bernoulli', so we use binomial with n=1
         return self.rng.binomial(n=1, p=self.p, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[False]:
-        return False
-
-    def pdf(self, x: int | np.ndarray) -> float | np.ndarray:  # pyright: ignore[reportIncompatibleMethodOverride]
-        logger.warning(DISCRETE_MSG)
-        return self.pmf(x=x)
-
     def pmf(self, x: int | np.ndarray) -> float | np.ndarray:
         return self._scipy.pmf(x)
 
@@ -371,7 +330,7 @@ class BernoulliDistribution(Distribution[bool]):
         return {"p": self.p}
 
 
-class BinomialDistribution(Distribution[int]):
+class BinomialDistribution(DiscreteDistribution[int]):
     """
     Represent the number of successes in a fixed number of independent trials.
 
@@ -423,17 +382,9 @@ class BinomialDistribution(Distribution[int]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.binomial(n=self.n, p=self.p, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[False]:
-        return False
-
-    def pdf(self, x: int | np.ndarray) -> float | np.ndarray:  # pyright: ignore[reportIncompatibleMethodOverride]
-        logger.warning(DISCRETE_MSG)
-        return self.pmf(k=x)
-
-    def pmf(self, k: int | np.ndarray) -> float | np.ndarray:
+    def pmf(self, x: int | np.ndarray) -> float | np.ndarray:
         """Probability Mass Function."""
-        return self._scipy.pmf(k)
+        return self._scipy.pmf(x)
 
     def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.cdf(x)
@@ -446,7 +397,7 @@ class BinomialDistribution(Distribution[int]):
         return {"n": self.n, "p": self.p}
 
 
-class NegativeBinomialDistribution(Distribution[int]):
+class NegativeBinomialDistribution(DiscreteDistribution[int]):
     """
     Represent the number of failures before achieving a fixed number of successes.
 
@@ -498,17 +449,9 @@ class NegativeBinomialDistribution(Distribution[int]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.negative_binomial(n=self.r, p=self.p, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[False]:
-        return False
-
-    def pdf(self, x: int | np.ndarray) -> float | np.ndarray:  # pyright: ignore[reportIncompatibleMethodOverride]
-        logger.warning(DISCRETE_MSG)
-        return self.pmf(k=x)
-
-    def pmf(self, k: int | np.ndarray) -> float | np.ndarray:
+    def pmf(self, x: int | np.ndarray) -> float | np.ndarray:
         """Probability Mass Function."""
-        return self._scipy.pmf(k)
+        return self._scipy.pmf(x)
 
     def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.cdf(x)
@@ -521,7 +464,7 @@ class NegativeBinomialDistribution(Distribution[int]):
         return {"r": self.r, "p": self.p}
 
 
-class GeometricDistribution(Distribution[int]):
+class GeometricDistribution(DiscreteDistribution[int]):
     """
     Represent the number of trials until the first success.
 
@@ -566,17 +509,9 @@ class GeometricDistribution(Distribution[int]):
     def draw(self, size: int = 1) -> np.ndarray:
         return self.rng.geometric(p=self.p, size=size)
 
-    @property
-    def is_continuous(self) -> Literal[False]:
-        return False
-
-    def pdf(self, x: int | np.ndarray) -> float | np.ndarray:  # pyright: ignore[reportIncompatibleMethodOverride]
-        logger.warning(DISCRETE_MSG)
-        return self.pmf(k=x)
-
-    def pmf(self, k: int | np.ndarray) -> float | np.ndarray:
+    def pmf(self, x: int | np.ndarray) -> float | np.ndarray:
         """Probability Mass Function."""
-        return self._scipy.pmf(k)
+        return self._scipy.pmf(x)
 
     def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.cdf(x)
@@ -589,7 +524,7 @@ class GeometricDistribution(Distribution[int]):
         return {"p": self.p}
 
 
-class HypergeometricDistribution(Distribution[int]):
+class HypergeometricDistribution(DiscreteDistribution[int]):
     """
     Represent the number of successes when drawing without replacement from a finite population.
 
@@ -651,17 +586,9 @@ class HypergeometricDistribution(Distribution[int]):
             ngood=self.K, nbad=self.N - self.K, nsample=self.M, size=size
         )
 
-    @property
-    def is_continuous(self) -> Literal[False]:
-        return False
-
-    def pdf(self, x: int | np.ndarray) -> float | np.ndarray:  # pyright: ignore[reportIncompatibleMethodOverride]
-        logger.warning(DISCRETE_MSG)
-        return self.pmf(k=x)
-
-    def pmf(self, k: int | np.ndarray) -> float | np.ndarray:
+    def pmf(self, x: int | np.ndarray) -> float | np.ndarray:
         """Probability Mass Function."""
-        return self._scipy.pmf(k)
+        return self._scipy.pmf(x)
 
     def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.cdf(x)
@@ -674,7 +601,7 @@ class HypergeometricDistribution(Distribution[int]):
         return {"N": self.N, "M": self.M, "K": self.K}
 
 
-class BetaBinomialDistribution(Distribution[int]):
+class BetaBinomialDistribution(DiscreteDistribution[int]):
     """
     Represent an overdispersed count distribution where the success probability is itself Beta-distributed.
 
@@ -732,17 +659,9 @@ class BetaBinomialDistribution(Distribution[int]):
     def draw(self, size: int = 1) -> np.ndarray:
         return np.asarray(self._scipy.rvs(size=size, random_state=self.rng))
 
-    @property
-    def is_continuous(self) -> Literal[False]:
-        return False
-
-    def pdf(self, x: int | np.ndarray) -> float | np.ndarray:  # pyright: ignore[reportIncompatibleMethodOverride]
-        logger.warning(DISCRETE_MSG)
-        return self.pmf(k=x)
-
-    def pmf(self, k: int | np.ndarray) -> float | np.ndarray:
+    def pmf(self, x: int | np.ndarray) -> float | np.ndarray:
         """Probability Mass Function."""
-        return self._scipy.pmf(k)
+        return self._scipy.pmf(x)
 
     def cdf(self, x: float | np.ndarray) -> float | np.ndarray:
         return self._scipy.cdf(x)
