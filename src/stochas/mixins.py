@@ -8,9 +8,7 @@ from typing import Any, Protocol, Self, runtime_checkable
 
 import numpy as np
 
-__all__ = [
-    "NumericMixin",
-]
+__all__ = ["MetadataMixin", "NumericMixin"]
 
 
 @runtime_checkable
@@ -137,3 +135,22 @@ class NumericMixin:
 
     def __ge__(self: HasValue, other):
         return self.value >= self._extract(other)
+
+
+class MetadataMixin:
+    """Adds metadata attributes to an object."""
+
+    category: str = "uncategorized"
+    """Category for value. In distributions this is used to set the table folder this distribution will be written to."""
+
+    units: str = "unset"
+    """Units of the represented value. Defaults to unset."""
+
+    source: str | None = None
+    """Provenance of the value, such as a paper, datasheet, or calibration run. Defaults to unset."""
+
+    display_name: str | None = None
+    """Human-readable label for use in plots, reports, and UIs, distinct from the variable's internal name. Defaults to unset."""
+
+    comment: str = ""
+    """Extra context to include alongside this parameter."""

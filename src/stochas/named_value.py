@@ -18,7 +18,7 @@ from pydantic import (
 from pydantic_core import to_jsonable_python
 
 from stochas.base_collections import BaseDict, BaseList
-from stochas.mixins import NumericMixin
+from stochas.mixins import MetadataMixin, NumericMixin
 from stochas.utils import _reduce_obj
 
 __all__ = [
@@ -71,7 +71,7 @@ def _numpy_safe_sentinel(v: Any) -> Any:
     return v
 
 
-class NamedValue[T](BaseModel, NumericMixin):
+class NamedValue[T](BaseModel, NumericMixin, MetadataMixin):
     """
     A container for a sampled variable that tracks its initialization state.
 

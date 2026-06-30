@@ -28,6 +28,7 @@ from pydantic import (
     model_validator,
 )
 
+from stochas.mixins import MetadataMixin
 from stochas.named_value import NamedValue, ValueName
 
 if TYPE_CHECKING:
@@ -157,7 +158,7 @@ SerializableUndefined = Annotated[
 ]
 
 
-class Distribution[T](BaseModel, ABC):
+class Distribution[T](BaseModel, ABC, MetadataMixin):
     model_config = ConfigDict(arbitrary_types_allowed=False)
 
     name: DistName
@@ -183,12 +184,6 @@ class Distribution[T](BaseModel, ABC):
 
     trial_num: int = NOMINAL_TRIAL_NUM
     """Run number for sampling from the distribution. This is used to salt the seed (if specified)."""
-
-    category: str = "uncategorized"
-    """Category for distribution. Used to set the table this distribution will be written to."""
-
-    units: str = "unset"
-    """Physical units of the sampled value. Defaults to unset."""
 
     _rng: np.random.Generator = PrivateAttr()
     """Random number generator."""

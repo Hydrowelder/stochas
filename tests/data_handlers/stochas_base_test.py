@@ -87,11 +87,6 @@ def test_with_overrides_and_with_override():
     assert result is sb
     assert sb.named is overrides
 
-    other = sb.named.__class__()
-    result = sb.with_override(other)
-    assert result is sb
-    assert sb.named is other
-
 
 def test_with_seed_and_with_trial_num_propagate_to_dists():
     """Ensure with_seed and with_trial_num update the model and all registered distributions."""

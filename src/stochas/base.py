@@ -169,15 +169,6 @@ class StochasBase(BaseModel):
             dist.with_trial_num(trial_num)
         return self
 
-    def with_override(self, override: NamedValueDict[NDArray]) -> Self:
-        """
-        Sets the NamedValueDict to the provided override.
-
-        This is useful for manually setting some named values to be used.
-        """
-        self.named = override
-        return self
-
     @property
     def is_nominal(self) -> bool:
         return self.trial_num == NOMINAL_TRIAL_NUM
