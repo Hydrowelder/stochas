@@ -13,6 +13,7 @@ from pydantic import Field, model_validator
 from pymoo.core.variable import Binary, Choice, Integer, Real
 
 from stochas.base_collections import BaseDict, BaseList
+from stochas.mixins import MetadataMixin
 from stochas.named_value import NamedValue, ValueName
 
 __all__ = [
@@ -27,7 +28,7 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-class OptimizationSuggestor(ABC):
+class OptimizationSuggestor(ABC, MetadataMixin):
     @abstractmethod
     def to_optuna(self, trial: optuna.Trial) -> Any:
         pass
