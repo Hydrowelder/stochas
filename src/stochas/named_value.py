@@ -71,7 +71,7 @@ def _numpy_safe_sentinel(v: Any) -> Any:
     return v
 
 
-class NamedValue[T](BaseModel, NumericMixin, MetadataMixin):
+class NamedValue[T](NumericMixin, MetadataMixin):
     """
     A container for a sampled variable that tracks its initialization state.
 

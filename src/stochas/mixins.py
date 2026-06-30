@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Any, Protocol, Self, runtime_checkable
 
 import numpy as np
+from pydantic import BaseModel
 
 __all__ = ["MetadataMixin", "NumericMixin"]
 
@@ -137,8 +138,12 @@ class NumericMixin:
         return self.value >= self._extract(other)
 
 
-class MetadataMixin:
-    """Adds metadata attributes to an object."""
+class MetadataMixin(BaseModel):
+    """
+    Adds metadata attributes to an object.
+
+    Inherits from BaseModel (rather than being a plain mixin) so that pyright's pydantic `__init__` synthesis recognizes these fields as constructor kwargs on classes that mix this in; a plain mixin's annotations are visible as attributes but are not picked up as constructor parameters.
+    """
 
     category: str = "uncategorized"
     """Category for value. In distributions this is used to set the table folder this distribution will be written to."""
@@ -154,3 +159,7 @@ class MetadataMixin:
 
     comment: str = ""
     """Extra context to include alongside this parameter."""
+
+    def metadata_dict(self) -> dict[str, Any]:
+        """Returns this instance's metadata fields as a dict, for passing on to another MetadataMixin instance."""
+        return {name: getattr(self, name) for name in MetadataMixin.__annotations__}

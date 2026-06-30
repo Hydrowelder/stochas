@@ -47,6 +47,24 @@ def test_with_trial_num_resets_rng():
     assert not np.array_equal(s1, s3)
 
 
+def test_sample_to_named_value_inherits_metadata():
+    """Ensure the sampled NamedValue carries over the distribution's metadata fields."""
+    dist = NormalDistribution(
+        name=DistName("x"),
+        mu=0,
+        sigma=1,
+        category="kinematics",
+        units="m",
+        source="datasheet",
+        display_name="X Position",
+        comment="note",
+    )
+
+    nv = dist.sample_to_named_value()
+
+    assert nv.metadata_dict() == dist.metadata_dict()
+
+
 def test_distribution_seeding_and_salting():
     """Verify that names act as unique salts for the same seed."""
     seed = 42

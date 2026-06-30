@@ -1,8 +1,9 @@
-"""Tests for NumericMixin, via NamedValue."""
+"""Tests for NumericMixin and MetadataMixin, via NamedValue."""
 
 import numpy as np
 
 from stochas import NamedValue
+from stochas.mixins import MetadataMixin
 from stochas.named_value import ValueName
 
 
@@ -103,3 +104,44 @@ def test_squeeze_updates_stored_value_in_place():
     assert result is nv
     np.testing.assert_array_equal(nv.value, [1, 2])
     assert nv.value.shape == (2,)
+
+
+def test_metadata_dict_returns_all_fields():
+    """Ensure metadata_dict reflects every field currently declared on MetadataMixin."""
+    nv = NamedValue[int](
+        name=ValueName("x"),
+        stored_value=5,
+        category="cat",
+        units="m",
+        source="datasheet",
+        display_name="X Position",
+        comment="note",
+    )
+
+    assert nv.metadata_dict() == {
+        "category": "cat",
+        "units": "m",
+        "source": "datasheet",
+        "display_name": "X Position",
+        "comment": "note",
+    }
+
+
+def test_metadata_dict_matches_mixin_annotations():
+    """Ensure metadata_dict's keys always track MetadataMixin's declared fields, even if new ones are added later."""
+    nv = NamedValue[int](name=ValueName("x"), stored_value=5)
+
+    assert set(nv.metadata_dict()) == set(MetadataMixin.__annotations__)
+
+
+def test_metadata_dict_default_values():
+    """Ensure metadata_dict picks up default values when fields are left unset."""
+    nv = NamedValue[int](name=ValueName("x"), stored_value=5)
+
+    assert nv.metadata_dict() == {
+        "category": "uncategorized",
+        "units": "unset",
+        "source": None,
+        "display_name": None,
+        "comment": "",
+    }

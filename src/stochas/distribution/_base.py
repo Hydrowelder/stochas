@@ -18,7 +18,6 @@ from typing import (
 import numpy as np
 from numpydantic import NDArray
 from pydantic import (
-    BaseModel,
     BeforeValidator,
     ConfigDict,
     Field,
@@ -158,7 +157,7 @@ SerializableUndefined = Annotated[
 ]
 
 
-class Distribution[T](BaseModel, ABC, MetadataMixin):
+class Distribution[T](ABC, MetadataMixin):
     model_config = ConfigDict(arbitrary_types_allowed=False)
 
     name: DistName
@@ -279,11 +278,13 @@ class Distribution[T](BaseModel, ABC, MetadataMixin):
         raise NotImplementedError(msg)
 
     def sample_to_named_value(self, size: int = 1) -> NamedValue[NDArray[Any, T]]:
-        """Samples the distribution and returns the NamedValue it makes."""
+        """Samples the distribution and returns the NamedValue it makes, inheriting this distribution's metadata."""
         samples = self.sample(size=size)
         concrete_type = samples.dtype.type().item().__class__  # pyright: ignore[reportAttributeAccessIssue]
         return NamedValue[NDArray[Any, concrete_type]](
-            name=ValueName(self.name), stored_value=samples
+            name=ValueName(self.name),
+            stored_value=samples,
+            **self.metadata_dict(),
         )
 
     def sample_and_update_dicts(
