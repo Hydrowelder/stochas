@@ -112,7 +112,6 @@ def test_metadata_dict_returns_all_fields():
         name=ValueName("x"),
         stored_value=5,
         category="cat",
-        units="m",
         source="datasheet",
         display_name="X Position",
         comment="note",
@@ -120,7 +119,7 @@ def test_metadata_dict_returns_all_fields():
 
     assert nv.metadata_dict() == {
         "category": "cat",
-        "units": "m",
+        "unit": None,
         "source": "datasheet",
         "display_name": "X Position",
         "comment": "note",
@@ -140,7 +139,7 @@ def test_metadata_dict_default_values():
 
     assert nv.metadata_dict() == {
         "category": "uncategorized",
-        "units": "unset",
+        "unit": None,
         "source": None,
         "display_name": None,
         "comment": "",

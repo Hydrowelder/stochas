@@ -29,6 +29,7 @@ from pydantic import (
 
 from stochas.mixins import MetadataMixin
 from stochas.named_value import NamedValue, ValueName
+from stochas.unit_system import UnitDescriptor
 
 if TYPE_CHECKING:
     from stochas.distribution import DistributionDict
@@ -277,14 +278,26 @@ class Distribution[T](ABC, MetadataMixin):
         logger.error(msg)
         raise NotImplementedError(msg)
 
-    def sample_to_named_value(self, size: int = 1) -> NamedValue[NDArray[Any, T]]:
-        """Samples the distribution and returns the NamedValue it makes, inheriting this distribution's metadata."""
+    def sample_to_named_value(
+        self, size: int = 1, convert_units: bool = True
+    ) -> NamedValue[NDArray[Any, T]]:
+        """Samples the distribution and returns the NamedValue it makes, inheriting this distribution's metadata. If `convert_units=True` (default) and `self.unit` is a UnitDescriptor, multiplies the sampled array by `float(self.unit)` before storing, converting from the distribution's declared unit into the model base unit."""
         samples = self.sample(size=size)
+        metadata = self.metadata_dict()
+        if (
+            convert_units
+            and isinstance(self.unit, UnitDescriptor)
+            and np.issubdtype(samples.dtype, np.number)  # pyright: ignore[reportAttributeAccessIssue]
+        ):
+            samples = samples * self.unit.scale + self.unit.offset  # pyright: ignore[reportOperatorIssue]
+            # value is now in model base units; clear the descriptor so the NamedValue
+            # doesn't look like it still needs conversion
+            metadata["unit"] = None
         concrete_type = samples.dtype.type().item().__class__  # pyright: ignore[reportAttributeAccessIssue]
         return NamedValue[NDArray[Any, concrete_type]](
             name=ValueName(self.name),
             stored_value=samples,
-            **self.metadata_dict(),
+            **metadata,
         )
 
     def sample_and_update_dicts(

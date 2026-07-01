@@ -22,7 +22,7 @@ In a generic design workflow, we distinguish between two types of variables:
 
 ## The Search Space API
 
-Design values define a "Search Space"—a mathematical boundary that an optimizer is allowed to explore. Every design variable in your registry must provide three things:
+Design values define a "Search Space" which is a mathematical boundary that an optimizer is allowed to explore. Every design variable in your registry must provide three things:
 
 1. A Name: To track the variable across trials.
 2. A Default: The initial "best guess" before the optimizer starts.

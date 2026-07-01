@@ -12,7 +12,7 @@ import optuna
 from pydantic import Field, model_validator
 from pymoo.core.variable import Binary, Choice, Integer, Real
 
-from stochas.base_collections import BaseDict, BaseList
+from stochas.base_collections import BaseDict, BaseList, HasUnitsCollection
 from stochas.mixins import MetadataMixin
 from stochas.named_value import NamedValue, ValueName
 
@@ -201,7 +201,7 @@ AnyDesignValue = Annotated[
 ]
 
 
-class DesignValueDict(BaseDict[AnyDesignValue]):
+class DesignValueDict(BaseDict[AnyDesignValue], HasUnitsCollection):
     """Dictionary specifically for sampled results."""
 
     def __contains__(self, key: object) -> bool:

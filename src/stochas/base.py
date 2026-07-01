@@ -6,7 +6,7 @@ import logging
 from typing import Any, Self, TypeVar, cast, overload
 
 from numpydantic import NDArray
-from pydantic import BaseModel, Field, SerializeAsAny
+from pydantic import BaseModel, Field, SerializeAsAny, model_validator
 
 from stochas.design_variable import (
     AnyDesignValue,
@@ -23,6 +23,7 @@ from stochas.distribution import (
     DistributionDict,
 )
 from stochas.named_value import NamedValue, NamedValueDict
+from stochas.unit_system import UnitDescriptor, UnitSystem
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,9 @@ class StochasBase(BaseModel):
     )
     """Final 'baked' values from a random draw, global override, or design study."""
 
+    us: UnitSystem | None = None
+    """Physical unit system for this model. Set to `UnitSystem.si()` or similar so that values in the generator can be expressed in any unit (e.g. `pos * u.inch` converts inches to meters) and telemetry channels report concrete units instead of abstract Pint dimensions."""
+
     def sample_dist[T](
         self,
         dist: Distribution[T],
@@ -54,6 +58,7 @@ class StochasBase(BaseModel):
         force: bool = False,
         warn: bool = True,
         reset_rng: bool = True,
+        convert_units: bool = True,
     ) -> NamedValue[NDArray[Any, T]]:
         """
         Sets the seed and trial number of the distribution, sample, registers it and the sampled value to the model, and returns the named value.
@@ -66,6 +71,7 @@ class StochasBase(BaseModel):
             force (bool, optional): Force the sampled value into the NamedValueDict if it already exists. Defaults to False.
             warn (bool, optional): Whether or not to warn if there is a conflict while forcing. Defaults to True.
             reset_rng (bool, optional): Whether or not to reset the seed and trial number for the distribution. Setting the seed and trial number will reset the random number cycle. This will not skip registering the distribution or NamedValues to the MojoModel. If you want pseudorandom number generation, setting to False will require you to manually set the seed and trial number before passing the distribution into `sample_dist`. Defaults to True.
+            convert_units (bool, optional): When True (default) and `dist.unit` is set, multiplies the sampled array by `float(dist.unit)` to convert from the distribution's declared unit into the model base unit before registering and returning. The distribution's own parameters (mean, std, etc.) are unaffected, so `to_table()` continues to report values in the declared unit. Defaults to True.
 
         Returns:
             NamedValue[NDArray]: NamedValue containing the random draw.
@@ -83,7 +89,7 @@ class StochasBase(BaseModel):
         elif force:
             self.dists.force_update(concrete_dist)
 
-        nv = dist.sample_to_named_value(size=size)
+        nv = dist.sample_to_named_value(size=size, convert_units=convert_units)
 
         if nv in self.named and not force:
             # defined with global override or already sampled
@@ -106,27 +112,59 @@ class StochasBase(BaseModel):
 
     @overload
     def sample_design(
-        self, dv: DesignFloat, force: bool = False, warn: bool = True
+        self,
+        dv: DesignFloat,
+        force: bool = False,
+        warn: bool = True,
+        convert_units: bool = True,
     ) -> float: ...
 
     @overload
     def sample_design(
-        self, dv: DesignInt, force: bool = False, warn: bool = True
+        self,
+        dv: DesignInt,
+        force: bool = False,
+        warn: bool = True,
+        convert_units: bool = True,
     ) -> int: ...
 
     @overload
     def sample_design(
-        self, dv: DesignBool, force: bool = False, warn: bool = True
+        self,
+        dv: DesignBool,
+        force: bool = False,
+        warn: bool = True,
+        convert_units: bool = True,
     ) -> bool: ...
 
     @overload
     def sample_design(
-        self, dv: DesignCategorical[T], force: bool = False, warn: bool = True
+        self,
+        dv: DesignCategorical[T],
+        force: bool = False,
+        warn: bool = True,
+        convert_units: bool = True,
     ) -> T: ...
 
     def sample_design(
-        self, dv: AnyDesignValue, force: bool = False, warn: bool = True
+        self,
+        dv: AnyDesignValue,
+        force: bool = False,
+        warn: bool = True,
+        convert_units: bool = True,
     ) -> Any:
+        """
+        Registers a design variable and returns its value, converting to model base units if `convert_units=True` and `dv.unit` is a UnitDescriptor.
+
+        The raw design variable (in its declared unit) is always stored in `self.design` for reporting and optimization. When unit conversion applies, a converted `NamedValue` is stored in `self.named` so downstream code reading `self.named` always gets model-unit values.
+
+        Args:
+            dv: The design variable to register and sample.
+            force (bool, optional): Overwrite an existing entry in `self.named`. Defaults to False.
+            warn (bool, optional): Log a warning when using an override or forcing. Defaults to True.
+            convert_units (bool, optional): When True (default) and `dv.unit` is a UnitDescriptor, multiplies the value by `float(dv.unit)` before returning and registering in `self.named`. Defaults to True.
+
+        """
         self.design[dv.name] = dv
 
         if dv.name in self.named and not force:
@@ -135,8 +173,38 @@ class StochasBase(BaseModel):
             val = self.named[dv.name].value
             return val.item() if hasattr(val, "item") else val
 
-        self.named.update(dv)
-        return dv.value
+        dv_unit = dv.unit
+        val = dv.value
+        if (
+            convert_units
+            and isinstance(dv_unit, UnitDescriptor)
+            and isinstance(val, (int, float))
+        ):
+            val = val * float(dv_unit) + dv_unit.offset
+            metadata = dv.metadata_dict()
+            metadata["unit"] = None
+            self.named.update(NamedValue(name=dv.name, stored_value=val, **metadata))
+        else:
+            self.named.update(dv)
+        return val
+
+    @model_validator(mode="after")
+    def _restore_unit_factors(self) -> Self:
+        """Auto-restores UnitDescriptor factors after deserialization. When `u` is present in the serialized JSON, this fires after all fields are set and re-populates the factors that are excluded from serialization."""
+        if self.us is not None:
+            self.with_unit_system(self.us)
+        return self
+
+    def with_unit_system(self, us: UnitSystem) -> Self:
+        """Re-resolves all `UnitDescriptor` conversion factors in registered distributions, design variables, and named values against `us`, and sets `self.u = us`. Called automatically on deserialization when `u` is set; also call explicitly to switch unit systems at runtime."""
+        self.us = us
+        self.dists.update_unit_system(us)
+        self.design.update_unit_system(us)
+        self.named.update_unit_system(us)
+        logger.debug(
+            f"unit system updated to {us.__class__.__name__} (length={us.length}, mass={us.mass})"
+        )
+        return self
 
     def with_overrides(self, overrides: NamedValueDict[NDArray]) -> Self:
         """

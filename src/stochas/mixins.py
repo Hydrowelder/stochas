@@ -9,6 +9,8 @@ from typing import Any, Protocol, Self, runtime_checkable
 import numpy as np
 from pydantic import BaseModel
 
+from stochas.unit_system import UnitDescriptor
+
 __all__ = ["MetadataMixin", "NumericMixin"]
 
 
@@ -148,8 +150,8 @@ class MetadataMixin(BaseModel):
     category: str = "uncategorized"
     """Category for value. In distributions this is used to set the table folder this distribution will be written to."""
 
-    units: str = "unset"
-    """Units of the represented value. Defaults to unset."""
+    unit: UnitDescriptor | None = None
+    """Unit descriptor for this value. Set via `model.u.<unit_name>` (e.g. `model.u.inch`) to enable automatic conversion on sampling. The conversion factor is excluded from serialization and must be re-populated by calling `StochasBase.with_unit_system()` after deserialization. `str(unit)` returns the unit name (e.g. `"inch"`)."""
 
     source: str | None = None
     """Provenance of the value, such as a paper, datasheet, or calibration run. Defaults to unset."""

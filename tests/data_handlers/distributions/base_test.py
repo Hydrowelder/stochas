@@ -13,6 +13,7 @@ from stochas.distribution import (
     PoissonDistribution,
 )
 from stochas.named_value import NamedValueDict
+from stochas.unit_system import UnitSystem
 
 
 def test_with_seed_resets_rng():
@@ -54,7 +55,6 @@ def test_sample_to_named_value_inherits_metadata():
         mu=0,
         sigma=1,
         category="kinematics",
-        units="m",
         source="datasheet",
         display_name="X Position",
         comment="note",
@@ -276,6 +276,55 @@ def test_to_tables_creates_nested_directory(tmp_path):
     dist_dict.to_tables(nested)
 
     assert (nested / "test" / "normal.csv").exists()
+
+
+def test_to_tables_units_column_shows_unset_when_no_unit(tmp_path):
+    """Units column shows 'unset' when the distribution has no unit descriptor."""
+    dist_dict = DistributionDict()
+    dist_dict.update(
+        NormalDistribution(name=DistName("x"), mu=1.0, sigma=0.1, category="props")
+    )
+
+    dist_dict.to_tables(tmp_path)
+
+    lines = (tmp_path / "props" / "normal.csv").read_text().splitlines()
+    _, units, *_ = lines[1].split(",")
+    assert units == "unset"
+
+
+def test_to_tables_units_column_shows_descriptor_name_when_unit_set(tmp_path):
+    """Units column shows the UnitDescriptor name when a unit is attached."""
+    u = UnitSystem.si()
+    dist_dict = DistributionDict()
+    dist_dict.update(
+        NormalDistribution(
+            name=DistName("mass"), mu=2.5, sigma=0.1, category="props", unit=u.kilogram
+        )
+    )
+
+    dist_dict.to_tables(tmp_path)
+
+    lines = (tmp_path / "props" / "normal.csv").read_text().splitlines()
+    _, units, *_ = lines[1].split(",")
+    assert units == "kilogram"
+
+
+def test_to_tables_csv_param_values_match_distribution(tmp_path):
+    """CSV data row values round-trip through the distribution's table_params."""
+    dist_dict = DistributionDict()
+    dist_dict.update(
+        NormalDistribution(
+            name=DistName("link_mass"), mu=1.5, sigma=0.1, category="props"
+        )
+    )
+
+    dist_dict.to_tables(tmp_path)
+
+    lines = (tmp_path / "props" / "normal.csv").read_text().splitlines()
+    name, _units, mu, sigma = lines[1].split(",")
+    assert name == "link_mass"
+    assert float(mu) == pytest.approx(1.5)
+    assert float(sigma) == pytest.approx(0.1)
 
 
 @pytest.mark.parametrize("char", [*list(r'\/:*?"<>|'), "\x00"])
