@@ -235,6 +235,47 @@ class UnitSystem(BaseModel):
         scale = float(ureg.Quantity(1, unit).to(model_unit).magnitude) - offset
         return UnitDescriptor(name=name, scale=scale, offset=offset)
 
+    def base_unit_for(self, unit_name: str) -> UnitDescriptor | None:
+        """
+        Returns a scale=1, offset=0 `UnitDescriptor` for the model base unit that shares the same Pint dimension as `unit_name`, or `None` for compound or unrecognized units.
+
+        Used after unit conversion to tag the result with the concrete model base unit rather than leaving `unit=None`.
+
+        Example::
+
+            us = UnitSystem.si()
+            us.base_unit_for("inch")   # -> UnitDescriptor("m", scale=1.0, offset=0.0)
+            us.base_unit_for("degF")   # -> UnitDescriptor("K", scale=1.0, offset=0.0)
+            us.base_unit_for("newton") # -> None (compound unit)
+        """
+        try:
+            pint_unit = ureg.parse_units(unit_name)
+            dim_dict = dict(ureg.get_dimensionality(pint_unit))
+        except Exception:
+            return None
+
+        if len(dim_dict) != 1:
+            return None
+
+        dim_key, exp = next(iter(dim_dict.items()))
+        if exp != 1:
+            return None
+
+        base_name = {
+            "[length]": self.length,
+            "[mass]": self.mass,
+            "[time]": self.time,
+            "[temperature]": self.temperature,
+            "[current]": self.current,
+            "[substance]": self.amount,
+            "[luminosity]": self.luminosity,
+        }.get(dim_key)
+
+        if base_name is None:
+            return None
+
+        return UnitDescriptor(name=base_name, scale=1.0, offset=0.0)
+
 
 if __name__ == "__main__":
     breakpoint()

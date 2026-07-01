@@ -29,7 +29,7 @@ from pydantic import (
 
 from stochas.mixins import MetadataMixin
 from stochas.named_value import NamedValue, ValueName
-from stochas.unit_system import UnitDescriptor
+from stochas.unit_system import UnitDescriptor, UnitSystem
 
 if TYPE_CHECKING:
     from stochas.distribution import DistributionDict
@@ -279,9 +279,12 @@ class Distribution[T](ABC, MetadataMixin):
         raise NotImplementedError(msg)
 
     def sample_to_named_value(
-        self, size: int = 1, convert_units: bool = True
+        self,
+        size: int = 1,
+        convert_units: bool = True,
+        unit_system: UnitSystem | None = None,
     ) -> NamedValue[NDArray[Any, T]]:
-        """Samples the distribution and returns the NamedValue it makes, inheriting this distribution's metadata. If `convert_units=True` (default) and `self.unit` is a UnitDescriptor, multiplies the sampled array by `float(self.unit)` before storing, converting from the distribution's declared unit into the model base unit."""
+        """Samples the distribution and returns the NamedValue it makes, inheriting this distribution's metadata. If `convert_units=True` (default) and `self.unit` is a UnitDescriptor, converts the sampled array into the model base unit. When `unit_system` is provided the resulting NamedValue's `unit` is set to the base unit descriptor for that dimension (e.g. `UnitDescriptor("m")` after an inch->meter conversion); otherwise `unit` is set to `None`."""
         samples = self.sample(size=size)
         metadata = self.metadata_dict()
         if (
@@ -290,9 +293,11 @@ class Distribution[T](ABC, MetadataMixin):
             and np.issubdtype(samples.dtype, np.number)  # pyright: ignore[reportAttributeAccessIssue]
         ):
             samples = samples * self.unit.scale + self.unit.offset  # pyright: ignore[reportOperatorIssue]
-            # value is now in model base units; clear the descriptor so the NamedValue
-            # doesn't look like it still needs conversion
-            metadata["unit"] = None
+            metadata["unit"] = (
+                unit_system.base_unit_for(self.unit.name)
+                if unit_system is not None
+                else None
+            )
         concrete_type = samples.dtype.type().item().__class__  # pyright: ignore[reportAttributeAccessIssue]
         return NamedValue[NDArray[Any, concrete_type]](
             name=ValueName(self.name),

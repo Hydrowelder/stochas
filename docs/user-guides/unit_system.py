@@ -40,7 +40,7 @@ print(f"pos: {pos_m} m")  # [0.0254, 0.0508, 0.0762]
 # ---8<--- [start: dist_unit]
 us = UnitSystem.si()
 
-# sample_dist automatically converts inches -> meters
+# sample_dist automatically converts inches -> meters and tags the result with the model base unit
 model = stochas.StochasBase().with_seed(42).with_trial_num(1).with_unit_system(us)
 arm_length = model.sample_dist(
     stochas.NormalDistribution(
@@ -52,9 +52,13 @@ arm_length = model.sample_dist(
     convert_units=True,  # defaults to True
 ).squeeze()
 
-# stored value is in meters; distribution parameters remain in inches for reporting
+# value is now in meters
 print(f"arm_length (m): {arm_length.value}")  # ~ 0.305 m
-# arm_length.unit is None after conversion: value is already in model base units
+
+# unit reflects the model base unit for length (not the source inch unit)
+assert arm_length.unit is not None
+assert str(arm_length.unit) == "m"  # SI length base unit
+assert float(arm_length.unit) == 1.0  # scale=1 means no further conversion needed
 # ---8<--- [end: dist_unit]
 
 # ---8<--- [start: design_unit]
@@ -74,12 +78,15 @@ width_m = model.sample_design(
     link_width,
     convert_units=True,  # also defaults to True
 )
-print(f"width (m): {width_m:.5f}")  # 2.0 * 0.0254 = 0.0508
-# link_width.units is still u.inch (the design dict keeps original declared unit)
-# model.named["link_width"].units is None (value already converted to model units)
+assert abs(width_m - 0.0508) < 1e-9  # 2.0 in * 0.0254 m/in
 
-# model.design["link_width"] still holds the original 2.0 inch value
-# model.named["link_width"] holds the converted 0.0508 m value
+# model.design["link_width"] keeps the original declared unit (inch)
+assert str(model.design["link_width"].unit) == "inch"
+
+# model.named["link_width"] holds the converted value tagged with the model base unit
+named_unit = model.named["link_width"].unit
+assert named_unit is not None
+assert str(named_unit) == "m"  # value is in meters; unit says so
 # ---8<--- [end: design_unit]
 
 # ---8<--- [start: serialization]

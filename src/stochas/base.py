@@ -89,7 +89,9 @@ class StochasBase(BaseModel):
         elif force:
             self.dists.force_update(concrete_dist)
 
-        nv = dist.sample_to_named_value(size=size, convert_units=convert_units)
+        nv = dist.sample_to_named_value(
+            size=size, convert_units=convert_units, unit_system=self.us
+        )
 
         if nv in self.named and not force:
             # defined with global override or already sampled
@@ -182,7 +184,9 @@ class StochasBase(BaseModel):
         ):
             val = val * float(dv_unit) + dv_unit.offset
             metadata = dv.metadata_dict()
-            metadata["unit"] = None
+            metadata["unit"] = (
+                self.us.base_unit_for(dv_unit.name) if self.us is not None else None
+            )
             self.named.update(NamedValue(name=dv.name, stored_value=val, **metadata))
         else:
             self.named.update(dv)

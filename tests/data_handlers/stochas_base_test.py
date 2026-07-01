@@ -130,17 +130,73 @@ def test_sample_dist_with_unit_converts_samples():
     assert np.allclose(nv.value, [100.0 * 0.0254], rtol=1e-6)
 
 
-def test_sample_dist_convert_units_false_skips_conversion():
-    """Ensure convert_units=False returns the raw sample without scaling."""
+def test_sample_dist_unit_annotates_result_with_base_unit():
+    """After conversion the NamedValue.unit is the model base unit, not the source unit."""
     us = UnitSystem.si()
-    sb = StochasBase()
+    sb = StochasBase(us=us)
+    dist = NormalDistribution(
+        name=DistName("length"), mu=100.0, sigma=1.0, nominal=100.0, unit=us.inch
+    )
+
+    nv = sb.sample_dist(dist)
+
+    # value is converted to meters
+    assert np.allclose(nv.value, [100.0 * 0.0254], rtol=1e-6)
+    # unit is now the SI base unit for length, not the source inch unit
+    assert nv.unit is not None
+    assert str(nv.unit) == "m"
+    assert float(nv.unit) == pytest.approx(1.0)  # scale=1: no further conversion needed
+
+
+def test_sample_design_unit_annotates_result_with_base_unit():
+    """After conversion the registered NamedValue's unit is the model base unit."""
+    us = UnitSystem.si()
+    sb = StochasBase(us=us)
+    dv = DesignFloat(
+        name=ValueName("width"), low=0.0, high=100.0, stored_value=10.0, unit=us.inch
+    )
+
+    sb.sample_design(dv)
+
+    # design dict keeps the original source unit
+    assert str(sb.design["width"].unit) == "inch"
+    # named value gets the converted value tagged with the model base unit
+    named_unit = sb.named["width"].unit
+    assert named_unit is not None
+    assert str(named_unit) == "m"
+    assert float(named_unit) == pytest.approx(1.0)
+
+
+def test_sample_dist_without_unit_system_leaves_unit_none():
+    """Without a UnitSystem on the model, unit is cleared to None after conversion."""
+    us = UnitSystem.si()
+    sb = StochasBase()  # no us= kwarg
+    dist = NormalDistribution(
+        name=DistName("length"), mu=100.0, sigma=1.0, nominal=100.0, unit=us.inch
+    )
+
+    nv = sb.sample_dist(dist)
+
+    # value is still converted, but no UnitSystem means we can't tag the result
+    assert np.allclose(nv.value, [100.0 * 0.0254], rtol=1e-6)
+    assert nv.unit is None
+
+
+def test_sample_dist_convert_units_false_preserves_source_unit():
+    """With convert_units=False the NamedValue keeps the source UnitDescriptor unchanged."""
+    us = UnitSystem.si()
+    sb = StochasBase(us=us)
     dist = NormalDistribution(
         name=DistName("length"), mu=100.0, sigma=1.0, nominal=100.0, unit=us.inch
     )
 
     nv = sb.sample_dist(dist, convert_units=False)
 
+    # value is raw (no conversion applied)
     assert np.allclose(nv.value, [100.0])
+    # unit is still the source inch descriptor
+    assert nv.unit is not None
+    assert str(nv.unit) == "inch"
 
 
 def test_sample_design_with_unit_converts_value():
