@@ -139,7 +139,7 @@ class UnitSystem(BaseModel):
     """Base length unit (e.g. `"meter"`, `"inch"`, `"foot"`)."""
     mass: str
     """Base mass unit (e.g. `"kilogram"`, `"slug"`, `"slinch"`, `"gram"`). Use a coherent mass unit for the chosen length scale so that derived force units come out naturally -- see the factory methods for the standard combinations."""
-    time: str = "second"
+    time: str = "s"
     """Base time unit. Defaults to `"second"`, which is the conventional choice, but MuJoCo has no intrinsic time scale -- it treats time as whatever unit the user treats it as."""
 
     # --- other SI base dimensions (all optional; only needed when resolving units in those dimensions) ---

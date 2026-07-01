@@ -31,28 +31,28 @@ def test_unit_system_si_base_unit_accessors() -> None:
     u = UnitSystem.si()
     assert u.length == "m"
     assert u.mass == "kg"
-    assert u.time == "second"
+    assert u.time == "s"
 
 
 def test_unit_system_ips_base_unit_accessors() -> None:
     u = UnitSystem.ips()
-    assert u.length == "inch"
+    assert u.length == "in"
     assert u.mass == "slinch"
-    assert u.time == "second"
+    assert u.time == "s"
 
 
 def test_unit_system_fps_base_unit_accessors() -> None:
     u = UnitSystem.fps()
-    assert u.length == "foot"
+    assert u.length == "ft"
     assert u.mass == "slug"
-    assert u.time == "second"
+    assert u.time == "s"
 
 
 def test_unit_system_cgs_base_unit_accessors() -> None:
     u = UnitSystem.cgs()
-    assert u.length == "centimeter"
-    assert u.mass == "gram"
-    assert u.time == "second"
+    assert u.length == "cm"
+    assert u.mass == "g"
+    assert u.time == "s"
 
 
 def test_unit_system_si_meter_factor_is_one() -> None:
