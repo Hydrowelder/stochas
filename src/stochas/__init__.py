@@ -1,5 +1,5 @@
 from .base import StochasBase
-from .base_collections import BaseDict, BaseList
+from .base_collections import BaseDict, BaseList, HasUnitsCollection
 from .design_variable import (
     AnyDesignValue,
     DesignBool,
@@ -57,6 +57,7 @@ from .named_value import (
     Val,
     ValueName,
 )
+from .unit_system import UnitDescriptor, UnitSystem, ureg
 
 __all__ = [
     "NOMINAL_TRIAL_NUM",
@@ -91,6 +92,7 @@ __all__ = [
     "FDistribution",
     "GammaDistribution",
     "GeometricDistribution",
+    "HasUnitsCollection",
     "HypergeometricDistribution",
     "LaplaceDistribution",
     "LogNormalDistribution",
@@ -110,7 +112,10 @@ __all__ = [
     "TriangularDistribution",
     "TruncatedNormalDistribution",
     "UniformDistribution",
+    "UnitDescriptor",
+    "UnitSystem",
     "Val",
     "ValueName",
     "WeibullDistribution",
+    "ureg",
 ]

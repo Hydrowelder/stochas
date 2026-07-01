@@ -17,7 +17,7 @@ from pydantic import (
 )
 from pydantic_core import to_jsonable_python
 
-from stochas.base_collections import BaseDict, BaseList
+from stochas.base_collections import BaseDict, BaseList, HasUnitsCollection
 from stochas.mixins import MetadataMixin, NumericMixin
 from stochas.utils import _reduce_obj
 
@@ -214,7 +214,7 @@ class NamedValue[T](NumericMixin, MetadataMixin):
         return self.state is NamedValueState.SET
 
 
-class NamedValueDict[T](BaseDict[NamedValue[T]]):
+class NamedValueDict[T](BaseDict[NamedValue[T]], HasUnitsCollection):
     """Dictionary specifically for sampled results."""
 
     def __contains__(self, key: object) -> bool:

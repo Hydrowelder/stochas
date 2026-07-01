@@ -10,7 +10,7 @@ from typing import Annotated
 
 from pydantic import Field
 
-from stochas.base_collections import BaseDict, BaseList
+from stochas.base_collections import BaseDict, BaseList, HasUnitsCollection
 from stochas.distribution._base import (
     _INVALID_CATEGORY_CHARS,
     DISCRETE_MSG,
@@ -146,7 +146,7 @@ AnyDist = Annotated[
 ]
 
 
-class DistributionDict(BaseDict[AnyDist]):
+class DistributionDict(BaseDict[AnyDist], HasUnitsCollection):
     """Dictionary specifically for sampled results."""
 
     @property
@@ -181,7 +181,11 @@ class DistributionDict(BaseDict[AnyDist]):
                 writer.writeheader()
                 for d in type_dists:
                     writer.writerow(
-                        {"Name": d.name, "Units": d.units, **d.table_params}
+                        {
+                            "Name": d.name,
+                            "Units": str(d.unit) if d.unit is not None else "unset",
+                            **d.table_params,
+                        }
                     )
                 (category_dir / f"{dist_type_key}.csv").write_text(
                     buf.getvalue(), newline=""

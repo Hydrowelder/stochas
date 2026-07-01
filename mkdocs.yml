@@ -22,6 +22,7 @@ nav:
       - Distributions: user-guides/distributions.md
       - Design Values: user-guides/design-values.md
       - Orchestration: user-guides/orchestration.md
+      - Unit System: user-guides/unit-system.md
   - Code Reference:
       - reference/stochas/index.md
       - Base: reference/stochas/base.md
@@ -30,6 +31,7 @@ nav:
       - Distributions: reference/stochas/distribution.md
       - Mixins: reference/stochas/mixins.md
       - Named Values: reference/stochas/named_value.md
+      - Unit System: reference/stochas/unit_system.md
       - Utils: reference/stochas/utils.md
 
 theme:

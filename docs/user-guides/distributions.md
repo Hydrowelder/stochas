@@ -10,7 +10,7 @@ A **Distribution** is a mathematical recipe for generating random numbers. While
 
 ### The "What" and the "Why"
 
-Simulations are often used for **[Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method)** analysis—running the same task hundreds of times with slight variations to see how often it fails. Distributions define those variations.
+Simulations are often used for **[Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method)** analysis where the same task is run hundreds of times with slight variations to see how often it fails. Distributions define those variations.
 
 Instead of saying "the floor is slippery," you define a `UniformDistribution` for friction between 0.1 and 0.4. The system will then pick a new, valid number for every trial.
 

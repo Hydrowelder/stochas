@@ -12,6 +12,7 @@ dependencies = [
     "numpy>=2.4.2",
     "numpydantic>=1.7.0",
     "optuna>=4.8.0",
+    "pint>=0.25.3",
     "pydantic>=2.12.5",
     "pymoo>=0.6.1.6",
     "scipy>=1.17.0",

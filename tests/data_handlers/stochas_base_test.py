@@ -1,6 +1,7 @@
 """Tests for StochasBase."""
 
 import numpy as np
+import pytest
 
 from stochas import (
     DesignFloat,
@@ -10,6 +11,7 @@ from stochas import (
     StochasBase,
 )
 from stochas.named_value import ValueName
+from stochas.unit_system import UnitSystem
 
 
 def test_sample_dist_registers_distribution_and_named_value():
@@ -112,3 +114,75 @@ def test_is_nominal():
 
     sb.with_trial_num(1)
     assert sb.is_nominal is False
+
+
+def test_sample_dist_with_unit_converts_samples():
+    """Ensure sample_dist multiplies the sampled array by the unit factor."""
+    us = UnitSystem.si()
+    sb = StochasBase()
+    # nominal=100.0 so the draw is deterministic at trial_num=0 regardless of sigma
+    dist = NormalDistribution(
+        name=DistName("length"), mu=100.0, sigma=1.0, nominal=100.0, unit=us.inch
+    )
+
+    nv = sb.sample_dist(dist)
+
+    assert np.allclose(nv.value, [100.0 * 0.0254], rtol=1e-6)
+
+
+def test_sample_dist_convert_units_false_skips_conversion():
+    """Ensure convert_units=False returns the raw sample without scaling."""
+    us = UnitSystem.si()
+    sb = StochasBase()
+    dist = NormalDistribution(
+        name=DistName("length"), mu=100.0, sigma=1.0, nominal=100.0, unit=us.inch
+    )
+
+    nv = sb.sample_dist(dist, convert_units=False)
+
+    assert np.allclose(nv.value, [100.0])
+
+
+def test_sample_design_with_unit_converts_value():
+    """Ensure sample_design multiplies the design value by the unit factor."""
+    us = UnitSystem.si()
+    sb = StochasBase()
+    dv = DesignFloat(
+        name=ValueName("width"), low=0.0, high=100.0, stored_value=10.0, unit=us.inch
+    )
+
+    result = sb.sample_design(dv)
+
+    assert result == pytest.approx(10.0 * 0.0254, rel=1e-6)
+    assert sb.named["width"].value == pytest.approx(10.0 * 0.0254, rel=1e-6)
+
+
+def test_update_unit_system_restores_factors_after_deserialization():
+    """Ensure update_unit_system re-populates factors excluded from serialization."""
+    us = UnitSystem.si()
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1, unit=us.inch)
+    sb = StochasBase()
+    sb.dists.update(dist)
+
+    sb2 = StochasBase.model_validate_json(sb.model_dump_json())
+
+    assert sb2.dists["x"].unit is not None
+    assert sb2.dists["x"].unit.scale is None  # excluded from serialization
+
+    sb2.with_unit_system(us)
+
+    assert sb2.dists["x"].unit.scale == pytest.approx(0.0254, rel=1e-6)
+
+
+def test_model_validator_auto_restores_factors_when_u_serialized():
+    """Ensure model_validator restores unit factors on deserialization when u is included."""
+    us = UnitSystem.si()
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1, unit=us.inch)
+    sb = StochasBase(us=us)
+    sb.dists.update(dist)
+
+    sb2 = StochasBase.model_validate_json(sb.model_dump_json())
+
+    assert sb2.us is not None
+    assert sb2.dists["x"].unit is not None
+    assert sb2.dists["x"].unit.scale == pytest.approx(0.0254, rel=1e-6)

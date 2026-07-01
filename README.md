@@ -65,6 +65,7 @@ pip install stochas
 - **Numeric Mixins**: Use your data containers directly in math operations (`container * 5.0`) without manually extracting values.
 - **Nominal Support**: Easily toggle between "Perfect World" (Trial 0) and "Probabilistic World" (Monte Carlo) results.
 - **Pydantic Foundation**: Every component is a Pydantic model, providing out-of-the-box validation and effortless JSON serialization.
+- **Unit System**: Declare SI, IPS, FPS, or a custom unit system once and tag distributions with `unit=u.inch`, sampling paths convert values automatically so your input data stays in familiar units while the simulation receives physically consistent numbers.
 
 ---
 
@@ -75,4 +76,5 @@ Managing hundreds of simulation trials can quickly become a mess of manual seeds
 - **Repeatable Randomness**: Our "Salted Seed" logic ensures that any specific trial can be perfectly recreated, even years later, by tying randomness to simple to set and store values.
 - **Smart Containers**: `NamedValue` objects behave like numbers or arrays but protect your data from accidental overwrites using a state-machine logic.
 - **Physics-Ready Distributions**: A wide range of built-in distributions (Normal, Truncated Normal, Log-Normal, etc.) that handle their own random number generators internally.
+- **Automatic Unit Conversion**: Attach a `UnitDescriptor` to any distribution or design variable and let `StochasBase` multiply the conversion factor at sampling time (without manual scaling in generator code).
 - **Serialized Registries**: Automatically track exactly which "rules" (`Distributions`) and "results" (`NamedValues`) were used in every trial for easy export to JSON or databases.

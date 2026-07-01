@@ -35,7 +35,6 @@ def _generate_example_tables(output_dir: Path = Path("report_tables")) -> None:
             mu=1.5,
             sigma=0.15,
             category="link_properties",
-            units="kg",
         )
     )
     dist_dict.update(
@@ -44,7 +43,6 @@ def _generate_example_tables(output_dir: Path = Path("report_tables")) -> None:
             mu=0.02,
             sigma=0.002,
             category="link_properties",
-            units="kg·m²",
         )
     )
     dist_dict.update(
@@ -54,7 +52,6 @@ def _generate_example_tables(output_dir: Path = Path("report_tables")) -> None:
             sigma=0.01,
             low=0.0,
             category="link_properties",
-            units="m",
         )
     )
     dist_dict.update(
@@ -63,7 +60,6 @@ def _generate_example_tables(output_dir: Path = Path("report_tables")) -> None:
             low=-0.5,
             high=0.5,
             category="initial_conditions",
-            units="rad",
         )
     )
     dist_dict.to_tables(Path("report_tables"))
