@@ -167,17 +167,17 @@ class UnitSystem(BaseModel):
     @classmethod
     def cgs(cls) -> UnitSystem:
         """Centimeter-gram-second system (mechanical dimensions only). Coherent force unit: dyne (1 dyne = 1 g*cm/s^2 = 1e-5 N). Extend with `model_copy` to add thermal or electromagnetic base units."""
-        return cls(length="centimeter", mass="gram")
+        return cls(length="cm", mass="g")
 
     @classmethod
     def fps(cls) -> UnitSystem:
         """Foot-slug-second system (mechanical dimensions only). Coherent force unit: lbf (1 lbf = 1 slug*ft/s^2). Extend with `model_copy` to add thermal or electromagnetic base units."""
-        return cls(length="foot", mass="slug")
+        return cls(length="ft", mass="slug")
 
     @classmethod
     def ips(cls) -> UnitSystem:
         """Inch-slinch-second system (mechanical dimensions only). Coherent force unit: lbf (1 lbf = 1 slinch*in/s^2; 1 slinch = 12 slugs). Extend with `model_copy` to add thermal or electromagnetic base units."""
-        return cls(length="inch", mass="slinch")
+        return cls(length="in", mass="slinch")
 
     def __getattr__(self, name: str) -> UnitDescriptor:
         if name.startswith("_"):

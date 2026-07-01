@@ -16,8 +16,8 @@ assert float(us.kilometer) == 1000.0
 assert str(us.inch) == "inch"
 
 # base dimension names are plain attributes
-assert us.length == "meter"
-assert us.mass == "kilogram"
+assert us.length == "m"
+assert us.mass == "kg"
 # ---8<--- [end: declare]
 
 # ---8<--- [start: multiply]
