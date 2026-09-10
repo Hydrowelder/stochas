@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Self, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Self, TypeVar, cast, overload
 
 from stochas.design_variable import (
     AnyDesignValue,
@@ -13,7 +13,7 @@ from stochas.design_variable import (
     DesignFloat,
     DesignInt,
 )
-from stochas.distribution import Distribution
+from stochas.distribution import AnyDist, Distribution, DistributionDict
 from stochas.distribution._base import NDArray
 from stochas.named_value import NamedValue
 
@@ -39,7 +39,10 @@ class Transaction:
     _attempts: int = field(default=0, init=False)
     _done: bool = field(default=False, init=False)
     _last_exception: BaseException | None = field(default=None, init=False)
-    _seeded_names: set[str] = field(default_factory=set, init=False)
+    _seeded: DistributionDict = field(
+        default_factory=DistributionDict, init=False, repr=False
+    )
+    _warned_nominal_names: set[str] = field(default_factory=set, init=False)
     _dists_snapshot: dict[str, Any] = field(default_factory=dict, init=False)
     _design_snapshot: dict[str, Any] = field(default_factory=dict, init=False)
     _named_snapshot: dict[str, Any] = field(default_factory=dict, init=False)
@@ -132,12 +135,35 @@ class TransactionAttempt:
         convert_units: bool = True,
     ) -> NamedValue[NDArray[Any, T]]:
         """
-        Samples `dist` via `attempt.base` (the model this transaction is retrying against), reseeding it only the first time it's sampled within this transaction.
+        Samples `dist` via `attempt.base` (the model this transaction is retrying against), reseeding it only the first time this transaction sees `dist.name`.
 
-        Without this, every attempt would reset the distribution's RNG to the same state and draw the exact same (rejected) value forever. `reset_rng` is therefore not exposed here; it is derived from whether this transaction has already seeded `dist.name`.
+        Without this, every attempt would reset the distribution's RNG to the same state and draw the exact same (rejected) value forever. `reset_rng` is therefore not exposed here; it is derived from whether this transaction has already seeded `dist.name`, tracked by the actual instance last used (`Transaction._seeded`, a `DistributionDict`) rather than the name alone. A caller may pass a brand-new `Distribution` instance with the same name on every attempt instead of reusing one, and `dist.adopt_prior_state` transplants the previous instance's seed, trial number, and live `_rng` stream onto the new one so both patterns draw identical values.
+
+        If that carried-over state leaves `dist.is_nominal` true, every remaining attempt for this name is going to deterministically return the same already-rejected nominal value; this is worth a warning, logged once per name per transaction rather than once per retry.
         """
-        reset_rng = dist.name not in self.transaction._seeded_names
-        self.transaction._seeded_names.add(dist.name)
+        # Distribution is abstract; any instance is necessarily one of AnyDist's
+        # concrete members, so this cast just bridges the generic call-site type
+        # to the closed discriminated union DistributionDict stores.
+        concrete_dist = cast(AnyDist, dist)
+
+        prior = self.transaction._seeded.get(dist.name)
+        reset_rng = prior is None
+        if prior is not None:
+            dist.adopt_prior_state(prior)
+        self.transaction._seeded.force_update(concrete_dist, warn=False)
+
+        if (
+            not reset_rng
+            and dist.is_nominal
+            and dist.name not in self.transaction._warned_nominal_names
+        ):
+            self.transaction._warned_nominal_names.add(dist.name)
+            logger.warning(
+                f"Distribution {dist.name} is nominal on retry attempt "
+                f"{self.attempt_number} of a transaction; every remaining attempt "
+                "will keep returning the same nominal value instead of a new draw."
+            )
+
         return self.transaction.base.sample_dist(
             dist,
             size=size,

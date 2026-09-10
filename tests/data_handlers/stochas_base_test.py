@@ -331,6 +331,66 @@ def test_transaction_sample_dist_advances_rng_across_attempts():
     assert not np.allclose(seen_values[1], seen_values[2])
 
 
+def test_transaction_sample_dist_inline_and_hoisted_construction_match(caplog):
+    """Constructing a fresh Distribution with the same name on every retry attempt must draw the exact same sequence of values as hoisting one instance out of the loop and reusing it."""
+
+    def run(build_dist):
+        sb = StochasBase().with_seed(42).with_trial_num(1)
+        seen_values = []
+        for attempt in sb.transaction(retry_on=(ValueError,), max_retries=10):
+            with attempt:
+                nv = attempt.sample_dist(build_dist())
+                seen_values.append(np.array(nv.value))
+                if attempt.attempt_number < 3:
+                    raise ValueError("keep retrying")
+        return seen_values
+
+    hoisted = NormalDistribution(name=DistName("x"), mu=0, sigma=1)
+    hoisted_values = run(lambda: hoisted)
+    inline_values = run(lambda: NormalDistribution(name=DistName("x"), mu=0, sigma=1))
+
+    assert len(hoisted_values) == len(inline_values) == 3
+    for hoisted_value, inline_value in zip(hoisted_values, inline_values, strict=True):
+        assert np.allclose(hoisted_value, inline_value)
+    # the sequence itself must still be advancing, not stuck repeating one value
+    assert not np.allclose(inline_values[0], inline_values[1])
+    assert not np.allclose(inline_values[1], inline_values[2])
+    assert "Forcing" not in caplog.text
+
+
+def test_transaction_warns_once_when_nominal_distribution_is_retried(caplog):
+    """A distribution stuck at its nominal value on retry will keep returning the exact same rejected value forever; that's worth a warning, but only once per name per transaction, not once per retry attempt."""
+    sb = StochasBase()  # trial_num defaults to NOMINAL_TRIAL_NUM
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1, nominal=0.0)
+
+    with pytest.raises(RuntimeError, match="Failed to complete transaction"):
+        for attempt in sb.transaction(retry_on=(ValueError,), max_retries=4):
+            with attempt:
+                attempt.sample_dist(dist)
+                raise ValueError("reject the nominal value every time")
+
+    assert caplog.text.count("is nominal on retry attempt") == 1
+
+
+def test_transaction_inline_construction_with_unseeded_base_stays_sane():
+    """seed=None is a valid, deliberate choice for non-reproducible runs; a freshly constructed distribution on every retry attempt must still carry that (unseeded) RNG state forward without crashing or getting stuck."""
+    sb = StochasBase()  # seed defaults to None
+
+    seen_values = []
+    for attempt in sb.transaction(retry_on=(ValueError,), max_retries=10):
+        with attempt:
+            nv = attempt.sample_dist(
+                NormalDistribution(name=DistName("x"), mu=0, sigma=1)
+            )
+            seen_values.append(np.array(nv.value))
+            if attempt.attempt_number < 3:
+                raise ValueError("keep retrying")
+
+    assert len(seen_values) == 3
+    assert not np.allclose(seen_values[0], seen_values[1])
+    assert not np.allclose(seen_values[1], seen_values[2])
+
+
 def test_transaction_exhausts_retries_and_rolls_back():
     """Exhausting max_retries raises RuntimeError chained to the last error and leaves no residue."""
     sb = StochasBase()
