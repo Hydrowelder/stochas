@@ -221,6 +221,9 @@ class Distribution[T](ABC, MetadataMixin):
 
     def refresh_seed(self) -> None:
         """Resets the pseudorandom number generator."""
+        # adopt_prior_state() below carries exactly the fields this method reads
+        # (seed, trial_num) and writes (_rng) across instances -- if this method's
+        # inputs/output ever change, update adopt_prior_state() to match.
         if self.seed is not None:
             # combine name and run number to salt
             name_to_salt = f"{self.name}_{self.trial_num}"
@@ -233,6 +236,22 @@ class Distribution[T](ABC, MetadataMixin):
         else:
             # use pure random value
             self._rng = np.random.default_rng(seed=self.seed)
+
+    def adopt_prior_state(self, prior: Distribution[Any]) -> None:
+        """
+        Transplants `seed`, `trial_num`, and the exact live `_rng` generator from `prior` onto `self`, in place.
+
+        No-ops if `prior is self`, since an instance that has been carrying its own state forward across retries already has everything it needs.
+
+        This exists for `Transaction`: a caller may construct a brand-new `Distribution` instance with the same `name` on every retry attempt instead of reusing one instance, and this lets that new instance pick up exactly where the previous instance's RNG stream left off, so both patterns draw the identical sequence of values.
+
+        This carries forward only the fields `refresh_seed` treats as RNG state (its inputs `seed`/`trial_num` and its output `_rng`), not configuration like `mu`, `nominal`, `category`, or `unit` -- those intentionally keep coming from whichever object the caller constructed for this attempt, since they describe what to sample, not where its draw sequence is.
+        """
+        if prior is self:
+            return
+        self.seed = prior.seed
+        self.trial_num = prior.trial_num
+        self._rng = prior._rng
 
     @field_validator("category")
     @classmethod
