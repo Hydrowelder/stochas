@@ -17,6 +17,7 @@ watch:
 
 nav:
   - Home: index.md
+  - Changelog: changelog.md
   - User Guides:
       - Named Values: user-guides/named-values.md
       - Distributions: user-guides/distributions.md
