@@ -6,12 +6,8 @@ import logging
 from collections.abc import Callable, Iterable, Iterator
 from typing import TYPE_CHECKING, Any, Self, cast, overload
 
-from stochas.unit_system import UnitDescriptor
-
 if TYPE_CHECKING:
     from _typeshed import SupportsRichComparison
-
-    from stochas.unit_system import UnitSystem
 
 import numpy as np
 from pydantic import Field, RootModel
@@ -20,7 +16,7 @@ from stochas.utils import _reduce_obj
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["BaseDict", "BaseList", "HasUnitsCollection"]
+__all__ = ["BaseDict", "BaseList"]
 
 
 class BaseDict[T](RootModel[dict[str, T]]):
@@ -247,16 +243,6 @@ class BaseList[T](RootModel[list[T]]):
         msg = f"Item '{name}' not found in list."
         logger.error(msg)
         raise KeyError(msg)
-
-
-class HasUnitsCollection:
-    """Mixin for BaseDict subclasses whose items carry `unit: UnitDescriptor | str | None`. Provides a single shared `update_unit_system` implementation so DistributionDict, DesignValueDict, and NamedValueDict do not each repeat the same loop."""
-
-    def update_unit_system(self, us: UnitSystem) -> None:
-        """Re-resolves UnitDescriptor conversion factors for every item whose `unit` field is a UnitDescriptor (plain-string labels are left untouched)."""
-        for item in self.values():  # pyright: ignore[reportAttributeAccessIssue]
-            if isinstance(item.unit, UnitDescriptor):
-                item.unit = us.__getattr__(item.unit.name)
 
 
 if __name__ == "__main__":

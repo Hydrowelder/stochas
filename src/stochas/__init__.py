@@ -1,5 +1,5 @@
 from .base import StochasBase
-from .base_collections import BaseDict, BaseList, HasUnitsCollection
+from .base_collections import BaseDict, BaseList
 from .design_variable import (
     AnyDesignValue,
     DesignBool,
@@ -93,7 +93,6 @@ __all__ = [
     "FDistribution",
     "GammaDistribution",
     "GeometricDistribution",
-    "HasUnitsCollection",
     "HypergeometricDistribution",
     "LaplaceDistribution",
     "LogNormalDistribution",

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from enum import StrEnum
-from typing import Annotated, Any, Literal, NewType, Self, cast
+from typing import TYPE_CHECKING, Annotated, Any, Literal, NewType, Self, cast
 
 from pydantic import (
     BaseModel,
@@ -17,9 +17,13 @@ from pydantic import (
 )
 from pydantic_core import to_jsonable_python
 
-from stochas.base_collections import BaseDict, BaseList, HasUnitsCollection
+from stochas.base_collections import BaseDict, BaseList
 from stochas.mixins import MetadataMixin, NumericMixin
+from stochas.unit_system import UnitDescriptor
 from stochas.utils import _reduce_obj
+
+if TYPE_CHECKING:
+    from stochas.unit_system import UnitSystem
 
 __all__ = [
     "NamedValue",
@@ -214,8 +218,22 @@ class NamedValue[T](NumericMixin, MetadataMixin):
         return self.state is NamedValueState.SET
 
 
-class NamedValueDict[T](BaseDict[NamedValue[T]], HasUnitsCollection):
+def _rescale_to_unit_system(item: NamedValue[Any], us: UnitSystem) -> None:
+    # A NamedValue's unit names the base unit its value is already expressed in (unlike
+    # a Distribution's or DesignValue's declared unit, which stays fixed), so switching
+    # systems must rescale stored_value too, not just relabel the unit.
+    if isinstance(item.unit, UnitDescriptor) and item.is_set:
+        conversion = us.__getattr__(item.unit.name)
+        item.stored_value = item.value * float(conversion) + conversion.offset
+        item.unit = us.base_unit_for(item.unit.name)
+
+
+class NamedValueDict[T](BaseDict[NamedValue[T]]):
     """Dictionary specifically for sampled results."""
+
+    def update_unit_system(self, us: UnitSystem) -> None:
+        for item in self.values():
+            _rescale_to_unit_system(item, us)
 
     def __contains__(self, key: object) -> bool:
         if isinstance(key, NamedValue):
@@ -238,6 +256,10 @@ class NamedValueDict[T](BaseDict[NamedValue[T]], HasUnitsCollection):
 
 class NamedValueList[T](BaseList[NamedValue[T]]):
     """List specifically for sampled results."""
+
+    def update_unit_system(self, us: UnitSystem) -> None:
+        for item in self:
+            _rescale_to_unit_system(item, us)
 
     @property
     def to_named_value_dict(self) -> NamedValueDict:

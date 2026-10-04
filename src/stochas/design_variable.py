@@ -11,12 +11,15 @@ import numpy as np
 from pydantic import Field, model_validator
 from pymoo.core.variable import Binary, Choice, Integer, Real
 
-from stochas.base_collections import BaseDict, BaseList, HasUnitsCollection
+from stochas.base_collections import BaseDict, BaseList
 from stochas.mixins import MetadataMixin
 from stochas.named_value import NamedValue, ValueName
+from stochas.unit_system import UnitDescriptor
 
 if TYPE_CHECKING:
     import optuna
+
+    from stochas.unit_system import UnitSystem
 
 __all__ = [
     "DesignBool",
@@ -203,8 +206,15 @@ AnyDesignValue = Annotated[
 ]
 
 
-class DesignValueDict(BaseDict[AnyDesignValue], HasUnitsCollection):
+class DesignValueDict(BaseDict[AnyDesignValue]):
     """Dictionary specifically for sampled results."""
+
+    def update_unit_system(self, us: UnitSystem) -> None:
+        # A design value's stored_value stays in its declared unit regardless of the
+        # active UnitSystem; only the unit's own scale/offset need refreshing here.
+        for dv in self.values():
+            if isinstance(dv.unit, UnitDescriptor):
+                dv.unit = us.__getattr__(dv.unit.name)
 
     def __contains__(self, key: object) -> bool:
         if isinstance(key, NamedValue):
