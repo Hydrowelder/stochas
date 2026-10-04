@@ -107,7 +107,7 @@ dev = [
     "ruff>=0.15.17",
     "scipy-stubs[scipy]>=1.17.0.2",
     "tabulate>=0.10.0",
-    "zensical>=0.0.59",
+    "zensical>=0.0.67",
 ]
 
 [project.urls]
