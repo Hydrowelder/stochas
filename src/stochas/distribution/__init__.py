@@ -6,11 +6,16 @@ import csv
 import io
 from collections import defaultdict
 from pathlib import Path
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 from pydantic import Field
 
-from stochas.base_collections import BaseDict, BaseList, HasUnitsCollection
+from stochas.base_collections import BaseDict, BaseList
+from stochas.unit_system import UnitDescriptor
+
+if TYPE_CHECKING:
+    from stochas.unit_system import UnitSystem
+
 from stochas.distribution._base import (
     _INVALID_CATEGORY_CHARS,
     DISCRETE_MSG,
@@ -146,7 +151,7 @@ AnyDist = Annotated[
 ]
 
 
-class DistributionDict(BaseDict[AnyDist], HasUnitsCollection):
+class DistributionDict(BaseDict[AnyDist]):
     """Dictionary specifically for sampled results."""
 
     @property
@@ -158,6 +163,11 @@ class DistributionDict(BaseDict[AnyDist], HasUnitsCollection):
         for dist in self.values():
             if dist.trial_num != trial_num:
                 dist.trial_num = trial_num
+
+    def update_unit_system(self, us: UnitSystem) -> None:
+        for dist in self.values():
+            if isinstance(dist.unit, UnitDescriptor):
+                dist.unit = us.__getattr__(dist.unit.name)
 
     def to_tables(self, directory: Path) -> None:
         """Writes one CSV per dist type, organized into per-category subdirectories."""

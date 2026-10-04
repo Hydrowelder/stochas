@@ -134,7 +134,10 @@ class UnitDescriptor(BaseModel):
                 if self.scale is not None and other.scale is not None
                 else None
             )
-            return UnitDescriptor(name=f"{self.name} / {other.name}", scale=scale)
+            # other's name must stay grouped when reparsed, or dividing by a compound
+            # unit only negates its first factor instead of all of them (same guard as __pow__)
+            other_name = f"({other.name})" if " " in other.name else other.name
+            return UnitDescriptor(name=f"{self.name} / {other_name}", scale=scale)
         return float(self) / other
 
     @overload

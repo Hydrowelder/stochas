@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from stochas.unit_system import UnitDescriptor, UnitSystem
+from stochas.unit_system import UnitDescriptor, UnitSystem, ureg
 
 
 def test_unit_descriptor_float_returns_scale() -> None:
@@ -254,6 +254,37 @@ def test_unit_descriptor_div_non_si_composes_scales() -> None:
     assert float(result) == pytest.approx(0.0254, rel=1e-6)
 
 
+def test_unit_descriptor_truediv_wraps_compound_divisor_in_parens() -> None:
+    """Dividing by a compound UnitDescriptor parenthesizes its name, same as __pow__."""
+    us = UnitSystem.si()
+    velocity = us.inch / us.second
+    ratio = velocity / velocity
+    assert str(ratio) == "inch / second / (inch / second)"
+    assert float(ratio) == pytest.approx(1.0)
+
+
+def test_unit_descriptor_truediv_compound_divisor_reresolves_correctly() -> None:
+    """A name built by dividing by a compound unit must reparse to the same dimensionality under a different UnitSystem (the bug: naive concatenation only negated the divisor's first factor)."""
+    us = UnitSystem.si()
+    velocity = us.inch / us.second
+    ratio = velocity / velocity  # dimensionless, independent of unit system
+
+    us_fff = UnitSystem.fff()
+    resolved = us_fff.__getattr__(ratio.name)
+    assert resolved.scale == pytest.approx(1.0)
+
+
+def test_unit_descriptor_truediv_by_product_reresolves_correctly() -> None:
+    """Dividing by a product (not just a quotient) must also reparse to the correct dimensionality."""
+    us = UnitSystem.si()
+    area = us.meter * us.meter
+    pressure = us.newton / area
+    assert str(pressure) == "newton / (meter * meter)"
+
+    dim = dict(ureg.get_dimensionality(ureg.parse_units(pressure.name)))
+    assert dim == {"[mass]": 1, "[length]": -1, "[time]": -2}
+
+
 def test_unit_descriptor_mul_two_descriptors_returns_descriptor() -> None:
     """Multiplying two UnitDescriptors produces a compound UnitDescriptor."""
     us = UnitSystem.si()
@@ -285,7 +316,7 @@ def test_unit_descriptor_acceleration_arithmetic() -> None:
     us = UnitSystem.si()
     accel_arith = us.m / us.s**2
     accel_pint = us.meter_per_second_squared
-    assert str(accel_arith) == "m / s ** 2"
+    assert str(accel_arith) == "m / (s ** 2)"
     assert float(accel_arith) == pytest.approx(float(accel_pint), rel=1e-9)
 
 

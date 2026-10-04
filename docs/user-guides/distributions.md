@@ -39,7 +39,7 @@ This is critical for:
 
 !!! info
 
-    [Click here to see the technical API for all supported types](../reference/stochas/distribution.md).
+    [Click here to see the technical API for all supported types](../reference/stochas/distribution/index.md).
 
 - **Normal**: The classic Bell Curve for natural variation.
 - **Uniform**: For strict ranges where any value is equally likely.

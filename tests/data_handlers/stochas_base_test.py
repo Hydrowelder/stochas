@@ -234,6 +234,28 @@ def test_update_unit_system_restores_factors_after_deserialization():
     assert sb2.dists["x"].unit.scale == pytest.approx(0.0254, rel=1e-6)
 
 
+def test_with_unit_system_rescales_named_values_to_new_base_unit():
+    """Switching to a genuinely different UnitSystem must rescale already-converted named values, not just relabel them with the old number unchanged."""
+    si = UnitSystem.si()
+    sb = StochasBase(us=si)
+    dist = NormalDistribution(
+        name=DistName("length"), mu=0, sigma=1, nominal=100.0, unit=si.inch
+    )
+    sb.sample_dist(dist)
+
+    meters = sb.named["length"].value
+    assert str(sb.named["length"].unit) == "m"
+
+    fps = UnitSystem.fps()
+    sb.with_unit_system(fps)
+
+    new_unit = sb.named["length"].unit
+    assert new_unit is not None
+    assert str(new_unit) == "ft"
+    assert new_unit.scale == pytest.approx(1.0)
+    assert np.allclose(sb.named["length"].value, meters / 0.3048, rtol=1e-6)
+
+
 def test_transaction_success_on_first_attempt_commits_and_stops():
     """A transaction that succeeds immediately registers its draw and iterates exactly once."""
     sb = StochasBase()

@@ -7,6 +7,7 @@ import pytest
 
 from stochas import NamedValue, NamedValueDict, NamedValueList
 from stochas.named_value import UNSET_SENTINEL, ValueName
+from stochas.unit_system import UnitSystem
 
 
 def test_dict_getitem_missing_key():
@@ -364,6 +365,62 @@ def test_list_to_dict_duplicate_fail():
 
     with pytest.raises(KeyError, match="already been registered"):
         _ = nv_list.to_named_value_dict
+
+
+def test_dict_update_unit_system_rescales_values():
+    """Switching UnitSystem on a NamedValueDict must rescale an already-converted stored value, not just relabel its unit."""
+    si = UnitSystem.si()
+    nv = NamedValue[float](
+        name=ValueName("length"), stored_value=2.54, unit=si.base_unit_for("inch")
+    )
+    d = NamedValueDict[float]()
+    d.update(nv)
+
+    fps = UnitSystem.fps()
+    d.update_unit_system(fps)
+
+    new_unit = d["length"].unit
+    assert new_unit is not None
+    assert str(new_unit) == "ft"
+    assert d["length"].value == pytest.approx(2.54 / 0.3048, rel=1e-6)
+
+
+def test_list_update_unit_system_rescales_values():
+    """NamedValueList supports the same unit-system switch as NamedValueDict."""
+    si = UnitSystem.si()
+    nv = NamedValue[float](
+        name=ValueName("length"), stored_value=2.54, unit=si.base_unit_for("inch")
+    )
+    nv_list = NamedValueList[float]()
+    nv_list.append(nv)
+
+    fps = UnitSystem.fps()
+    nv_list.update_unit_system(fps)
+
+    new_unit = nv_list[0].unit
+    assert new_unit is not None
+    assert str(new_unit) == "ft"
+    assert nv_list[0].value == pytest.approx(2.54 / 0.3048, rel=1e-6)
+
+
+def test_dict_update_unit_system_rescales_compound_units():
+    """update_unit_system must handle a compound unit (velocity) the same as a simple one."""
+    si = UnitSystem.si()
+    nv = NamedValue[float](
+        name=ValueName("speed"),
+        stored_value=1.0,
+        unit=si.base_unit_for("inch / second"),
+    )
+    d = NamedValueDict[float]()
+    d.update(nv)
+
+    fps = UnitSystem.fps()
+    d.update_unit_system(fps)
+
+    new_unit = d["speed"].unit
+    assert new_unit is not None
+    assert str(new_unit) == "ft / s"
+    assert d["speed"].value == pytest.approx(1 / 0.3048, rel=1e-6)
 
 
 if __name__ == "__main__":

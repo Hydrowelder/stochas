@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 2.2.9 (2026-10-04)
+
+- Fixed `UnitDescriptor` division (`/`) losing correct ordering when dividing by a compound unit
+    - Dividing by anything built from `*`/`/` (e.g. `velocity / velocity`, or `force / area`) now re-resolves to the correct dimensionality instead of silently picking up the wrong one
+- Fixed `update_unit_system` on named value collections to rescale already-converted values when switching unit systems, instead of only relabeling their unit
+    - Switching a model's `UnitSystem` now correctly re-expresses already-sampled results in the new base units, for both dict and list collections of named values
+- Switched API reference generation to Zensical's native `api-autonav` plugin instead of a hand-maintained generator script
+
 ## Version 2.2.8 (2026-09-10)
 
 - Added changelog
