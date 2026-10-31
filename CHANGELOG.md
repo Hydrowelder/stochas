@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 2.3.0 (2026-10-31)
+
+- Added support for Python 3.15
+- Added missing class docstrings and enabled linting rules that require them
+- Renamed the `stochas.distribution` modules `_base`, `_discrete`, and `_continuous` to `base`, `discrete`, and `continuous`
+- Switched type checking from `pyright` to `ty`, fixing the type hints it flagged
+- Security patches
+
 ## Version 2.2.9 (2026-10-04)
 
 - Fixed `UnitDescriptor` division (`/`) losing correct ordering when dividing by a compound unit
