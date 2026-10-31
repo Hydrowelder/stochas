@@ -103,7 +103,7 @@ class DesignFloat(NamedValue[float], OptimizationSuggestor):
     log: bool = False
     """Use support for log-scale search (useful for learning rates or stiffness)."""
 
-    step: float | None = None
+    step: float | None = Field(default=None, gt=0)
     """Discretize the search space (e.g., step=0.5)."""
 
     @model_validator(mode="after")
@@ -114,10 +114,6 @@ class DesignFloat(NamedValue[float], OptimizationSuggestor):
             raise ValueError(msg)
         if self.log and self.low <= 0:
             msg = f"DesignFloat '{self.name}': low must be greater than 0 when log=True"
-            logger.error(msg)
-            raise ValueError(msg)
-        if self.step is not None and self.step <= 0:
-            msg = f"DesignFloat '{self.name}': step must be greater than 0"
             logger.error(msg)
             raise ValueError(msg)
         return self
@@ -158,7 +154,7 @@ class DesignInt(NamedValue[int], OptimizationSuggestor):
     high: int
     """Upper bound (inclusive)."""
 
-    step: int = 1
+    step: int = Field(default=1, gt=0)
     """Spacing between values."""
 
     log: bool = False
@@ -172,10 +168,6 @@ class DesignInt(NamedValue[int], OptimizationSuggestor):
             raise ValueError(msg)
         if self.log and self.low <= 0:
             msg = f"DesignInt '{self.name}': low must be greater than 0 when log=True"
-            logger.error(msg)
-            raise ValueError(msg)
-        if self.step <= 0:
-            msg = f"DesignInt '{self.name}': step must be greater than 0"
             logger.error(msg)
             raise ValueError(msg)
         return self

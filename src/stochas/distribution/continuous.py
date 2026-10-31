@@ -6,7 +6,7 @@ import math
 from typing import TYPE_CHECKING, Any, Literal, Self, cast
 
 import numpy as np
-from pydantic import field_serializer, field_validator, model_validator
+from pydantic import Field, field_serializer, field_validator, model_validator
 
 from stochas.distribution.base import (
     ContinuousDistribution,
@@ -45,18 +45,10 @@ class NormalDistribution(ContinuousDistribution[float]):
     mu: float
     """Mean value of distribution."""
 
-    sigma: float
+    sigma: float = Field(gt=0)
     """Standard deviation of distribution. Must be positive."""
 
     dist_type: Literal[DistType.NORMAL] = DistType.NORMAL
-
-    @model_validator(mode="after")
-    def validate_sigma(self) -> Self:
-        if self.sigma <= 0:
-            msg = f"Distribution {self.name} has a negative standard deviation. It must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -238,7 +230,7 @@ class TruncatedNormalDistribution(ContinuousDistribution[float]):
     mu: float
     """Mean value of distribution."""
 
-    sigma: float
+    sigma: float = Field(gt=0)
     """Standard deviation of distribution."""
 
     low: float = float("-inf")
@@ -266,14 +258,6 @@ class TruncatedNormalDistribution(ContinuousDistribution[float]):
     @field_serializer("high")
     def _serialize_high(self, v: float) -> float | None:
         return None if math.isinf(v) else v
-
-    @model_validator(mode="after")
-    def validate_sigma(self) -> Self:
-        if self.sigma <= 0:
-            msg = f"Distribution {self.name} has a non-positive standard deviation. It must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -427,18 +411,10 @@ class RayleighDistribution(ContinuousDistribution[float]):
 
     """
 
-    scale: float
+    scale: float = Field(gt=0)
     """Scale parameter (sigma). Must be positive."""
 
     dist_type: Literal[DistType.RAYLEIGH] = DistType.RAYLEIGH
-
-    @model_validator(mode="after")
-    def validate_scale(self) -> Self:
-        if self.scale <= 0:
-            msg = f"Distribution {self.name} has a non-positive scale. It must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -484,25 +460,13 @@ class GammaDistribution(ContinuousDistribution[float]):
 
     """
 
-    alpha: float
+    alpha: float = Field(gt=0)
     """Shape parameter. Must be positive."""
 
-    beta: float
+    beta: float = Field(gt=0)
     """Scale parameter. Must be positive. Mean = alpha * beta."""
 
     dist_type: Literal[DistType.GAMMA] = DistType.GAMMA
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.alpha <= 0:
-            msg = f"Distribution {self.name}: alpha (shape) must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        if self.beta <= 0:
-            msg = f"Distribution {self.name}: beta (scale) must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -548,25 +512,13 @@ class BetaDistribution(ContinuousDistribution[float]):
 
     """
 
-    alpha: float
+    alpha: float = Field(gt=0)
     """First shape parameter. Must be positive."""
 
-    beta: float
+    beta: float = Field(gt=0)
     """Second shape parameter. Must be positive."""
 
     dist_type: Literal[DistType.BETA] = DistType.BETA
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.alpha <= 0:
-            msg = f"Distribution {self.name}: alpha must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        if self.beta <= 0:
-            msg = f"Distribution {self.name}: beta must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -612,25 +564,13 @@ class WeibullDistribution(ContinuousDistribution[float]):
 
     """
 
-    shape: float
+    shape: float = Field(gt=0)
     """Shape parameter (k). Must be positive. Controls the failure rate behavior."""
 
-    scale: float
+    scale: float = Field(gt=0)
     """Scale parameter (lambda). Must be positive. Sets the characteristic life."""
 
     dist_type: Literal[DistType.WEIBULL] = DistType.WEIBULL
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.shape <= 0:
-            msg = f"Distribution {self.name}: shape must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        if self.scale <= 0:
-            msg = f"Distribution {self.name}: scale must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -682,18 +622,10 @@ class LogisticDistribution(ContinuousDistribution[float]):
     mu: float
     """Location parameter (mean and median)."""
 
-    beta: float
+    beta: float = Field(gt=0)
     """Scale parameter. Must be positive. Controls the spread."""
 
     dist_type: Literal[DistType.LOGISTIC] = DistType.LOGISTIC
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.beta <= 0:
-            msg = f"Distribution {self.name}: beta (scale) must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -738,25 +670,13 @@ class ParetoDistribution(ContinuousDistribution[float]):
 
     """
 
-    alpha: float
+    alpha: float = Field(gt=0)
     """Shape parameter. Must be positive. Controls the tail heaviness."""
 
-    beta: float
+    beta: float = Field(gt=0)
     """Scale parameter (minimum value). Must be positive."""
 
     dist_type: Literal[DistType.PARETO] = DistType.PARETO
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.alpha <= 0:
-            msg = f"Distribution {self.name}: alpha (shape) must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        if self.beta <= 0:
-            msg = f"Distribution {self.name}: beta (scale) must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -803,18 +723,10 @@ class StudentTDistribution(ContinuousDistribution[float]):
 
     """
 
-    nu: float
+    nu: float = Field(gt=0)
     """Degrees of freedom. Must be positive."""
 
     dist_type: Literal[DistType.STUDENT_T] = DistType.STUDENT_T
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.nu <= 0:
-            msg = f"Distribution {self.name}: nu (degrees of freedom) must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -863,18 +775,10 @@ class CauchyDistribution(ContinuousDistribution[float]):
     theta: float
     """Location parameter (median)."""
 
-    sigma: float
+    sigma: float = Field(gt=0)
     """Scale parameter. Must be positive."""
 
     dist_type: Literal[DistType.CAUCHY] = DistType.CAUCHY
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.sigma <= 0:
-            msg = f"Distribution {self.name}: sigma (scale) must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -922,20 +826,10 @@ class ChiSquaredDistribution(ContinuousDistribution[float]):
 
     """
 
-    p: int
+    p: int = Field(ge=1)
     """Degrees of freedom. Must be at least 1."""
 
     dist_type: Literal[DistType.CHI_SQUARED] = DistType.CHI_SQUARED
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.p < 1:
-            msg = (
-                f"Distribution {self.name}: p (degrees of freedom) must be at least 1."
-            )
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -984,18 +878,10 @@ class LaplaceDistribution(ContinuousDistribution[float]):
     mu: float
     """Location parameter (mean and median)."""
 
-    sigma: float
+    sigma: float = Field(gt=0)
     """Scale parameter. Must be positive."""
 
     dist_type: Literal[DistType.LAPLACE] = DistType.LAPLACE
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.sigma <= 0:
-            msg = f"Distribution {self.name}: sigma (scale) must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats
@@ -1041,25 +927,13 @@ class FDistribution(ContinuousDistribution[float]):
 
     """
 
-    nu1: float
+    nu1: float = Field(gt=0)
     """Numerator degrees of freedom. Must be positive."""
 
-    nu2: float
+    nu2: float = Field(gt=0)
     """Denominator degrees of freedom. Must be positive."""
 
     dist_type: Literal[DistType.F] = DistType.F
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.nu1 <= 0:
-            msg = f"Distribution {self.name}: nu1 (numerator degrees of freedom) must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        if self.nu2 <= 0:
-            msg = f"Distribution {self.name}: nu2 (denominator degrees of freedom) must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_continuous_frozen:
         import scipy.stats as stats

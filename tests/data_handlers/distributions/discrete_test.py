@@ -94,7 +94,9 @@ def test_bernoulli_initialization():
     assert dist.p == 0.7
 
     # Invalid
-    with pytest.raises(ValueError, match="between 0 and 1"):
+    with pytest.raises(
+        ValueError, match=r"p\s+Input should be less than or equal to 1"
+    ):
         BernoulliDistribution(name=DistName("bad"), p=1.2)
 
 
@@ -254,6 +256,16 @@ def test_permutation_errors():
         dist.ppf(0.5)
 
 
+def test_permutation_has_no_scipy_distribution():
+    """Ensure requesting a scipy-backed distribution from one that defines none raises a clear error."""
+    dist = PermutationDistribution(name=DistName("test"), items=[1, 2])
+
+    with pytest.raises(
+        NotImplementedError, match="does not define a scipy distribution"
+    ):
+        _ = dist._scipy
+
+
 def test_permutation_pdf_and_is_continuous():
     """Verify pdf proxies to pmf and is_continuous is False."""
     items = ["A", "B", "C"]
@@ -295,9 +307,13 @@ def test_binomial_sampling():
 
 
 def test_binomial_validation():
-    with pytest.raises(ValueError, match="n must be at least 1"):
+    with pytest.raises(
+        ValueError, match=r"n\s+Input should be greater than or equal to 1"
+    ):
         BinomialDistribution(name=DistName("bad"), n=0, p=0.5)
-    with pytest.raises(ValueError, match="p must be between 0 and 1"):
+    with pytest.raises(
+        ValueError, match=r"p\s+Input should be less than or equal to 1"
+    ):
         BinomialDistribution(name=DistName("bad"), n=5, p=1.5)
 
 
@@ -329,9 +345,11 @@ def test_negative_binomial_sampling():
 
 
 def test_negative_binomial_validation():
-    with pytest.raises(ValueError, match="r must be at least 1"):
+    with pytest.raises(
+        ValueError, match=r"r\s+Input should be greater than or equal to 1"
+    ):
         NegativeBinomialDistribution(name=DistName("bad"), r=0, p=0.5)
-    with pytest.raises(ValueError, match="p must be in"):
+    with pytest.raises(ValueError, match=r"p\s+Input should be greater than 0"):
         NegativeBinomialDistribution(name=DistName("bad"), r=1, p=0.0)
 
 
@@ -363,9 +381,11 @@ def test_geometric_sampling():
 
 
 def test_geometric_validation():
-    with pytest.raises(ValueError, match="p must be in"):
+    with pytest.raises(ValueError, match=r"p\s+Input should be greater than 0"):
         GeometricDistribution(name=DistName("bad"), p=0.0)
-    with pytest.raises(ValueError, match="p must be in"):
+    with pytest.raises(
+        ValueError, match=r"p\s+Input should be less than or equal to 1"
+    ):
         GeometricDistribution(name=DistName("bad"), p=1.5)
 
 
@@ -427,7 +447,9 @@ def test_beta_binomial_properties():
 
 
 def test_beta_binomial_validation():
-    with pytest.raises(ValueError, match="n must be at least 1"):
+    with pytest.raises(
+        ValueError, match=r"n\s+Input should be greater than or equal to 1"
+    ):
         BetaBinomialDistribution(name=DistName("bad"), n=0, alpha=1.0, beta=1.0)
     with pytest.raises(ValueError, match="alpha"):
         BetaBinomialDistribution(name=DistName("bad"), n=5, alpha=0.0, beta=1.0)

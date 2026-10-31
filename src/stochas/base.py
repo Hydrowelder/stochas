@@ -6,7 +6,7 @@ import logging
 from typing import Any, Self, TypeVar, cast, overload
 
 import numpy as np
-from pydantic import BaseModel, Field, SerializeAsAny, model_validator
+from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
 from stochas.design_variable import (
     AnyDesignValue,
@@ -34,6 +34,8 @@ T = TypeVar("T")
 
 class StochasBase(BaseModel):
     """Base model for a stochastic study. Holds the design values, distributions, and sampled named values for one trial, and provides helpers to sample, override, seed, and run transactions on them."""
+
+    model_config = ConfigDict(use_attribute_docstrings=True)
 
     trial_num: int = NOMINAL_TRIAL_NUM
     """Trial number identified for this instance of the model."""

@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from stochas.unit_system import UnitDescriptor
 
@@ -146,6 +146,8 @@ class MetadataMixin(BaseModel):
 
     Inherits from BaseModel (rather than being a plain mixin) so that pyright's pydantic `__init__` synthesis recognizes these fields as constructor kwargs on classes that mix this in; a plain mixin's annotations are visible as attributes but are not picked up as constructor parameters.
     """
+
+    model_config = ConfigDict(use_attribute_docstrings=True)
 
     category: str = "uncategorized"
     """Category for value. In distributions this is used to set the table folder this distribution will be written to."""

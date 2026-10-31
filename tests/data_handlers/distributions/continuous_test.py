@@ -47,8 +47,17 @@ def test_normal_distribution_properties():
 
 def test_normal_distribution_invalid_sigma():
     """Ensure sigma must be positive."""
-    with pytest.raises(ValueError, match="negative standard deviation"):
+    with pytest.raises(ValueError, match=r"sigma\s+Input should be greater than 0"):
         NormalDistribution(name=DistName("bad"), mu=0, sigma=0)
+
+
+@pytest.mark.parametrize("sigma", [0.0, -1.0])
+def test_truncated_normal_distribution_invalid_sigma(sigma: float):
+    """Ensure the truncated normal rejects a non-positive sigma."""
+    with pytest.raises(ValueError, match=r"sigma\s+Input should be greater than 0"):
+        TruncatedNormalDistribution(
+            name=DistName("bad"), mu=0, sigma=sigma, low=-1, high=1
+        )
 
 
 def test_normal_distribution_nominal_sample():
@@ -219,7 +228,7 @@ def test_rayleigh_properties():
 
 
 def test_rayleigh_validation():
-    with pytest.raises(ValueError, match="non-positive scale"):
+    with pytest.raises(ValueError, match=r"scale\s+Input should be greater than 0"):
         RayleighDistribution(name=DistName("bad"), scale=0)
 
 

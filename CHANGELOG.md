@@ -6,6 +6,8 @@
 - Added missing class docstrings and enabled linting rules that require them
 - Renamed the `stochas.distribution` modules `_base`, `_discrete`, and `_continuous` to `base`, `discrete`, and `continuous`
 - Switched type checking from `pyright` to `ty`, fixing the type hints it flagged
+- Replaced simple parameter checks (e.g. `sigma > 0`) with pydantic `Field` constraints and enabled attribute docstrings, so constraints and field descriptions now appear in the JSON schema
+    - Validation errors for these parameters now use pydantic's standard messages
 - Security patches
 
 ## Version 2.2.9 (2026-10-04)

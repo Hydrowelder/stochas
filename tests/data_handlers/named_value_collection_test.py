@@ -317,6 +317,18 @@ def test_list_index_and_count():
     assert nv_list.count(b) == 1
 
 
+def test_list_index_with_start_and_stop():
+    """Ensure index honors an explicit start and stop window."""
+    nv_list = NamedValueList[int]()
+    a = NamedValue[int](name=ValueName("a"))
+    b = NamedValue[int](name=ValueName("b"))
+    nv_list.extend([a, b, a])
+
+    assert nv_list.index(b, 0, 2) == 1
+    with pytest.raises(ValueError, match="not in list"):
+        nv_list.index(b, 2, 3)
+
+
 def test_list_sort_and_reverse():
     """Ensure sort and reverse behave like their list counterparts."""
     nv_list = NamedValueList[int]()
@@ -383,6 +395,22 @@ def test_dict_update_unit_system_rescales_values():
     assert new_unit is not None
     assert str(new_unit) == "ft"
     assert d["length"].value == pytest.approx(2.54 / 0.3048, rel=1e-6)
+
+
+def test_dict_update_unit_system_skips_unitless_and_unset_values():
+    """Ensure update_unit_system leaves values that have no unit, or that are not set yet, untouched."""
+    si = UnitSystem.si()
+    d = NamedValueDict[float]()
+    d.update(NamedValue[float](name=ValueName("plain"), stored_value=3.0))
+    d.update(
+        NamedValue[float](name=ValueName("pending"), unit=si.base_unit_for("inch"))
+    )
+
+    d.update_unit_system(UnitSystem.fps())
+
+    assert d["plain"].value == 3.0
+    assert d["plain"].unit is None
+    assert not d["pending"].is_set
 
 
 def test_list_update_unit_system_rescales_values():

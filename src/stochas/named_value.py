@@ -51,6 +51,8 @@ class Val(BaseModel):
     This acts as a 'pointer' or 'placeholder' within other models. During processing, these references would be replaced by actual values sampled from their corresponding distributions.
     """
 
+    model_config = ConfigDict(use_attribute_docstrings=True)
+
     ref: ValueName
     """The unique identifier for the variable to be resolved."""
 

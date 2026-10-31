@@ -15,6 +15,7 @@ from stochas.design_variable import (
     DesignValueList,
 )
 from stochas.named_value import ValueName
+from stochas.unit_system import UnitSystem
 
 
 @pytest.fixture
@@ -69,7 +70,7 @@ def test_design_float_validate_bounds():
     ):
         DesignFloat(name=ValueName("p"), low=0.0, high=10.0, log=True)
 
-    with pytest.raises(ValidationError, match="step must be greater than 0"):
+    with pytest.raises(ValidationError, match=r"step\s+Input should be greater than 0"):
         DesignFloat(name=ValueName("p"), low=0.0, high=10.0, step=0.0)
 
 
@@ -107,7 +108,7 @@ def test_design_int_validate_bounds():
     ):
         DesignInt(name=ValueName("n"), low=0, high=10, log=True)
 
-    with pytest.raises(ValidationError, match="step must be greater than 0"):
+    with pytest.raises(ValidationError, match=r"step\s+Input should be greater than 0"):
         DesignInt(name=ValueName("n"), low=0, high=10, step=0)
 
 
@@ -157,3 +158,28 @@ def test_design_value_list_to_dict():
     d = nv_list.to_named_value_dict
     assert isinstance(d, DesignValueDict)
     assert d.get_value("p") == 5.0
+
+
+def test_design_value_dict_update_unit_system_repoints_units():
+    """Ensure update_unit_system re-resolves each design value's unit against the new UnitSystem and leaves the stored value in its declared unit."""
+    si = UnitSystem.si()
+    d = DesignValueDict()
+    d.update(
+        DesignFloat(
+            name=ValueName("width"),
+            low=0.0,
+            high=100.0,
+            stored_value=10.0,
+            unit=si.inch,
+        )
+    )
+    d.update(DesignFloat(name=ValueName("plain"), low=0.0, high=1.0, stored_value=0.5))
+
+    d.update_unit_system(UnitSystem.fps())
+
+    width_unit = d["width"].unit
+    assert width_unit is not None
+    assert str(width_unit) == "inch"
+    assert width_unit.scale == pytest.approx(1 / 12)
+    assert d["width"].value == 10.0
+    assert d["plain"].unit is None
