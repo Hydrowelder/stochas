@@ -121,7 +121,7 @@ class NamedValue[T](NumericMixin, MetadataMixin):
         if hasattr(v, "tolist"):
             # If model_dump_json() or mode='json', we MUST return a list
             if info.mode == "json":
-                return v.tolist()  # pyright: ignore[reportAttributeAccessIssue]
+                return v.tolist()
             # If model_dump() or mode='python', return the raw array for tests
             return v
 
@@ -249,7 +249,7 @@ class NamedValueDict[T](BaseDict[NamedValue[T]]):
         return self[name].stored_value
 
     @property
-    def named_value_list(self) -> NamedValueList:
+    def named_value_list(self) -> NamedValueList[T]:
         """Converts the NamedValueDict to a NamedValueList."""
         return NamedValueList(list(self.values()))
 
@@ -262,8 +262,8 @@ class NamedValueList[T](BaseList[NamedValue[T]]):
             _rescale_to_unit_system(item, us)
 
     @property
-    def to_named_value_dict(self) -> NamedValueDict:
+    def to_named_value_dict(self) -> NamedValueDict[T]:
         """Converts the NamedValueList to a NamedValueDict."""
-        d = NamedValueDict()
+        d: NamedValueDict[T] = NamedValueDict()
         d.update_many(self.root)
         return d

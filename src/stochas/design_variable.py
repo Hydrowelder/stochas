@@ -18,6 +18,7 @@ from stochas.unit_system import UnitDescriptor
 
 if TYPE_CHECKING:
     import optuna
+    from optuna.distributions import CategoricalChoiceType
 
     from stochas.unit_system import UnitSystem
 
@@ -34,6 +35,8 @@ logger = logging.getLogger(__name__)
 
 
 class OptimizationSuggestor(ABC, MetadataMixin):
+    """Interface for design values that can be searched by an optimizer. Subclasses translate themselves into optuna and pymoo variables and narrow their bounds when refined."""
+
     @abstractmethod
     def to_optuna(self, trial: optuna.Trial) -> Any:
         pass
@@ -72,7 +75,7 @@ class DesignCategorical[T](NamedValue[T], OptimizationSuggestor):
     def to_optuna(self, trial: optuna.Trial):
         return trial.suggest_categorical(
             name=self.name,
-            choices=self.choices,  # type: ignore
+            choices=cast("Sequence[CategoricalChoiceType]", self.choices),
         )
 
     def to_pymoo(self) -> Choice:
@@ -201,7 +204,7 @@ class DesignInt(NamedValue[int], OptimizationSuggestor):
 
 
 AnyDesignValue = Annotated[
-    DesignFloat | DesignCategorical | DesignInt | DesignBool,
+    DesignFloat | DesignCategorical[Any] | DesignInt | DesignBool,
     Field(discriminator="type"),
 ]
 

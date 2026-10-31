@@ -3,13 +3,14 @@
 import csv
 import shutil
 from pathlib import Path
+from typing import Any
 
 import tabulate as tabulate_mod
 
 _EXAMPLE_TABLES_DIR = Path(__file__).parent / "assets" / "example_tables"
 
 
-def on_pre_build(config: dict) -> None:
+def on_pre_build(config: dict[str, Any]) -> None:
     """Regenerate example report tables so docs always reflect the current to_tables output."""
     _generate_example_tables(_EXAMPLE_TABLES_DIR)
 

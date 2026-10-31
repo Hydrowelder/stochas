@@ -13,6 +13,7 @@ from typing import (
     Literal,
     NewType,
     Self,
+    cast,
 )
 
 import numpy as np
@@ -38,13 +39,13 @@ if TYPE_CHECKING:
     # below, so pydantic validation/serialization is unaffected.
     type NDArray[TShape, TDType] = np.ndarray
 
-    from scipy.stats._distn_infrastructure import (  # pyright: ignore[reportMissingModuleSource]
+    from scipy.stats._distn_infrastructure import (
         rv_continuous_frozen,
         rv_discrete_frozen,
     )
     from scipy.stats.distributions import rv_discrete
 
-    from stochas.distribution import DistributionDict
+    from stochas.distribution import AnyDist, DistributionDict
     from stochas.named_value import NamedValueDict
 else:
     rv_continuous_frozen = Any
@@ -68,6 +69,8 @@ _INVALID_CATEGORY_CHARS: frozenset[str] = frozenset(r'\/:*?"<>|' + "\x00")
 
 
 class DistType(StrEnum):
+    """Enumeration used for discriminated union of distribution types."""
+
     NORMAL = "normal"
     """Normal distribution."""
 
@@ -178,6 +181,8 @@ SerializableUndefined = Annotated[
 
 
 class Distribution[T](ABC, MetadataMixin):
+    """Base class for stochas distributions."""
+
     model_config = ConfigDict(arbitrary_types_allowed=False)
 
     name: DistName
@@ -337,7 +342,8 @@ class Distribution[T](ABC, MetadataMixin):
                 else None
             )
         concrete_type = samples.dtype.type().item().__class__
-        return NamedValue[NDArray[Any, concrete_type]](
+        # the dtype is only known after sampling, so the runtime NDArray is parameterized dynamically
+        return NamedValue[NDArray[Any, concrete_type]](  # ty: ignore[invalid-type-form]
             name=ValueName(self.name),
             stored_value=samples,
             **metadata,
@@ -346,7 +352,7 @@ class Distribution[T](ABC, MetadataMixin):
     def sample_and_update_dicts(
         self,
         dist_dict: DistributionDict,
-        named_value_dict: NamedValueDict,
+        named_value_dict: NamedValueDict[Any],
         size: int = 1,
         force: bool = False,
         warn: bool = True,
@@ -361,10 +367,12 @@ class Distribution[T](ABC, MetadataMixin):
 
         nv = self.sample_to_named_value(size=size)
 
+        # every concrete distribution is a member of the AnyDist union
+        dist = cast("AnyDist", self)
         if self.name not in dist_dict:
-            dist_dict.update(self)  # pyright: ignore[reportArgumentType]
+            dist_dict.update(dist)
         elif force:
-            dist_dict.force_update(self)  # pyright: ignore[reportArgumentType]
+            dist_dict.force_update(dist)
 
         if force:
             named_value_dict.force_update(nv, warn=warn)

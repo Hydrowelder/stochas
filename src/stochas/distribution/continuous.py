@@ -8,16 +8,14 @@ from typing import TYPE_CHECKING, Any, Literal, Self, cast
 import numpy as np
 from pydantic import field_serializer, field_validator, model_validator
 
-from stochas.distribution._base import (
+from stochas.distribution.base import (
     ContinuousDistribution,
     DistType,
     logger,
 )
 
 if TYPE_CHECKING:
-    from scipy.stats._distn_infrastructure import (  # pyright: ignore[reportMissingModuleSource]
-        rv_continuous_frozen,
-    )
+    from scipy.stats._distn_infrastructure import rv_continuous_frozen
 else:
     rv_continuous_frozen = Any
 

@@ -14,7 +14,7 @@ from stochas.design_variable import (
     DesignInt,
 )
 from stochas.distribution import AnyDist, Distribution, DistributionDict
-from stochas.distribution._base import NDArray
+from stochas.distribution.base import NDArray
 from stochas.named_value import NamedValue
 
 if TYPE_CHECKING:

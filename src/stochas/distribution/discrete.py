@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Literal, Self, cast
 import numpy as np
 from pydantic import Field, model_validator
 
-from stochas.distribution._base import (
+from stochas.distribution.base import (
     UNDEFINED,
     DiscreteDistribution,
     DistType,
@@ -18,7 +18,7 @@ from stochas.distribution._base import (
 )
 
 if TYPE_CHECKING:
-    from scipy.stats._distn_infrastructure import (  # pyright: ignore[reportMissingModuleSource]
+    from scipy.stats._distn_infrastructure import (
         rv_discrete_frozen,
     )
     from scipy.stats.distributions import rv_discrete
@@ -185,7 +185,7 @@ class PermutationDistribution[T](DiscreteDistribution[T]):
     items: list[T]
     """The master list to be shuffled."""
 
-    nominal: list[T] | list[None] | SerializableUndefined = Field(default=UNDEFINED)  # pyright: ignore[reportIncompatibleVariableOverride]
+    nominal: list[T] | list[None] | SerializableUndefined = Field(default=UNDEFINED)  # ty: ignore[invalid-attribute-override]
 
     dist_type: Literal[DistType.PERMUTATION] = DistType.PERMUTATION
 
@@ -198,7 +198,8 @@ class PermutationDistribution[T](DiscreteDistribution[T]):
 
     def draw(self, size: int = 1) -> np.ndarray:
         """Returns a shuffled version of the items."""
-        return np.array([self.rng.permutation(self.items) for _ in range(size)])  # pyright: ignore[reportArgumentType, reportCallIssue]
+        items = np.asarray(self.items)
+        return np.array([self.rng.permutation(items) for _ in range(size)])
 
     def pmf(self, x: list[T] | np.ndarray) -> float:
         """Uniform probability of 1/n! if x is a valid permutation."""

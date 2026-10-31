@@ -22,7 +22,7 @@ from stochas.distribution import (
     Distribution,
     DistributionDict,
 )
-from stochas.distribution._base import NDArray
+from stochas.distribution.base import NDArray
 from stochas.named_value import NamedValue, NamedValueDict
 from stochas.transaction import Transaction
 from stochas.unit_system import UnitDescriptor, UnitSystem
@@ -33,6 +33,8 @@ T = TypeVar("T")
 
 
 class StochasBase(BaseModel):
+    """Base model for a stochastic study. Holds the design values, distributions, and sampled named values for one trial, and provides helpers to sample, override, seed, and run transactions on them."""
+
     trial_num: int = NOMINAL_TRIAL_NUM
     """Trial number identified for this instance of the model."""
 

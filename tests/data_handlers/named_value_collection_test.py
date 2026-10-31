@@ -423,5 +423,27 @@ def test_dict_update_unit_system_rescales_compound_units():
     assert d["speed"].value == pytest.approx(1 / 0.3048, rel=1e-6)
 
 
+def test_dict_update_unit_system_rescales_array_values():
+    """update_unit_system must rescale an array stored_value elementwise, matching the shape sample_dist/sample_design actually produce (not just a bare scalar)."""
+    si = UnitSystem.si()
+    nv = NamedValue[np.ndarray](
+        name=ValueName("positions"),
+        stored_value=np.array([1.0, 2.0, 3.0]),
+        unit=si.base_unit_for("inch"),
+    )
+    d = NamedValueDict[np.ndarray]()
+    d.update(nv)
+
+    fps = UnitSystem.fps()
+    d.update_unit_system(fps)
+
+    new_unit = d["positions"].unit
+    assert new_unit is not None
+    assert str(new_unit) == "ft"
+    assert np.allclose(
+        d["positions"].value, np.array([1.0, 2.0, 3.0]) / 0.3048, rtol=1e-6
+    )
+
+
 if __name__ == "__main__":
     test_dict_setitem_validation()

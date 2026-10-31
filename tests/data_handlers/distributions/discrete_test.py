@@ -221,7 +221,7 @@ def test_permutation_serialization_and_typing():
 
     # 1. Check runtime type resolution
     # nv.stored_value is the 2D array
-    assert nv.stored_value.dtype.kind == "f"  # pyright: ignore[reportAttributeAccessIssue]
+    assert nv.stored_value.dtype.kind == "f"  # ty: ignore[unresolved-attribute]
 
     # 2. Check Serialization
     dumped = nv.model_dump()
