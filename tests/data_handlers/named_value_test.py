@@ -51,7 +51,7 @@ def test_type_enforcement_on_assignment():
     nv = NamedValue[int](name=ValueName("x"))
 
     with pytest.raises(ValidationError):
-        nv.value = "not an int"  # type: ignore[arg-type]
+        nv.value = "not an int"  # type: ignore[arg-type]  # ty: ignore[invalid-assignment]
 
 
 def test_validate_assignment_enforced():
@@ -59,7 +59,7 @@ def test_validate_assignment_enforced():
     nv.value = 5
 
     with pytest.raises(ValidationError):
-        nv.stored_value = "bad"  # type: ignore[assignment]
+        nv.stored_value = "bad"  # type: ignore[assignment]  # ty: ignore[invalid-assignment]
 
 
 def test_serialization_round_trip():
@@ -89,7 +89,7 @@ def test_unset_serialization_round_trip():
 
 def test_extra_fields_forbidden():
     with pytest.raises(ValidationError):
-        NamedValue[int](name=ValueName("x"), extra_field=123)  # type: ignore[arg-type]
+        NamedValue[int](name=ValueName("x"), extra_field=123)  # type: ignore[arg-type]  # ty: ignore[unknown-argument]
 
 
 def test_string_named_value():

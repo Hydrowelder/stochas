@@ -48,7 +48,7 @@ class UnitDescriptor(BaseModel):
         )
     """
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, use_attribute_docstrings=True)
 
     name: str
     """Unit name (e.g. `"inch"`, `"pound"`). Serialized; used to re-resolve the conversion parameters via `StochasBase.with_unit_system()`."""
@@ -189,6 +189,8 @@ class UnitSystem(BaseModel):
         str(mojo_model.u.inch)           # -> "inch"
         mojo_model.u.length              # -> "m" (for UnitSystem.si())
     """
+
+    model_config = ConfigDict(use_attribute_docstrings=True)
 
     # --- mechanical base dimensions ---
     length: str

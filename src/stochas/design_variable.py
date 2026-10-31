@@ -18,6 +18,7 @@ from stochas.unit_system import UnitDescriptor
 
 if TYPE_CHECKING:
     import optuna
+    from optuna.distributions import CategoricalChoiceType
 
     from stochas.unit_system import UnitSystem
 
@@ -34,6 +35,8 @@ logger = logging.getLogger(__name__)
 
 
 class OptimizationSuggestor(ABC, MetadataMixin):
+    """Interface for design values that can be searched by an optimizer. Subclasses translate themselves into optuna and pymoo variables and narrow their bounds when refined."""
+
     @abstractmethod
     def to_optuna(self, trial: optuna.Trial) -> Any:
         pass
@@ -72,7 +75,7 @@ class DesignCategorical[T](NamedValue[T], OptimizationSuggestor):
     def to_optuna(self, trial: optuna.Trial):
         return trial.suggest_categorical(
             name=self.name,
-            choices=self.choices,  # type: ignore
+            choices=cast("Sequence[CategoricalChoiceType]", self.choices),
         )
 
     def to_pymoo(self) -> Choice:
@@ -100,7 +103,7 @@ class DesignFloat(NamedValue[float], OptimizationSuggestor):
     log: bool = False
     """Use support for log-scale search (useful for learning rates or stiffness)."""
 
-    step: float | None = None
+    step: float | None = Field(default=None, gt=0)
     """Discretize the search space (e.g., step=0.5)."""
 
     @model_validator(mode="after")
@@ -111,10 +114,6 @@ class DesignFloat(NamedValue[float], OptimizationSuggestor):
             raise ValueError(msg)
         if self.log and self.low <= 0:
             msg = f"DesignFloat '{self.name}': low must be greater than 0 when log=True"
-            logger.error(msg)
-            raise ValueError(msg)
-        if self.step is not None and self.step <= 0:
-            msg = f"DesignFloat '{self.name}': step must be greater than 0"
             logger.error(msg)
             raise ValueError(msg)
         return self
@@ -155,7 +154,7 @@ class DesignInt(NamedValue[int], OptimizationSuggestor):
     high: int
     """Upper bound (inclusive)."""
 
-    step: int = 1
+    step: int = Field(default=1, gt=0)
     """Spacing between values."""
 
     log: bool = False
@@ -169,10 +168,6 @@ class DesignInt(NamedValue[int], OptimizationSuggestor):
             raise ValueError(msg)
         if self.log and self.low <= 0:
             msg = f"DesignInt '{self.name}': low must be greater than 0 when log=True"
-            logger.error(msg)
-            raise ValueError(msg)
-        if self.step <= 0:
-            msg = f"DesignInt '{self.name}': step must be greater than 0"
             logger.error(msg)
             raise ValueError(msg)
         return self
@@ -201,7 +196,7 @@ class DesignInt(NamedValue[int], OptimizationSuggestor):
 
 
 AnyDesignValue = Annotated[
-    DesignFloat | DesignCategorical | DesignInt | DesignBool,
+    DesignFloat | DesignCategorical[Any] | DesignInt | DesignBool,
     Field(discriminator="type"),
 ]
 

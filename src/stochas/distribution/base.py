@@ -13,6 +13,7 @@ from typing import (
     Literal,
     NewType,
     Self,
+    cast,
 )
 
 import numpy as np
@@ -38,13 +39,13 @@ if TYPE_CHECKING:
     # below, so pydantic validation/serialization is unaffected.
     type NDArray[TShape, TDType] = np.ndarray
 
-    from scipy.stats._distn_infrastructure import (  # pyright: ignore[reportMissingModuleSource]
+    from scipy.stats._distn_infrastructure import (
         rv_continuous_frozen,
         rv_discrete_frozen,
     )
     from scipy.stats.distributions import rv_discrete
 
-    from stochas.distribution import DistributionDict
+    from stochas.distribution import AnyDist, DistributionDict
     from stochas.named_value import NamedValueDict
 else:
     rv_continuous_frozen = Any
@@ -68,6 +69,8 @@ _INVALID_CATEGORY_CHARS: frozenset[str] = frozenset(r'\/:*?"<>|' + "\x00")
 
 
 class DistType(StrEnum):
+    """Enumeration used for discriminated union of distribution types."""
+
     NORMAL = "normal"
     """Normal distribution."""
 
@@ -178,6 +181,8 @@ SerializableUndefined = Annotated[
 
 
 class Distribution[T](ABC, MetadataMixin):
+    """Base class for stochas distributions."""
+
     model_config = ConfigDict(arbitrary_types_allowed=False)
 
     name: DistName
@@ -188,12 +193,11 @@ class Distribution[T](ABC, MetadataMixin):
 
     Leave as None or omit to use a random seed. If the seed is not None, the specified seed will be salted with the name and trial_num attributes to add randomness. This allows you to use the same seed for multiple distributions while also being able to simply serialize and deserialize the distribution. See the `validate_seed` validator method for how the seed is hashed.
 
-    Note:
-        | Salt        | Functional Purpose       | Description                                                                                                                                                                           |
-        |:------------|:-------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-        | `seed`      | **Campaign Entropy**     | Controls the broad "global" cycle. Change this to generate a completely new set of results for the same analysis (e.g., using a date-based seed for a daily batch).                   |
-        | `name`      | **Parameter Decoupling** | Ensures unique draws for different parameters. Without this, two distributions with the same config (e.g., an `x` and `y` center of gravity) would produce identical, coupled values. |
-        | `trial_num` | **Iteration Variance**   | Provides a unique draw for each Monte Carlo trial. This ensures that every individual simulation trial receives a unique value from the dispersion.                                   |
+    | Salt        | Functional Purpose       | Description                                                                                                                                                                           |
+    | :---------- | :----------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+    | `seed`      | **Campaign Entropy**     | Controls the broad "global" cycle. Change this to generate a completely new set of results for the same analysis (e.g., using a date-based seed for a daily batch).                   |
+    | `name`      | **Parameter Decoupling** | Ensures unique draws for different parameters. Without this, two distributions with the same config (e.g., an `x` and `y` center of gravity) would produce identical, coupled values. |
+    | `trial_num` | **Iteration Variance**   | Provides a unique draw for each Monte Carlo trial. This ensures that every individual simulation trial receives a unique value from the dispersion.                                   |
 
     Clear as mud?
     """
@@ -337,7 +341,8 @@ class Distribution[T](ABC, MetadataMixin):
                 else None
             )
         concrete_type = samples.dtype.type().item().__class__
-        return NamedValue[NDArray[Any, concrete_type]](
+        # the dtype is only known after sampling, so the runtime NDArray is parameterized dynamically
+        return NamedValue[NDArray[Any, concrete_type]](  # ty: ignore[invalid-type-form]
             name=ValueName(self.name),
             stored_value=samples,
             **metadata,
@@ -346,7 +351,7 @@ class Distribution[T](ABC, MetadataMixin):
     def sample_and_update_dicts(
         self,
         dist_dict: DistributionDict,
-        named_value_dict: NamedValueDict,
+        named_value_dict: NamedValueDict[Any],
         size: int = 1,
         force: bool = False,
         warn: bool = True,
@@ -361,10 +366,12 @@ class Distribution[T](ABC, MetadataMixin):
 
         nv = self.sample_to_named_value(size=size)
 
+        # every concrete distribution is a member of the AnyDist union
+        dist = cast("AnyDist", self)
         if self.name not in dist_dict:
-            dist_dict.update(self)  # pyright: ignore[reportArgumentType]
+            dist_dict.update(dist)
         elif force:
-            dist_dict.force_update(self)  # pyright: ignore[reportArgumentType]
+            dist_dict.force_update(dist)
 
         if force:
             named_value_dict.force_update(nv, warn=warn)

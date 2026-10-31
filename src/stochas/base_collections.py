@@ -20,6 +20,8 @@ __all__ = ["BaseDict", "BaseList"]
 
 
 class BaseDict[T](RootModel[dict[str, T]]):
+    """Dictionary-like pydantic model keyed by each value's `name`. Keys must match the value's name and cannot be registered twice unless forced."""
+
     root: dict[str, T] = Field(default_factory=dict)
 
     def __reduce__(self):
@@ -42,7 +44,7 @@ class BaseDict[T](RootModel[dict[str, T]]):
             raise ValueError(msg)
         self.update(value)
 
-    def __iter__(self) -> Iterator[str]:  # pyright: ignore[reportIncompatibleMethodOverride]
+    def __iter__(self) -> Iterator[str]:  # ty: ignore[invalid-method-override]
         """Create an iterable object."""
         return self.root.__iter__()
 
@@ -136,6 +138,8 @@ class BaseDict[T](RootModel[dict[str, T]]):
 
 
 class BaseList[T](RootModel[list[T]]):
+    """List-like pydantic model that supports iteration, indexing, and conversion to a NumPy array."""
+
     root: list[T] = Field(default_factory=list)
 
     def __reduce__(self):
@@ -148,7 +152,7 @@ class BaseList[T](RootModel[list[T]]):
         """Returns the number of elements in the list."""
         return self.root.__len__()
 
-    def __iter__(self) -> Iterator[T]:  # pyright: ignore[reportIncompatibleMethodOverride]
+    def __iter__(self) -> Iterator[T]:  # ty: ignore[invalid-method-override]
         """Create an iterable object."""
         return self.root.__iter__()
 

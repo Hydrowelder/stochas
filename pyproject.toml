@@ -30,6 +30,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 authors = [{ name = "David Gable", email = "dave.a.gable@gmail.com" }]
 maintainers = [{ name = "David Gable", email = "dave.a.gable@gmail.com" }]
@@ -46,6 +47,9 @@ packages = ["src/stochas"]
 [tool.ruff]
 exclude = ["typings", "scripts/templating/sensor_template.py"]
 
+[tool.ruff.format]
+exclude = ["*.md"]
+
 [tool.ruff.lint]
 select = ["D", "RUF", "E", "F", "W", "UP"] # some suggest using "ALL"
 
@@ -61,12 +65,10 @@ ignore = [
 
     # specific rules
     # "D100",   # ignore missing docs
-    "D101",
     "D102",
     "D103",
     "D104",
     "D105",
-    "D106",
     "D107",
     "D200",
     "D203",
@@ -90,6 +92,19 @@ venvPath = ".."
 venv = ".venv"
 ignore = ["typings"]
 
+
+[tool.ty.environment]
+python = "../.venv"
+
+[tool.ty.src]
+exclude = ["typings", "scripts/templating/sensor_template.py"]
+
+[tool.ty.rules]
+dynamic-function-decorator-return = "error"
+missing-type-argument = "error"
+possibly-unresolved-reference = "warn"
+unsound-return-statement = "error"
+
 [tool.coverage.report]
 exclude_also = ["if __name__ == .__main__.:", "@(abc\\.)?abstractmethod"]
 
@@ -107,6 +122,7 @@ dev = [
     "ruff>=0.15.17",
     "scipy-stubs[scipy]>=1.17.0.2",
     "tabulate>=0.10.0",
+    "ty>=0.0.95",
     "zensical>=0.0.67",
 ]
 

@@ -6,7 +6,7 @@ import csv
 import io
 from collections import defaultdict
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING, Annotated, Any
 
 from pydantic import Field
 
@@ -16,7 +16,7 @@ from stochas.unit_system import UnitDescriptor
 if TYPE_CHECKING:
     from stochas.unit_system import UnitSystem
 
-from stochas.distribution._base import (
+from stochas.distribution.base import (
     _INVALID_CATEGORY_CHARS,
     DISCRETE_MSG,
     NOMINAL_TRIAL_NUM,
@@ -31,7 +31,7 @@ from stochas.distribution._base import (
     logger,
     validate_undefined,
 )
-from stochas.distribution._continuous import (
+from stochas.distribution.continuous import (
     BetaDistribution,
     CauchyDistribution,
     ChiSquaredDistribution,
@@ -50,7 +50,7 @@ from stochas.distribution._continuous import (
     UniformDistribution,
     WeibullDistribution,
 )
-from stochas.distribution._discrete import (
+from stochas.distribution.discrete import (
     BernoulliDistribution,
     BetaBinomialDistribution,
     BinomialDistribution,
@@ -111,8 +111,8 @@ __all__ = [
 ]
 
 AnyDiscreteDist = Annotated[
-    CategoricalDistribution
-    | PermutationDistribution
+    CategoricalDistribution[Any]
+    | PermutationDistribution[Any]
     | DiscreteUniformDistribution
     | PoissonDistribution
     | BernoulliDistribution
@@ -149,6 +149,7 @@ AnyDist = Annotated[
     AnyDiscreteDist | AnyContinuousDist,
     Field(discriminator="dist_type"),
 ]
+"""Any stochas distribution"""
 
 
 class DistributionDict(BaseDict[AnyDist]):

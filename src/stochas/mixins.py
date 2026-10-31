@@ -4,10 +4,10 @@ Defines numeric mixins so that classes with a value attribute can act like a num
 
 from __future__ import annotations
 
-from typing import Any, Protocol, Self, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from stochas.unit_system import UnitDescriptor
 
@@ -39,11 +39,11 @@ class NumericMixin:
     # These allow you to call NamedValue.shape just like a real array
     @property
     def shape(self: HasValue) -> tuple[int, ...]:
-        return self.value.shape
+        return tuple(int(n) for n in self.value.shape)
 
     @property
     def ndim(self: HasValue) -> int:
-        return self.value.ndim
+        return int(self.value.ndim)
 
     @property
     def dtype(self: HasValue) -> Any:
@@ -51,9 +51,9 @@ class NumericMixin:
 
     @property
     def size(self: HasValue) -> int:
-        return self.value.size
+        return int(self.value.size)
 
-    def squeeze(self: HasValue, axis: int | tuple[int, ...] | None = None) -> Self:  # pyright: ignore[reportGeneralTypeIssues]
+    def squeeze[S: HasValue](self: S, axis: int | tuple[int, ...] | None = None) -> S:
         """
         Removes axes of length one from the underlying array.
         """
@@ -63,7 +63,7 @@ class NumericMixin:
         # 2. Update the underlying container, bypassing any "frozen" state checks
         self.force_set_value(squeezed_data, warn=False)
 
-        return self  # pyright: ignore[reportReturnType]
+        return self
 
     # --- Type Casting ---
     def __int__(self: HasValue) -> int:
@@ -146,6 +146,8 @@ class MetadataMixin(BaseModel):
 
     Inherits from BaseModel (rather than being a plain mixin) so that pyright's pydantic `__init__` synthesis recognizes these fields as constructor kwargs on classes that mix this in; a plain mixin's annotations are visible as attributes but are not picked up as constructor parameters.
     """
+
+    model_config = ConfigDict(use_attribute_docstrings=True)
 
     category: str = "uncategorized"
     """Category for value. In distributions this is used to set the table folder this distribution will be written to."""

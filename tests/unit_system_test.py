@@ -411,6 +411,37 @@ def test_unit_system_base_unit_for_acceleration() -> None:
     assert str(result) == "m / s ** 2"
 
 
+def test_unit_system_base_unit_for_unparseable_returns_none() -> None:
+    """base_unit_for on a string pint cannot parse returns None instead of raising."""
+    us = UnitSystem.si()
+    assert us.base_unit_for("not_a_real_unit") is None
+
+
+def test_unit_system_base_unit_for_unconfigured_dimension_returns_none() -> None:
+    """base_unit_for returns None when the unit's dimension has no configured base unit."""
+    us = UnitSystem(length="m", mass="kg")
+    assert us.base_unit_for("degC") is None
+
+
+@pytest.mark.parametrize(
+    ("unit_name", "expected"),
+    [
+        ("inch ** 2", "m ** 2"),
+        ("inch ** 3", "m ** 3"),
+        ("inch ** 0.5", "m ** 0.5"),
+        ("hertz", "1 / s"),
+    ],
+)
+def test_unit_system_base_unit_for_powers_and_reciprocals(
+    unit_name: str, expected: str
+) -> None:
+    """base_unit_for renders positive powers (integer or fractional) and pure reciprocals of the base units."""
+    result = UnitSystem.si().base_unit_for(unit_name)
+    assert result is not None
+    assert str(result) == expected
+    assert float(result) == pytest.approx(1.0)
+
+
 def test_unit_descriptor_pow_offset_unit_raises() -> None:
     """Raising an offset unit (degF) to a power other than 0 or 1 raises ValueError."""
     us = UnitSystem.si()

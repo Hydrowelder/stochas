@@ -140,6 +140,19 @@ def test_sample_and_update_dicts_force_overwrites_and_warns(caplog):
     assert "already exists in named_value_list" in caplog.text
 
 
+def test_sample_and_update_dicts_keeps_already_registered_distribution():
+    """Ensure a distribution that is registered but has no NamedValue yet is sampled without being registered again."""
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1, seed=42, trial_num=1)
+    dist_dict = DistributionDict()
+    dist_dict.update(dist)
+    named_dict = NamedValueDict()
+
+    nv = dist.sample_and_update_dicts(dist_dict=dist_dict, named_value_dict=named_dict)
+
+    assert named_dict["x"] is nv
+    assert dist_dict["x"] is dist
+
+
 def test_distribution_dict_helpers():
     """Verify DistributionDict's conversion and trial-number propagation."""
     dist_dict = DistributionDict()
@@ -166,6 +179,45 @@ def test_distribution_list_helpers():
 
     dist_list.set_trial_nums(2)
     assert dist_list[0].trial_num == 2
+
+
+def test_distribution_dict_set_trial_nums_handles_dists_already_on_the_trial():
+    """Ensure set_trial_nums brings every distribution to the trial number, including ones already there."""
+    dist_dict = DistributionDict()
+    dist_dict.update(NormalDistribution(name=DistName("a"), mu=0, sigma=1, trial_num=3))
+    dist_dict.update(NormalDistribution(name=DistName("b"), mu=0, sigma=1))
+
+    dist_dict.set_trial_nums(3)
+
+    assert [d.trial_num for d in dist_dict.values()] == [3, 3]
+
+
+def test_distribution_list_set_trial_nums_handles_dists_already_on_the_trial():
+    """Ensure set_trial_nums brings every distribution to the trial number, including ones already there."""
+    dist_list = DistributionList()
+    dist_list.append(NormalDistribution(name=DistName("a"), mu=0, sigma=1, trial_num=3))
+    dist_list.append(NormalDistribution(name=DistName("b"), mu=0, sigma=1))
+
+    dist_list.set_trial_nums(3)
+
+    assert [d.trial_num for d in dist_list] == [3, 3]
+
+
+def test_distribution_dict_update_unit_system_skips_dists_without_units():
+    """Ensure update_unit_system re-resolves distributions that have a unit and leaves unitless ones alone."""
+    si = UnitSystem.si()
+    dist_dict = DistributionDict()
+    dist_dict.update(
+        NormalDistribution(name=DistName("a"), mu=0, sigma=1, unit=si.inch)
+    )
+    dist_dict.update(NormalDistribution(name=DistName("b"), mu=0, sigma=1))
+
+    dist_dict.update_unit_system(UnitSystem.fps())
+
+    unit = dist_dict["a"].unit
+    assert unit is not None
+    assert unit.scale == pytest.approx(1 / 12)
+    assert dist_dict["b"].unit is None
 
 
 @pytest.mark.parametrize(

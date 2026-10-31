@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Literal, Self, cast
 import numpy as np
 from pydantic import Field, model_validator
 
-from stochas.distribution._base import (
+from stochas.distribution.base import (
     UNDEFINED,
     DiscreteDistribution,
     DistType,
@@ -18,7 +18,7 @@ from stochas.distribution._base import (
 )
 
 if TYPE_CHECKING:
-    from scipy.stats._distn_infrastructure import (  # pyright: ignore[reportMissingModuleSource]
+    from scipy.stats._distn_infrastructure import (
         rv_discrete_frozen,
     )
     from scipy.stats.distributions import rv_discrete
@@ -185,7 +185,7 @@ class PermutationDistribution[T](DiscreteDistribution[T]):
     items: list[T]
     """The master list to be shuffled."""
 
-    nominal: list[T] | list[None] | SerializableUndefined = Field(default=UNDEFINED)  # pyright: ignore[reportIncompatibleVariableOverride]
+    nominal: list[T] | list[None] | SerializableUndefined = Field(default=UNDEFINED)  # ty: ignore[invalid-attribute-override]
 
     dist_type: Literal[DistType.PERMUTATION] = DistType.PERMUTATION
 
@@ -198,7 +198,8 @@ class PermutationDistribution[T](DiscreteDistribution[T]):
 
     def draw(self, size: int = 1) -> np.ndarray:
         """Returns a shuffled version of the items."""
-        return np.array([self.rng.permutation(self.items) for _ in range(size)])  # pyright: ignore[reportArgumentType, reportCallIssue]
+        items = np.asarray(self.items)
+        return np.array([self.rng.permutation(items) for _ in range(size)])
 
     def pmf(self, x: list[T] | np.ndarray) -> float:
         """Uniform probability of 1/n! if x is a valid permutation."""
@@ -289,18 +290,10 @@ class BernoulliDistribution(DiscreteDistribution[bool]):
 
     """
 
-    p: float
+    p: float = Field(ge=0, le=1)
     """Probability of success (0.0 to 1.0)."""
 
     dist_type: Literal[DistType.BERNOULLI] = DistType.BERNOULLI
-
-    @model_validator(mode="after")
-    def validate_probability(self) -> Self:
-        if not (0 <= self.p <= 1):
-            msg = f"Probability p must be between 0 and 1. Got {self.p}"
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_discrete_frozen:
         import scipy.stats as stats
@@ -347,25 +340,13 @@ class BinomialDistribution(DiscreteDistribution[int]):
 
     """
 
-    n: int
+    n: int = Field(ge=1)
     """Number of trials. Must be at least 1."""
 
-    p: float
+    p: float = Field(ge=0, le=1)
     """Probability of success on each trial (0.0 to 1.0)."""
 
     dist_type: Literal[DistType.BINOMIAL] = DistType.BINOMIAL
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.n < 1:
-            msg = f"Distribution {self.name}: n must be at least 1."
-            logger.error(msg)
-            raise ValueError(msg)
-        if not (0 <= self.p <= 1):
-            msg = f"Distribution {self.name}: p must be between 0 and 1. Got {self.p}"
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_discrete_frozen:
         import scipy.stats as stats
@@ -412,25 +393,13 @@ class NegativeBinomialDistribution(DiscreteDistribution[int]):
 
     """
 
-    r: int
+    r: int = Field(ge=1)
     """Number of successes required. Must be at least 1."""
 
-    p: float
+    p: float = Field(gt=0, le=1)
     """Probability of success on each trial (0 < p <= 1)."""
 
     dist_type: Literal[DistType.NEGATIVE_BINOMIAL] = DistType.NEGATIVE_BINOMIAL
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.r < 1:
-            msg = f"Distribution {self.name}: r must be at least 1."
-            logger.error(msg)
-            raise ValueError(msg)
-        if not (0 < self.p <= 1):
-            msg = f"Distribution {self.name}: p must be in (0, 1]. Got {self.p}"
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_discrete_frozen:
         import scipy.stats as stats
@@ -477,18 +446,10 @@ class GeometricDistribution(DiscreteDistribution[int]):
 
     """
 
-    p: float
+    p: float = Field(gt=0, le=1)
     """Probability of success on each trial (0 < p <= 1)."""
 
     dist_type: Literal[DistType.GEOMETRIC] = DistType.GEOMETRIC
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if not (0 < self.p <= 1):
-            msg = f"Distribution {self.name}: p must be in (0, 1]. Got {self.p}"
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_discrete_frozen:
         import scipy.stats as stats
@@ -535,28 +496,24 @@ class HypergeometricDistribution(DiscreteDistribution[int]):
 
     """
 
-    N: int
+    N: int = Field(ge=1)
     """Total population size. Must be at least 1."""
 
-    M: int
+    M: int = Field(ge=1)
     """Number of draws. Must satisfy 1 <= M <= N."""
 
-    K: int
+    K: int = Field(ge=0)
     """Number of success states in the population. Must satisfy 0 <= K <= N."""
 
     dist_type: Literal[DistType.HYPERGEOMETRIC] = DistType.HYPERGEOMETRIC
 
     @model_validator(mode="after")
     def validate_params(self) -> Self:
-        if self.N < 1:
-            msg = f"Distribution {self.name}: N (population size) must be at least 1."
-            logger.error(msg)
-            raise ValueError(msg)
-        if not (1 <= self.M <= self.N):
+        if self.M > self.N:
             msg = f"Distribution {self.name}: M (draws) must satisfy 1 <= M <= N."
             logger.error(msg)
             raise ValueError(msg)
-        if not (0 <= self.K <= self.N):
+        if self.K > self.N:
             msg = f"Distribution {self.name}: K (successes in population) must satisfy 0 <= K <= N."
             logger.error(msg)
             raise ValueError(msg)
@@ -609,32 +566,16 @@ class BetaBinomialDistribution(DiscreteDistribution[int]):
 
     """
 
-    n: int
+    n: int = Field(ge=1)
     """Number of trials. Must be at least 1."""
 
-    alpha: float
+    alpha: float = Field(gt=0)
     """First shape parameter of the Beta prior. Must be positive."""
 
-    beta: float
+    beta: float = Field(gt=0)
     """Second shape parameter of the Beta prior. Must be positive."""
 
     dist_type: Literal[DistType.BETA_BINOMIAL] = DistType.BETA_BINOMIAL
-
-    @model_validator(mode="after")
-    def validate_params(self) -> Self:
-        if self.n < 1:
-            msg = f"Distribution {self.name}: n must be at least 1."
-            logger.error(msg)
-            raise ValueError(msg)
-        if self.alpha <= 0:
-            msg = f"Distribution {self.name}: alpha must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        if self.beta <= 0:
-            msg = f"Distribution {self.name}: beta must be greater than 0."
-            logger.error(msg)
-            raise ValueError(msg)
-        return self
 
     def _build_scipy(self) -> rv_discrete_frozen:
         import scipy.stats as stats

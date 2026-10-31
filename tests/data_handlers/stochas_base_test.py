@@ -1,6 +1,7 @@
 """Tests for StochasBase."""
 
 import inspect
+import logging
 
 import numpy as np
 import pytest
@@ -55,6 +56,37 @@ def test_sample_dist_force_overwrites_named_value():
     assert sb.dists["x"] is dist
 
 
+@pytest.mark.parametrize("warn", [True, False])
+def test_sample_dist_returning_existing_value_logs_only_when_warn(caplog, warn):
+    """Ensure the already-registered warning is emitted only when warn=True."""
+    sb = StochasBase()
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1)
+    nv1 = sb.sample_dist(dist)
+    caplog.clear()
+
+    with caplog.at_level(logging.DEBUG):
+        nv2 = sb.sample_dist(dist, warn=warn)
+
+    assert nv2 is nv1
+    assert ("Returning it instead of the sampled value" in caplog.text) is warn
+
+
+@pytest.mark.parametrize("warn", [True, False])
+def test_sample_dist_force_logs_only_when_warn(caplog, warn):
+    """Ensure the force-setting warning is emitted only when warn=True."""
+    sb = StochasBase()
+    dist = NormalDistribution(name=DistName("x"), mu=0, sigma=1)
+    nv1 = sb.sample_dist(dist)
+    caplog.clear()
+
+    with caplog.at_level(logging.DEBUG):
+        nv2 = sb.sample_dist(dist, force=True, warn=warn)
+
+    assert nv2 is not nv1
+    assert sb.named["x"] is nv2
+    assert ("Force setting it to the new value" in caplog.text) is warn
+
+
 def test_sample_design_registers_value():
     """Ensure sample_design registers the design value and returns its stored value."""
     sb = StochasBase()
@@ -79,6 +111,22 @@ def test_sample_design_uses_existing_override():
 
     assert result == 3.5
     assert "q" not in sb.design or sb.design["q"] is dv
+
+
+@pytest.mark.parametrize("warn", [True, False])
+def test_sample_design_override_logs_only_when_warn(caplog, warn):
+    """Ensure the override notice is logged only when warn=True."""
+    sb = StochasBase()
+    sb.named.update(
+        NamedValue[np.ndarray](name=ValueName("q"), stored_value=np.array([3.5]))
+    )
+    dv = DesignFloat(name=ValueName("q"), low=0, high=10, stored_value=5.0)
+
+    with caplog.at_level(logging.DEBUG):
+        result = sb.sample_design(dv, warn=warn)
+
+    assert result == 3.5
+    assert ("Using override for design variable" in caplog.text) is warn
 
 
 def test_with_overrides_and_with_override():
@@ -270,6 +318,19 @@ def test_transaction_success_on_first_attempt_commits_and_stops():
     assert attempt_numbers == [1]
     assert "x" in sb.dists
     assert "x" in sb.named
+
+
+def test_transaction_attempt_base_is_the_model_being_retried():
+    """Ensure `attempt.base` is the `StochasBase` the transaction was started on."""
+    sb = StochasBase()
+    seen: list[StochasBase] = []
+
+    for attempt in sb.transaction(retry_on=(ValueError,), max_retries=10):
+        with attempt:
+            seen.append(attempt.base)
+
+    assert len(seen) == 1
+    assert seen[0] is sb
 
 
 def test_transaction_retries_and_rolls_back_failed_attempt():
