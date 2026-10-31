@@ -21,40 +21,40 @@ hide:
 
 <p align="center">
   <a href="https://pypi.org/project/stochas" class="badge-link" style="text-decoration:none;">
-    <img src="https://img.shields.io/pypi/v/stochas.svg?cacheSeconds=300" alt="PyPI version">
+    <img class="off-glb" src="https://img.shields.io/pypi/v/stochas.svg?cacheSeconds=300" alt="PyPI version">
   </a>
   <a href="https://pypi.org/project/stochas" class="badge-link" style="text-decoration:none;">
-    <img src="https://img.shields.io/pypi/pyversions/stochas.svg?cacheSeconds=86400" alt="Python versions">
+    <img class="off-glb" src="https://img.shields.io/pypi/pyversions/stochas.svg?cacheSeconds=86400" alt="Python versions">
   </a>
   <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml" class="badge-link" style="text-decoration:none;">
-    <img src="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml/badge.svg?branch=main" alt="Tests & Release Status">
+    <img class="off-glb" src="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml/badge.svg?branch=main" alt="Tests & Release Status">
   </a>
   <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml" class="badge-link" style="text-decoration:none;">
-    <img src="assets/coverage-badge.svg" alt="Coverage">
+    <img class="off-glb" src="assets/coverage-badge.svg" alt="Coverage">
   </a>
   <a href="https://github.com/astral-sh/uv" class="badge-link" style="text-decoration:none;">
-    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json" alt="uv">
+    <img class="off-glb" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json" alt="uv">
   </a>
   <a href="https://github.com/astral-sh/ruff" class="badge-link" style="text-decoration:none;">
-    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff">
+    <img class="off-glb" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff">
   </a>
   <a href="https://github.com/astral-sh/ty" class="badge-link" style="text-decoration:none;">
-    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ty/main/assets/badge/v0.json" alt="ty">
+    <img class="off-glb" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ty/main/assets/badge/v0.json" alt="ty">
   </a>
   <a href="https://docs.pydantic.dev/latest" class="badge-link" style="text-decoration:none;">
-    <img src="https://img.shields.io/badge/Pydantic-v2-FF43A1?logo=pydantic&logoColor=white" alt="Pydantic v2">
+    <img class="off-glb" src="https://img.shields.io/badge/Pydantic-v2-FF43A1?logo=pydantic&logoColor=white" alt="Pydantic v2">
   </a>
   <a href="https://opensource.org/licenses/Apache-2.0" class="badge-link" style="text-decoration:none;">
-    <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License">
+    <img class="off-glb" src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License">
   </a>
   <a href="https://hydrowelder.github.io/stochas" class="badge-link" style="text-decoration:none;">
-    <img src="https://img.shields.io/badge/docs-GitHub_Pages-blue.svg" alt="Documentation">
+    <img class="off-glb" src="https://img.shields.io/badge/docs-GitHub_Pages-blue.svg" alt="Documentation">
   </a>
   <a href="https://github.com/Hydrowelder/stochas/discussions" class="badge-link" style="text-decoration:none;">
-    <img src="https://img.shields.io/badge/discussions-GitHub-blue?logo=github&logoColor=white" alt="GitHub Discussions">
+    <img class="off-glb" src="https://img.shields.io/badge/discussions-GitHub-blue?logo=github&logoColor=white" alt="GitHub Discussions">
   </a>
   <a href="https://pepy.tech/projects/stochas" class="badge-link" style="text-decoration:none;">
-    <img src="https://static.pepy.tech/personalized-badge/stochas?period=monthly&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads%2Fmonth" alt="PyPI Downloads">
+    <img class="off-glb" src="https://static.pepy.tech/personalized-badge/stochas?period=monthly&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads%2Fmonth" alt="PyPI Downloads">
   </a>
 </p>
 

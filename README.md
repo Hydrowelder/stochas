@@ -5,42 +5,18 @@
 # stochas: Smart Data Orchestration
 
 <p align="center">
-  <a href="https://pypi.org/project/stochas" style="text-decoration:none;">
-    <img src="https://img.shields.io/pypi/v/stochas.svg?cacheSeconds=300" alt="PyPI version">
-  </a>
-  <a href="https://pypi.org/project/stochas">
-    <img src="https://img.shields.io/pypi/pyversions/stochas.svg?cacheSeconds=86400" alt="Python versions">
-  </a>
-  <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml" style="text-decoration:none;">
-    <img src="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml/badge.svg?branch=main" alt="Tests & Release Status">
-  </a>
-  <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml" style="text-decoration:none;">
-    <img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/coverage-badge.svg" alt="Coverage">
-  </a>
-  <a href="https://github.com/astral-sh/uv" style="text-decoration:none;">
-    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json" alt="uv">
-  </a>
-  <a href="https://github.com/astral-sh/ruff" style="text-decoration:none;">
-    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff">
-  </a>
-  <a href="https://github.com/astral-sh/ty" style="text-decoration:none;">
-    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ty/main/assets/badge/v0.json" alt="ty">
-  </a>
-  <a href="https://docs.pydantic.dev/latest" style="text-decoration:none;">
-    <img src="https://img.shields.io/badge/Pydantic-v2-FF43A1?logo=pydantic&logoColor=white" alt="Pydantic v2">
-  </a>
-  <a href="https://opensource.org/licenses/Apache-2.0" style="text-decoration:none;">
-    <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License">
-  </a>
-  <a href="https://hydrowelder.github.io/stochas" style="text-decoration:none;">
-    <img src="https://img.shields.io/badge/docs-GitHub_Pages-blue.svg" alt="Documentation">
-  </a>
-  <a href="https://github.com/Hydrowelder/stochas/discussions" style="text-decoration:none;">
-    <img src="https://img.shields.io/badge/discussions-GitHub-blue?logo=github&logoColor=white" alt="GitHub Discussions">
-  </a>
-  <a href="https://pepy.tech/projects/stochas" style="text-decoration:none;">
-    <img src="https://static.pepy.tech/personalized-badge/stochas?period=monthly&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads%2Fmonth" alt="PyPI Downloads">
-  </a>
+  <a href="https://pypi.org/project/stochas"><img src="https://img.shields.io/pypi/v/stochas.svg?cacheSeconds=300" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/stochas"><img src="https://img.shields.io/pypi/pyversions/stochas.svg?cacheSeconds=86400" alt="Python versions"></a>
+  <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml"><img src="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml/badge.svg?branch=main" alt="Tests & Release Status"></a>
+  <a href="https://github.com/Hydrowelder/stochas/actions/workflows/workflow.yml"><img src="https://raw.githubusercontent.com/Hydrowelder/stochas/refs/heads/main/docs/assets/coverage-badge.svg" alt="Coverage"></a>
+  <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json" alt="uv"></a>
+  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
+  <a href="https://github.com/astral-sh/ty"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ty/main/assets/badge/v0.json" alt="ty"></a>
+  <a href="https://docs.pydantic.dev/latest"><img src="https://img.shields.io/badge/Pydantic-v2-FF43A1?logo=pydantic&logoColor=white" alt="Pydantic v2"></a>
+  <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
+  <a href="https://hydrowelder.github.io/stochas"><img src="https://img.shields.io/badge/docs-GitHub_Pages-blue.svg" alt="Documentation"></a>
+  <a href="https://github.com/Hydrowelder/stochas/discussions"><img src="https://img.shields.io/badge/discussions-GitHub-blue?logo=github&logoColor=white" alt="GitHub Discussions"></a>
+  <a href="https://pepy.tech/projects/stochas"><img src="https://static.pepy.tech/personalized-badge/stochas?period=monthly&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads%2Fmonth" alt="PyPI Downloads"></a>
 </p>
 
 `stochas` is a Python framework built to handle the complexity of **Monte Carlo simulations**, **parametric studies**, and **probabilistic modeling**.
