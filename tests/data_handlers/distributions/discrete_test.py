@@ -1,5 +1,7 @@
 """Tests for discrete distributions."""
 
+import warnings
+
 import numpy as np
 import pytest
 
@@ -500,6 +502,27 @@ def test_beta_binomial_validation():
 )
 def test_discrete_table_params(dist, expected):
     assert dist.table_params == expected
+
+
+def test_a_dict_holding_parametrized_generic_dists_dumps_without_a_serializer_warning():
+    """`CategoricalDistribution[str]` is not a subclass of the `[Any]` the dict is typed with, which made pydantic warn on every dump."""
+    dists = DistributionDict()
+    dists["color"] = CategoricalDistribution[str](
+        name=DistName("color"), choices={"red": 0.5, "blue": 0.5}
+    )
+    dists["order"] = PermutationDistribution[str](
+        name=DistName("order"), items=["a", "b", "c"]
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        dumped = dists.model_dump_json()
+
+    # the dist's own fields are written, not just those of the `[Any]` class
+    assert '"choices":{"red":0.5,"blue":0.5}' in dumped
+    assert '"items":["a","b","c"]' in dumped
+    again = DistributionDict.model_validate_json(dumped)
+    assert list(again) == ["color", "order"]
 
 
 if __name__ == "__main__":

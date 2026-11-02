@@ -8,7 +8,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any
 
-from pydantic import Field
+from pydantic import Field, SerializeAsAny
 
 from stochas.base_collections import BaseDict, BaseList
 from stochas.unit_system import UnitDescriptor
@@ -110,9 +110,11 @@ __all__ = [
     "validate_undefined",
 ]
 
+# `CategoricalDistribution[str]` is not a subclass of `CategoricalDistribution[Any]`, so without `SerializeAsAny` pydantic warns that
+# the value is not what the field expects every time a dict holding one is dumped. It still has to be written with its own fields
 AnyDiscreteDist = Annotated[
-    CategoricalDistribution[Any]
-    | PermutationDistribution[Any]
+    SerializeAsAny[CategoricalDistribution[Any]]
+    | SerializeAsAny[PermutationDistribution[Any]]
     | DiscreteUniformDistribution
     | PoissonDistribution
     | BernoulliDistribution
