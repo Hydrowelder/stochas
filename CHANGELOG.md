@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased Version
+
+- Fixed the Pydantic serializer warning when dumping categorical and permutation distributions inside a discrete distribution
+    - `CategoricalDistribution[str]` is not a subclass of `CategoricalDistribution[Any]`, so without `SerializeAsAny` pydantic warns that the value is not what the field expects every time a dict holding one is dumped. It still has to be written with its own fields
+
 ## Version 2.3.0 (2026-10-31)
 
 - Added support for Python 3.15
